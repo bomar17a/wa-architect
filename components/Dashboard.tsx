@@ -46,7 +46,7 @@ import { parseResume } from '../services/geminiService.ts';
 
 // --- Main Dashboard Component ---
 
-export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onDeleteActivity }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onDeleteActivity, onImportActivities }) => {
     const { signOut } = useAuth();
     const {
         activeTab,
@@ -235,6 +235,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="bg-white pl-10 pr-4 py-2.5 rounded-xl text-sm border border-slate-100 focus:ring-2 focus:ring-brand-teal/20 outline-none w-64 shadow-sm text-slate-600 placeholder:text-slate-300"
+                                        />
+                                    </div>
+                                    <div className="w-48 hidden lg:block">
+                                        <ResumeUploader
+                                            onTextExtracted={handleResumeTextExtracted}
+                                            isProcessing={isResumeProcessing}
                                         />
                                     </div>
                                 </div>
