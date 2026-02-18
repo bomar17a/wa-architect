@@ -78,3 +78,21 @@ export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalys
     };
   }
 };
+
+export const parseResume = async (text: string): Promise<Activity[]> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('gemini-ai', {
+      body: {
+        action: 'parse-resume',
+        payload: { text }
+      }
+    });
+
+    if (error) throw error;
+    // Ensure we return an array, defaulting to empty if response is weird
+    return (data as any).activities || [];
+  } catch (error) {
+    console.error("Error parsing resume:", error);
+    return [];
+  }
+};

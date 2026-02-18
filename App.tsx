@@ -218,6 +218,22 @@ const AppContent: React.FC = () => {
             onAppTypeChange={setAppType}
             onToggleMME={handleToggleMME}
             onDeleteActivity={handleDeleteActivity}
+            onImportActivities={(newActivities) => {
+              // Add imported activities to state and save them
+              const activitiesToSave = newActivities.map(a => ({
+                ...a,
+                // Ensure ID is unique if mostly temp
+                id: Date.now() + Math.random(),
+                status: ActivityStatus.DRAFT
+              }));
+
+              setActivities(prev => [...prev, ...activitiesToSave]);
+
+              // Persist each one (parallel or sequential)
+              activitiesToSave.forEach(activity => {
+                activityService.saveActivity(activity).catch(console.error);
+              });
+            }}
           />
         ) : (
           selectedActivity && (

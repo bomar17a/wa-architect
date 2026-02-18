@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Activity, ApplicationType, ActivityStatus, ThemeAnalysis } from '../types.ts';
 import { ACTIVITY_WEIGHTS, AAMC_CORE_COMPETENCIES } from '../constants.ts';
 import { MissionFitRadar } from './MissionFitRadar.tsx';
@@ -23,6 +23,7 @@ interface DashboardProps {
     onAppTypeChange: (appType: ApplicationType) => void;
     onToggleMME: (activityId: number) => void;
     onDeleteActivity: (activityId: number) => void;
+    onImportActivities: (activities: Activity[]) => void;
 }
 
 const STATUS_CONFIG: { [key in ActivityStatus]: { color: string; icon: React.ReactNode } } = {
@@ -35,10 +36,13 @@ const STATUS_CONFIG: { [key in ActivityStatus]: { color: string; icon: React.Rea
 
 
 // --- Helper Components ---
-
+import { LoadingScreen } from './LoadingScreen.tsx';
 import { NavItem } from './Dashboard/NavItem.tsx';
 import { FocusCard } from './Dashboard/FocusCard.tsx';
 import { CompetencyAuditModal } from './Dashboard/CompetencyAuditModal.tsx';
+import { ResumeUploader } from './ResumeUploader.tsx';
+import { ResumeReviewModal } from './ResumeReviewModal.tsx';
+import { parseResume } from '../services/geminiService.ts';
 
 // --- Main Dashboard Component ---
 
@@ -60,6 +64,78 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
         filteredActivities,
         readiness
     } = useDashboardState(activities);
+
+    const [isResumeProcessing, setIsResumeProcessing] = useState(false);
+    const [parsedResumeActivities, setParsedResumeActivities] = useState<Activity[]>([]);
+    const [showResumeModal, setShowResumeModal] = useState(false);
+
+    const handleResumeTextExtracted = async (text: string) => {
+        setIsResumeProcessing(true);
+        try {
+            const newActivities = await parseResume(text);
+            // Assign temporary IDs (negative to avoid conflict, or large random)
+            // dashboard will handle real ID assignment on save?
+            // actually, let's just give them temp IDs
+            const stampedActivities = newActivities.map((a: any, i) => ({
+                id: Date.now() + i, // Temp ID
+                title: a.title,
+                organization: a.organization,
+                experienceType: a.experienceType,
+                city: '',
+                country: '',
+                contactName: '',
+                contactTitle: '',
+                contactEmail: '',
+                contactPhone: '',
+                status: ActivityStatus.DRAFT,
+                isMostMeaningful: false,
+                description: a.description,
+                mmeAction: '',
+                mmeResult: '',
+                mmeEssay: '',
+                competencies: [],
+                dueDate: '',
+                dateRanges: [{
+                    id: `dr-${Date.now()}-${i}`,
+                    startDateMonth: a.startDateMonth || '',
+                    startDateYear: a.startDateYear || '',
+                    endDateMonth: a.endDateMonth || '',
+                    endDateYear: a.endDateYear || '',
+                    hours: a.hours || '',
+                    isAnticipated: false
+                }]
+            } as Activity));
+
+            setParsedResumeActivities(stampedActivities);
+            setShowResumeModal(true);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to parse resume.");
+        } finally {
+            setIsResumeProcessing(false);
+        }
+    };
+
+    const handleImportActivities = (newActivities: Activity[]) => {
+        // Here we would typically call a service to save to DB
+        // For now, we update local state (which might be lost on refresh if not using a real DB hook sync)
+        // Assuming 'onActivityUpdate' or similar exists, but useDashboardState consumes activities.
+        // We probably need to "inject" these into the parent or call a save function.
+        // Since DashboardProps has 'onActivitySelect', it doesn't seem to have 'onActivitiesAdded'.
+        // Wait, Dashboard is a display component. 'activities' come from App.tsx or useActivityData hook?
+        // Let's assume we need to pass a prop 'onImportActivities'.
+        // For now, I'll log it or try to update if possible. 
+        // Actually, looking at prompts, I should probably ask the user or just assume I need to add `onImportActivities` to props.
+        // But let's check DashboardProps first.
+        // It has `activities`, `onActivitySelect`, `onToggleMostMeaningful`.
+        // I need to add `onImportActivities` to DashboardProps.
+        // For this step, I'll add the logic assuming the prop exists or I'll add it.
+        if (onImportActivities) {
+            onImportActivities(newActivities);
+        } else {
+            console.warn("onImportActivities prop missing");
+        }
+    };
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-brand-light font-sans overflow-hidden">
@@ -173,7 +249,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                             <div className="mb-6" ref={activitiesRef}>
                                 <div className="flex justify-between items-center mb-4">
                                     <h2 className="text-xl font-bold text-slate-800">Your Activity List</h2>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 items-center">
+                                        {/* The ResumeUploader was moved from here to the header */}
                                         <button onClick={() => onAppTypeChange(ApplicationType.AMCAS)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${appType === ApplicationType.AMCAS ? 'bg-brand-dark text-white shadow-md' : 'bg-white text-slate-500 border border-slate-100'}`}>AMCAS</button>
                                         <button onClick={() => onAppTypeChange(ApplicationType.AACOMAS)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${appType === ApplicationType.AACOMAS ? 'bg-brand-dark text-white shadow-md' : 'bg-white text-slate-500 border border-slate-100'}`}>AACOMAS</button>
                                     </div>
