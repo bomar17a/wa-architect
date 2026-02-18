@@ -140,46 +140,23 @@ serve(async (req) => {
 
             case 'parse-resume': {
                 const { text } = payload;
-                const prompt = `You are an expert medical school admissions advisor. extracting data from a resume.
-          
-          Your task:
-          1. Extract all work and activities from the provided resume text.
-          2. Map each activity to one of the following AMCAS Experience Types EXACTLY:
-             - Artistic Endeavors
-             - Community Service/Volunteer - Medical/Clinical
-             - Community Service/Volunteer - Not Medical/Clinical
-             - Conferences Attended
-             - Extracurricular Activities
-             - Hobbies
-             - Honors/Awards/Recognitions
-             - Intercollegiate Athletics
-             - Leadership - Not Listed Elsewhere
-             - Military Service
-             - Other
-             - Paid Employment - Medical/Clinical
-             - Paid Employment - Not Medical/Clinical
-             - Physician Shadowing/Clinical Observation
-             - Presentations/Posters
-             - Publications
-             - Research/Lab
-             - Teaching/Tutoring/Teaching Assistant
-          
-          3. If an activity clearly fits one of these, assign it.
+
+                3. If an activity clearly fits one of these, assign it.
           4. If an activity is ambiguous or does not fit well, assign 'Unclassified' as the experienceType.
-          5. Return a JSON object with an array 'activities'. Each activity should have:
-             - title (string)
-             - organization (string)
-             - experienceType (string: One of the list above or 'Unclassified')
-             - startDateMonth (string: Full month name e.g. "January")
-             - startDateYear (string: YYYY)
-             - endDateMonth (string: Full month name or "Present")
-             - endDateYear (string: YYYY or "Present")
-             - description (string: Summary of the activity from the resume, max 700 chars)
-             - hours (string: estimated total hours if available, else empty string)
+          5. Return a JSON object with an array 'activities'.Each activity should have:
+                - title(string)
+                    - organization(string)
+                    - experienceType(string: One of the list above or 'Unclassified')
+                    - startDateMonth(string: Full month name e.g. "January")
+                    - startDateYear(string: YYYY)
+                    - endDateMonth(string: Full month name or "Present")
+                    - endDateYear(string: YYYY or "Present")
+                    - description(string: Summary of the activity from the resume, max 700 chars)
+                    - hours(string: estimated total hours if available, else empty string)
 
           Resume Text:
-          ${text}
-          `;
+          ${ text }
+`;
 
                 const response = await genAI.models.generateContent({
                     model: MODEL_NAME,
@@ -217,12 +194,12 @@ serve(async (req) => {
             case 'theme-analysis': {
                 const { activities } = payload;
                 const activityTexts = activities
-                    .map((a: any) => `Activity ID ${a.id}: ${a.description}`)
+                    .map((a: any) => `Activity ID ${ a.id }: ${ a.description } `)
                     .join('\n\n');
 
                 const prompt = `Analyze these medical school activities for AAMC Core Competencies.
-          Descriptions: ${activityTexts}
-          Return top 5-7 competencies in JSON.
+    Descriptions: ${ activityTexts }
+          Return top 5 - 7 competencies in JSON.
           `;
 
                 const response = await genAI.models.generateContent({
@@ -255,7 +232,7 @@ serve(async (req) => {
             }
 
             default:
-                throw new Error(`Unknown action: ${action}`);
+                throw new Error(`Unknown action: ${ action } `);
         }
 
         return new Response(JSON.stringify(result), {

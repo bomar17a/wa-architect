@@ -2,8 +2,8 @@ import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 
 // Configure PDF.js worker
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+// Using CDN for reliability across environments (Local vs Vercel) to avoid bundler issues with the worker file.
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export const extractTextFromPdf = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();

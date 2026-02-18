@@ -16,13 +16,18 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
         const file = e.target.files?.[0];
         if (!file) return;
 
+        console.log("File selected:", file.name, file.type, file.size);
         setError(null);
         try {
             let text = '';
             if (file.type === 'application/pdf') {
+                console.log("Starting PDF extraction...");
                 text = await extractTextFromPdf(file);
+                console.log("PDF extraction complete. Length:", text.length);
             } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                console.log("Starting DOCX extraction...");
                 text = await extractTextFromDocx(file);
+                console.log("DOCX extraction complete. Length:", text.length);
             } else {
                 throw new Error('Unsupported file type. Please upload a PDF or DOCX.');
             }
@@ -31,9 +36,10 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
                 throw new Error('Could not extract text from this file. It might be an image-only PDF.');
             }
 
+            console.log("Calling onTextExtracted...");
             onTextExtracted(text);
         } catch (err: any) {
-            console.error(err);
+            console.error("Extraction error:", err);
             setError(err.message || 'Failed to read file');
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -54,8 +60,8 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isProcessing}
                 className={`w-full flex items-center justify-center gap-2 transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${compact
-                        ? 'p-3 bg-brand-teal/5 text-brand-teal rounded-xl hover:bg-brand-teal hover:text-white font-bold text-sm border border-brand-teal/20'
-                        : 'p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-brand-teal hover:bg-brand-teal/5'
+                    ? 'p-3 bg-brand-teal/5 text-brand-teal rounded-xl hover:bg-brand-teal hover:text-white font-bold text-sm border border-brand-teal/20'
+                    : 'p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-brand-teal hover:bg-brand-teal/5'
                     }`}
             >
                 {isProcessing ? (

@@ -71,8 +71,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
 
     const handleResumeTextExtracted = async (text: string) => {
         setIsResumeProcessing(true);
+        console.log("Processing resume text length:", text.length);
         try {
             const newActivities = await parseResume(text);
+            console.log("Parsed activities:", newActivities);
+
+            if (!newActivities || newActivities.length === 0) {
+                alert("AI extracted no activities. The resume format might be tricky.");
+                return;
+            }
+
             // Assign temporary IDs (negative to avoid conflict, or large random)
             // dashboard will handle real ID assignment on save?
             // actually, let's just give them temp IDs
@@ -81,15 +89,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                 title: a.title,
                 organization: a.organization,
                 experienceType: a.experienceType,
-                city: '',
-                country: '',
+                city: a.city || '',
+                country: a.country || '',
                 contactName: '',
                 contactTitle: '',
                 contactEmail: '',
                 contactPhone: '',
                 status: ActivityStatus.DRAFT,
                 isMostMeaningful: false,
-                description: a.description,
+                description: a.description, // Mapped to Narrative Studio
                 mmeAction: '',
                 mmeResult: '',
                 mmeEssay: '',
@@ -101,7 +109,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                     startDateYear: a.startDateYear || '',
                     endDateMonth: a.endDateMonth || '',
                     endDateYear: a.endDateYear || '',
-                    hours: a.hours || '',
+                    hours: '0', // Explicitly empty per requirement
                     isAnticipated: false
                 }]
             } as Activity));
@@ -109,8 +117,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
             setParsedResumeActivities(stampedActivities);
             setShowResumeModal(true);
         } catch (err) {
-            console.error(err);
-            alert("Failed to parse resume.");
+            console.error("Resume parsing error:", err);
+            alert("Failed to parse resume. Check console for details.");
         } finally {
             setIsResumeProcessing(false);
         }
