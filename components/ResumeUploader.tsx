@@ -5,9 +5,10 @@ import { Upload, FileText, Loader2, AlertCircle } from 'lucide-react';
 interface ResumeUploaderProps {
     onTextExtracted: (text: string) => void;
     isProcessing: boolean;
+    compact?: boolean;
 }
 
-export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted, isProcessing }) => {
+export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted, isProcessing, compact = false }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +36,6 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
             console.error(err);
             setError(err.message || 'Failed to read file');
         } finally {
-            // Reset input so same file can be selected again if needed
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
@@ -53,31 +53,38 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
             <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isProcessing}
-                className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-brand-teal hover:bg-brand-teal/5 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full flex items-center justify-center gap-2 transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${compact
+                        ? 'p-3 bg-brand-teal/5 text-brand-teal rounded-xl hover:bg-brand-teal hover:text-white font-bold text-sm border border-brand-teal/20'
+                        : 'p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-brand-teal hover:bg-brand-teal/5'
+                    }`}
             >
                 {isProcessing ? (
                     <>
-                        <Loader2 className="w-5 h-5 animate-spin text-brand-teal" />
-                        <span className="text-slate-500 font-medium">Analyzing Resume...</span>
+                        <Loader2 className={`animate-spin ${compact ? 'w-4 h-4' : 'w-5 h-5 text-brand-teal'}`} />
+                        <span className={`${compact ? '' : 'text-slate-500 font-medium'}`}>Analyzing...</span>
                     </>
                 ) : (
                     <>
-                        <Upload className="w-5 h-5 text-slate-400 group-hover:text-brand-teal" />
-                        <span className="text-slate-500 group-hover:text-brand-teal font-medium">Upload Resume (PDF/DOCX)</span>
+                        <Upload className={`${compact ? 'w-4 h-4' : 'w-5 h-5 text-slate-400 group-hover:text-brand-teal'}`} />
+                        <span className={`${compact ? '' : 'text-slate-500 group-hover:text-brand-teal font-medium'}`}>
+                            {compact ? 'Upload Resume' : 'Upload Resume (PDF/DOCX)'}
+                        </span>
                     </>
                 )}
             </button>
 
             {error && (
-                <div className="mt-2 flex items-center gap-2 text-rose-500 text-sm bg-rose-50 p-2 rounded">
-                    <AlertCircle className="w-4 h-4" />
+                <div className="mt-2 flex items-center gap-2 text-rose-500 text-xs bg-rose-50 p-2 rounded">
+                    <AlertCircle className="w-3 h-3" />
                     <span>{error}</span>
                 </div>
             )}
 
-            <div className="mt-2 text-xs text-slate-400 text-center">
-                We analyze the text to draft activities. No files are stored.
-            </div>
+            {!compact && (
+                <div className="mt-2 text-xs text-slate-400 text-center">
+                    We analyze the text to draft activities. No files are stored.
+                </div>
+            )}
         </div>
     );
 };

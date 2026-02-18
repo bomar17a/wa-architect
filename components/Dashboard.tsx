@@ -207,7 +207,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                     </div>
                 </div>
 
-                <div className="mt-auto space-y-2">
+                <div className="mt-auto space-y-4">
+                    <div className="px-2">
+                        <ResumeUploader
+                            onTextExtracted={handleResumeTextExtracted}
+                            isProcessing={isResumeProcessing}
+                            compact={true}
+                        />
+                    </div>
                     <NavItem icon={<Settings size={20} />} label="Settings" onClick={() => { }} />
                     <div onClick={signOut} className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all text-rose-500 hover:bg-rose-50 hover:text-rose-600">
                         <LogOut size={20} />
@@ -235,12 +242,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="bg-white pl-10 pr-4 py-2.5 rounded-xl text-sm border border-slate-100 focus:ring-2 focus:ring-brand-teal/20 outline-none w-64 shadow-sm text-slate-600 placeholder:text-slate-300"
-                                        />
-                                    </div>
-                                    <div className="w-48 hidden lg:block">
-                                        <ResumeUploader
-                                            onTextExtracted={handleResumeTextExtracted}
-                                            isProcessing={isResumeProcessing}
                                         />
                                     </div>
                                 </div>
