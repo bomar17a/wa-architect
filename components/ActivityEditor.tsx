@@ -326,17 +326,21 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                                     const error = getDateError(range);
                                     return (
                                         <div key={range.id} className="flex flex-col gap-1">
-                                            <div className={`relative grid grid-cols-[1fr_auto_1fr_auto_100px_auto] gap-2 items-center p-3 rounded-lg border shadow-sm transition-colors ${error ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
-                                                <DateSelect month={range.startDateMonth} year={range.startDateYear} onChange={(m, y) => updateRange(range.id, 'startDateMonth', m)} onYearChange={(y) => updateRange(range.id, 'startDateYear', y)} label="Start" />
-                                                <span className="text-slate-300 text-xs mt-4">to</span>
-                                                <DateSelect month={range.endDateMonth} year={range.endDateYear} onChange={(m, y) => updateRange(range.id, 'endDateMonth', m)} onYearChange={(y) => updateRange(range.id, 'endDateYear', y)} label="End" />
-                                                <div className="h-8 w-px bg-slate-100 mx-2"></div>
-                                                <div className="relative">
+                                            <div className={`relative grid grid-cols-2 md:grid-cols-[1fr_auto_1fr_auto_100px_auto] gap-4 md:gap-2 items-center p-3 rounded-lg border shadow-sm transition-colors ${error ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'}`}>
+                                                <div className="col-span-1 md:col-span-1">
+                                                    <DateSelect month={range.startDateMonth} year={range.startDateYear} onChange={(m, y) => updateRange(range.id, 'startDateMonth', m)} onYearChange={(y) => updateRange(range.id, 'startDateYear', y)} label="Start" />
+                                                </div>
+                                                <span className="hidden md:block text-slate-300 text-xs mt-4">to</span>
+                                                <div className="col-span-1 md:col-span-1">
+                                                    <DateSelect month={range.endDateMonth} year={range.endDateYear} onChange={(m, y) => updateRange(range.id, 'endDateMonth', m)} onYearChange={(y) => updateRange(range.id, 'endDateYear', y)} label="End" />
+                                                </div>
+                                                <div className="hidden md:block h-8 w-px bg-slate-100 mx-2"></div>
+                                                <div className="relative col-span-1 md:col-span-1">
                                                     <label className="absolute -top-3 left-0 text-[9px] font-bold text-slate-400 uppercase">Hours</label>
                                                     <input type="number" value={range.hours || ''} onChange={(e) => updateRange(range.id, 'hours', e.target.value)} className="w-full bg-slate-50 hover:bg-white border border-transparent rounded-md text-sm p-1.5 focus:ring-2 focus:ring-brand-teal/20 outline-none transition-all font-medium text-right" placeholder="0" />
                                                 </div>
                                                 {index > 0 && (
-                                                    <button onClick={() => removeRange(range.id)} className="p-1.5 text-slate-400 hover:text-rose-500 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                                    <button onClick={() => removeRange(range.id)} className="col-span-1 md:col-span-1 justify-self-end md:justify-self-auto p-1.5 text-slate-400 hover:text-rose-500 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
                                                 )}
                                             </div>
                                             {error && <span className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" />{error}</span>}

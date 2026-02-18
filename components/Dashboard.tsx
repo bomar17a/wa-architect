@@ -326,7 +326,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
     };
 
     return (
-        <div className="flex h-screen bg-brand-light font-sans overflow-hidden">
+        <div className="flex flex-col md:flex-row h-screen bg-brand-light font-sans overflow-hidden">
             <aside className="w-64 bg-white m-4 rounded-[2rem] flex flex-col py-8 px-6 shadow-sm hidden md:flex z-10 overflow-y-auto scrollbar-hide">
                 <div className="flex items-center gap-3 px-2 mb-8">
                     <div className="w-8 h-8 bg-brand-dark rounded-lg flex items-center justify-center text-white"><PenTool className="w-5 h-5" /></div>
@@ -485,7 +485,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                     <p className="text-slate-400 text-sm mt-1">Strategic alignment with medical school archetypes.</p>
                                 </div>
                             </header>
-                            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex-1 overflow-y-auto">
+                            <div className="bg-white p-4 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex-1 overflow-y-auto pb-24 md:pb-8">
                                 <MissionFitRadar activities={activities} />
                             </div>
                         </div>
@@ -503,6 +503,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                 />
             )}
             {isCompetencyModalOpen && <CompetencyAuditModal activities={filledActivities} onClose={() => setIsCompetencyModalOpen(false)} />}
+            {/* Mobile Bottom Navigation */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-50 pb-safe">
+                <div onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 ${activeTab === 'overview' ? 'text-brand-teal' : 'text-slate-400'}`}>
+                    <LayoutDashboard size={24} />
+                    <span className="text-[10px] font-bold">Dash</span>
+                </div>
+                <div onClick={scrollToActivities} className={`flex flex-col items-center gap-1 text-slate-400`}>
+                    <BookOpen size={24} />
+                    <span className="text-[10px] font-bold">List</span>
+                </div>
+                <div onClick={() => setActiveTab('mission-fit')} className={`flex flex-col items-center gap-1 ${activeTab === 'mission-fit' ? 'text-brand-teal' : 'text-slate-400'}`}>
+                    <Target size={24} />
+                    <span className="text-[10px] font-bold">Radar</span>
+                </div>
+                <div onClick={signOut} className={`flex flex-col items-center gap-1 text-rose-400`}>
+                    <LogOut size={24} />
+                    <span className="text-[10px] font-bold">Exit</span>
+                </div>
+            </nav>
         </div>
     );
 };

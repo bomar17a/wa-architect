@@ -55,7 +55,7 @@ const ComparisonSlider = () => {
             </div>
 
             <div
-                className="relative w-full h-[500px] rounded-3xl overflow-hidden cursor-ew-resize shadow-2xl ring-1 ring-slate-900/5 bg-slate-100"
+                className="relative w-full h-[60vh] md:h-[500px] rounded-3xl overflow-hidden cursor-ew-resize shadow-2xl ring-1 ring-slate-900/5 bg-slate-100"
                 onMouseDown={() => setIsDragging(true)}
                 onMouseUp={() => setIsDragging(false)}
                 onMouseLeave={() => setIsDragging(false)}
@@ -113,7 +113,7 @@ const ComparisonSlider = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
@@ -308,8 +308,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup }) =
                 </div>
 
                 {/* Right Side: LIVE Visuals - Replaced Static Cards */}
-                {/* Mobile: Horizontal Scroll Snap | Desktop: Vertical Grid */}
-                <div className="lg:col-span-5 flex lg:flex-col gap-6 lg:gap-8 overflow-x-auto lg:overflow-visible pb-8 lg:pb-0 snap-x snap-mandatory lg:snap-none -mx-6 px-6 lg:mx-0 lg:px-0 scrollbar-hide">
+                {/* Mobile: Vertical Grid | Desktop: Vertical Grid */}
+                <div className="lg:col-span-5 flex flex-col gap-6 lg:gap-8 overflow-visible pb-8 lg:pb-0 px-0 lg:px-0">
 
                     {/* AdCom Score Card (Detailed Preview) - Moved to Top */}
                     <motion.div
@@ -439,7 +439,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup }) =
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 1, delay: 0.5 }}
-                        className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-8 relative overflow-hidden group hover:shadow-2xl hover:shadow-brand-teal/10 transition-all border border-white/50 ring-1 ring-slate-200/60 min-h-[440px] flex flex-col min-w-[85vw] lg:min-w-0 snap-center"
+                        className="bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-8 relative overflow-hidden group hover:shadow-2xl hover:shadow-brand-teal/10 transition-all border border-white/50 ring-1 ring-slate-200/60 min-h-[440px] flex flex-col w-full snap-center"
                     >
                         {/* Header */}
                         <div className="flex justify-between items-start mb-4 bg-slate-100 -mx-8 -mt-8 p-8 border-b border-slate-200">
