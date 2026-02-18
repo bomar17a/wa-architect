@@ -6,15 +6,6 @@ import { Activity, ActivityStatus, DateRange } from '../types';
 const toDb = (activity: Activity, userId: string) => {
     return {
         user_id: userId,
-        // id is auto-generated on insert, or present on update. 
-        // We might need to handle the case where ID is temporary (timestamp based) vs real DB ID.
-        // For simplicity, if ID is < 1000000000, it's likely a timestamp, but let's rely on upsert returning the real ID.
-        // Actually, for new activities, we shouldn't send an ID if it's a placeholder.
-        // But our app uses Date.now() for IDs.
-        // Strategy: Use the Date.now() ID as a client-side ID, but let Supabase assign a real BigInt ID?
-        // Or just use the Date.now() ID if it fits in BigInt? Date.now() is ~1.7e12, BigInt max is 9e18. So it fits.
-        // We can basically use the client-generated ID for now, or let DB handle it.
-        // Let's try to preserve the ID if it exists and is valid.
         id: activity.id,
         title: activity.title,
         organization: activity.organization,
@@ -79,8 +70,7 @@ export const activityService = {
 
         const payload = toDb(activity, user.id);
 
-        // Remove ID if it's falsy (0) to let DB generate it, but our app uses Date.now().
-        // We will pass the ID. If it conflicts, we handle it.
+
 
         const { data, error } = await supabase
             .from('activities')

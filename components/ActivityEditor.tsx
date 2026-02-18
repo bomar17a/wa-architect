@@ -1,18 +1,21 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Activity, ApplicationType, ActivityStatus, RewriteType, ArchitectAnalysis, DateRange } from '../types.ts';
-import { AMCAS_EXPERIENCE_TYPES, AACOMAS_EXPERIENCE_TYPES, DESC_LIMITS, MME_LIMIT, MONTHS, getYears, AAMC_CORE_COMPETENCIES } from '../constants.ts';
-import * as geminiService from '../services/geminiService.ts';
-import { analyzeText, AnalysisIssue } from '../services/staticAnalysisService.ts';
+import React from 'react';
+import { Activity, ApplicationType, ActivityStatus } from '../types.ts';
+import { AMCAS_EXPERIENCE_TYPES, AACOMAS_EXPERIENCE_TYPES, DESC_LIMITS, MONTHS, getYears, AAMC_CORE_COMPETENCIES } from '../constants.ts';
+import { useActivityForm } from '../hooks/useActivityForm.ts';
+import { getDateError } from '../utils/validation.ts';
 import { FourStepWriter } from './FourStepWriter.tsx';
 import { SparklesIcon } from './icons/SparklesIcon.tsx';
 import { CheckIcon } from './icons/CheckIcon.tsx';
 import { StarIconFilled } from './icons/StarIconFilled.tsx';
 import { StarIconOutline } from './icons/StarIconOutline.tsx';
 import {
-    Wand2, X, ChevronRight, ArrowLeft,
-    Calendar, MapPin, Building, User, Mail, Phone, Clock,
-    PenLine, AlertCircle, Sparkles, Plus, Trash2, CalendarDays, Lightbulb, Target, BookOpen, ChevronDown
+    Wand2, X, ArrowLeft,
+    MapPin, Building, User, Clock,
+    PenLine, AlertCircle, Sparkles, Plus, Trash2, Target, ChevronDown
 } from 'lucide-react';
+import { CharacterCounter } from './Activity/CharacterCounter.tsx';
+import { CoPilotEditor } from './Activity/CoPilotEditor.tsx';
+import { DateSelect } from './Activity/DateSelect.tsx';
 
 type SaveStatus = 'UNSAVED' | 'SAVING' | 'SAVED';
 
@@ -25,171 +28,29 @@ interface ActivityEditorProps {
     appType: ApplicationType;
 }
 
-// --- Utility Hooks ---
-
-function useDebouncedSave(onSave: (activity: Activity) => void, delay: number) {
-    const onSaveRef = useRef(onSave);
-    useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
-
-    return useMemo(() => {
-        let timeout: ReturnType<typeof setTimeout>;
-        return (activity: Activity, setStatus: (s: SaveStatus) => void) => {
-            setStatus('SAVING');
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                const finalStatus = activity.status === ActivityStatus.EMPTY ? ActivityStatus.DRAFT : activity.status;
-                onSaveRef.current({ ...activity, status: finalStatus });
-                setStatus('SAVED');
-            }, delay);
-        };
-    }, [delay]);
-}
-
 // --- Main Component ---
 
 export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave, onBack, appType }) => {
-    const [localActivity, setLocalActivity] = useState<Activity>(activity);
-    const [saveStatus, setSaveStatus] = useState<SaveStatus>('SAVED');
-    const [isWizardMode, setIsWizardMode] = useState(false);
-    const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
-    const [analysis, setAnalysis] = useState<ArchitectAnalysis | null>(null);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-    const triggerSave = useDebouncedSave(onSave, 1500);
-
-    useEffect(() => {
-        if (activity.id !== localActivity.id) setLocalActivity(activity);
-    }, [activity.id]);
-
-    const handleChange = useCallback(<K extends keyof Activity>(field: K, value: Activity[K]) => {
-        setLocalActivity(prev => {
-            let newStatus = prev.status;
-
-            // Priority logic: If user changes status manually, respect it.
-            // If user edits other fields and status is EMPTY, bump to DRAFT.
-            if (field === 'status') {
-                newStatus = value as ActivityStatus;
-            } else if (prev.status === ActivityStatus.EMPTY) {
-                newStatus = ActivityStatus.DRAFT;
-            }
-
-            const updated = { ...prev, [field]: value, status: newStatus };
-            triggerSave(updated, setSaveStatus);
-            return updated;
-        });
-    }, [triggerSave]);
-
-    const completedRanges = localActivity.dateRanges.filter(r => !r.isAnticipated);
-    const anticipatedRange = localActivity.dateRanges.find(r => r.isAnticipated);
-    const isRepeated = completedRanges.length > 1;
-
-    const updateRange = (id: string, field: keyof DateRange, value: string) => {
-        const newRanges = localActivity.dateRanges.map(r => r.id === id ? { ...r, [field]: value } : r);
-        handleChange('dateRanges', newRanges);
-    };
-
-    const toggleRepeated = (shouldBeRepeated: boolean) => {
-        if (shouldBeRepeated) {
-            if (completedRanges.length < 2) {
-                const newRange: DateRange = { id: `dr-comp-${Date.now()}`, startDateMonth: '', startDateYear: '', endDateMonth: '', endDateYear: '', hours: '', isAnticipated: false };
-                handleChange('dateRanges', [...localActivity.dateRanges, newRange]);
-            }
-        } else {
-            const firstCompleted = completedRanges[0];
-            const newRanges = [firstCompleted];
-            if (anticipatedRange) newRanges.push(anticipatedRange);
-            handleChange('dateRanges', newRanges);
-        }
-    };
-
-    const addRepeatedRange = () => {
-        if (completedRanges.length >= 4) return;
-        const newRange: DateRange = { id: `dr-comp-${Date.now()}`, startDateMonth: '', startDateYear: '', endDateMonth: '', endDateYear: '', hours: '', isAnticipated: false };
-        handleChange('dateRanges', [...localActivity.dateRanges, newRange]);
-    };
-
-    const removeRange = (id: string) => {
-        handleChange('dateRanges', localActivity.dateRanges.filter(r => r.id !== id));
-    };
-
-    const getDateError = (range: DateRange): string | null => {
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonthIdx = now.getMonth();
-
-        const getMonthIdx = (m: string) => MONTHS.indexOf(m);
-
-        const compare = (m1: number, y1: number, m2: number, y2: number) => {
-            if (y1 > y2) return 1;
-            if (y1 < y2) return -1;
-            if (m1 > m2) return 1;
-            if (m1 < m2) return -1;
-            return 0;
-        };
-
-        if (range.isAnticipated) {
-            if (range.startDateMonth && range.startDateYear) {
-                const startM = getMonthIdx(range.startDateMonth);
-                const startY = parseInt(range.startDateYear);
-                if (compare(startM, startY, currentMonthIdx, currentYear) < 0) {
-                    return "Anticipated start date cannot be in the past.";
-                }
-            }
-            const maxYear = currentYear + 1;
-            const maxMonth = 7;
-            if (range.endDateMonth && range.endDateYear) {
-                const endM = getMonthIdx(range.endDateMonth);
-                const endY = parseInt(range.endDateYear);
-                if (compare(endM, endY, maxMonth, maxYear) > 0) {
-                    return `Anticipated end date cannot be later than August ${maxYear}.`;
-                }
-            }
-        } else {
-            if (range.startDateMonth && range.startDateYear) {
-                const startM = getMonthIdx(range.startDateMonth);
-                const startY = parseInt(range.startDateYear);
-                if (compare(startM, startY, currentMonthIdx, currentYear) > 0) {
-                    return "Start date cannot be in the future.";
-                }
-            }
-            if (range.endDateMonth && range.endDateYear) {
-                const endM = getMonthIdx(range.endDateMonth);
-                const endY = parseInt(range.endDateYear);
-                if (compare(endM, endY, currentMonthIdx, currentYear) > 0) {
-                    return "End date cannot be in the future.";
-                }
-            }
-        }
-        return null;
-    };
-
-    const handleSaveAndClose = () => {
-        const finalStatus = localActivity.status === ActivityStatus.EMPTY ? ActivityStatus.DRAFT : localActivity.status;
-        onSave({ ...localActivity, status: finalStatus });
-        onBack();
-    }
-
-    const handleAnalyzeDraft = async () => {
-        if (!localActivity.description || localActivity.description.length < 20) {
-            alert("Please draft a bit more content before analyzing.");
-            return;
-        }
-        setIsAnalyzing(true);
-        setIsAnalyzeOpen(true);
-        try {
-            const result = await geminiService.getDraftAnalysis(localActivity.description, DESC_LIMITS[appType]);
-            setAnalysis(result);
-
-            // Competency mapping: exclusively set by AI result
-            if (result.suggestedCompetencies) {
-                handleChange('competencies', result.suggestedCompetencies);
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
+    const {
+        localActivity,
+        handleChange,
+        saveStatus,
+        isWizardMode,
+        setIsWizardMode,
+        isAnalyzeOpen,
+        setIsAnalyzeOpen,
+        analysis,
+        isAnalyzing,
+        completedRanges,
+        anticipatedRange,
+        isRepeated,
+        updateRange,
+        toggleRepeated,
+        addRepeatedRange,
+        removeRange,
+        handleSaveAndClose,
+        handleAnalyzeDraft
+    } = useActivityForm(activity, onSave, onBack, appType);
 
     const experienceTypes = appType === ApplicationType.AMCAS ? AMCAS_EXPERIENCE_TYPES : AACOMAS_EXPERIENCE_TYPES;
 
@@ -430,90 +291,4 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
             </div>
         </div>
     );
-};
-
-const DateSelect: React.FC<{ month?: string, year?: string, onChange: (m: string, y: string) => void, onYearChange?: (y: string) => void, label?: string }> = ({ month, year, onChange, onYearChange, label }) => (
-    <div className="flex flex-col relative">
-        {label && <label className="absolute -top-3 left-0 text-[9px] font-bold text-slate-400 uppercase">{label}</label>}
-        <div className="flex gap-1.5">
-            <select value={month} onChange={e => onChange(e.target.value, year || '')} className="bg-slate-50 hover:bg-white border border-transparent rounded-md text-xs font-medium py-1.5 px-1 outline-none w-[85px]">
-                <option value="">Month</option>
-                {MONTHS.map(m => <option key={m} value={m}>{m.substring(0, 3)}</option>)}
-            </select>
-            <select value={year} onChange={e => onYearChange ? onYearChange(e.target.value) : onChange(month || '', e.target.value)} className="bg-slate-50 hover:bg-white border border-transparent rounded-md text-xs font-medium py-1.5 px-1 outline-none w-[60px]">
-                <option value="">Year</option>
-                {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-        </div>
-    </div>
-);
-
-const CharacterCounter: React.FC<{ text: string; limit: number }> = ({ text, limit }) => {
-    const count = text?.length || 0;
-    const isOver = count > limit;
-    return (
-        <div className="flex items-center gap-2">
-            <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-300 ${isOver ? 'bg-red-500' : 'bg-brand-teal'}`} style={{ width: `${Math.min((count / limit) * 100, 100)}%` }}></div>
-            </div>
-            <div className={`text-[10px] font-mono font-medium ${isOver ? 'text-red-600' : 'text-slate-400'}`}>{count} / {limit}</div>
-        </div>
-    );
-};
-
-const CoPilotEditor: React.FC<{ text: string, onTextChange: (newText: string) => void, placeholder?: string, className?: string }> = ({ text, onTextChange, placeholder, className }) => {
-    const [selectedText, setSelectedText] = useState('');
-    const [rewriteSuggestions, setRewriteSuggestions] = useState<string[]>([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const editorRef = useRef<HTMLTextAreaElement>(null);
-
-    useEffect(() => {
-        if (editorRef.current) {
-            editorRef.current.style.height = 'auto';
-            editorRef.current.style.height = `${editorRef.current.scrollHeight}px`;
-        }
-    }, [text]);
-
-    const handleRewrite = async (type: RewriteType) => {
-        if (!selectedText) return;
-        setIsLoading(true); setShowSuggestions(true);
-        try { const res = await geminiService.getRewriteSuggestions(selectedText, type); setRewriteSuggestions(res); }
-        catch { setRewriteSuggestions(["Error."]); }
-        finally { setIsLoading(false); }
-    }
-
-    return (
-        <div className="relative w-full">
-            <textarea
-                ref={editorRef}
-                value={text}
-                onChange={e => onTextChange(e.target.value)}
-                onSelect={(e) => { const start = e.currentTarget.selectionStart; const end = e.currentTarget.selectionEnd; if (end - start > 3) setSelectedText(text.substring(start, end)); else setSelectedText(''); }}
-                className={`${className} relative z-10 bg-transparent resize-none focus:outline-none overflow-hidden`}
-                placeholder={placeholder}
-                rows={1}
-                style={{ minHeight: '400px' }}
-            />
-            {selectedText && !showSuggestions && (
-                <div className="absolute top-4 right-4 flex gap-1 bg-brand-dark text-white rounded-lg shadow-xl p-1 z-30 animate-fade-in">
-                    <button onClick={() => handleRewrite('IMPACT')} className="px-3 py-1.5 hover:bg-slate-700 text-xs font-bold rounded-md">Boost Impact</button>
-                    <button onClick={() => handleRewrite('CONCISE')} className="px-3 py-1.5 hover:bg-slate-700 text-xs font-bold rounded-md">Shorten</button>
-                </div>
-            )}
-            {showSuggestions && (
-                <div className="absolute top-14 right-4 w-72 bg-white shadow-2xl border border-slate-200 rounded-xl z-30 p-3 max-h-60 overflow-y-auto animate-slide-up">
-                    <div className="flex justify-between items-center mb-2 pb-2 border-b">
-                        <span className="text-xs font-bold text-brand-teal">Draft Enhancements</span>
-                        <button onClick={() => setShowSuggestions(false)}><X className="w-3 h-3" /></button>
-                    </div>
-                    {isLoading ? <div className="py-4 text-center"><div className="w-4 h-4 border-2 border-brand-teal border-t-transparent rounded-full animate-spin mx-auto"></div></div> :
-                        rewriteSuggestions.map((s, i) => (
-                            <div key={i} onClick={() => { onTextChange(text.replace(selectedText, s)); setShowSuggestions(false); }} className="text-xs p-3 hover:bg-brand-light cursor-pointer rounded-lg border border-transparent hover:border-brand-teal/20 mb-1 transition-all">{s}</div>
-                        ))
-                    }
-                </div>
-            )}
-        </div>
-    )
 };

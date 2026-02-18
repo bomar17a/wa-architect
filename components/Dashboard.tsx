@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React from 'react';
 import { Activity, ApplicationType, ActivityStatus, ThemeAnalysis } from '../types.ts';
 import { ACTIVITY_WEIGHTS, AAMC_CORE_COMPETENCIES } from '../constants.ts';
 import { MissionFitRadar } from './MissionFitRadar.tsx';
@@ -8,11 +8,13 @@ import { TrashIcon } from './icons/TrashIcon.tsx';
 import {
     LayoutDashboard, BookOpen, BarChart2, Calendar, Settings,
     Search, Bell, ChevronRight, CheckCircle2, Clock, Map as MapIcon, Code, Image as ImageIcon,
-    PenTool, FileText, ChevronLeft, Sparkles, X, AlertTriangle, ShieldCheck, ChevronDown,
-    Zap, Rocket, Target, HelpCircle, Briefcase, GraduationCap, Info, Heart, Award,
-    Activity as ActivityIcon, Brain, Users, Trophy, Plus, LogOut
+    PenTool, FileText, ChevronLeft, Sparkles, X, ShieldCheck, ChevronDown,
+    Rocket, HelpCircle, GraduationCap, Info,
+    Activity as ActivityIcon, Brain, Trophy, Plus, LogOut,
+    Briefcase, AlertTriangle, Heart, Users, Target, Award, Zap
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.tsx';
+import { useDashboardState } from '../hooks/useDashboardState.ts';
 
 interface DashboardProps {
     activities: Activity[];
@@ -30,300 +32,34 @@ const STATUS_CONFIG: { [key in ActivityStatus]: { color: string; icon: React.Rea
     [ActivityStatus.FINAL]: { color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: <CheckCircle2 className="w-3 h-3" /> },
 };
 
-const calculateAdComScore = (activities: Activity[]) => {
-    let score = 0;
-    let clinicalHours = 0;
-    let shadowingHours = 0;
-    let researchHours = 0;
-    let medicalServiceHours = 0;
-    let nonMedicalServiceHours = 0;
-    let leadershipHours = 0;
-    let mmeCount = 0;
 
-    const activeActivities = activities.filter(a => a.status !== ActivityStatus.EMPTY);
-
-    // Track unique competencies
-    const uniqueCompetencies = new Set<string>();
-
-    activeActivities.forEach(a => {
-        const weight = ACTIVITY_WEIGHTS[a.experienceType] || 0;
-        score += weight;
-
-        if (a.isMostMeaningful) {
-            score += 4; // Higher weight for MME
-            mmeCount++;
-        }
-
-        if (a.status === ActivityStatus.FINAL || a.status === ActivityStatus.REFINED) {
-            score += 2;
-        }
-
-        const hours = a.dateRanges.reduce((acc, r) => acc + (parseInt(r.hours) || 0), 0);
-        const type = a.experienceType.toLowerCase();
-
-        // 1. Clinical Total (General)
-        if (type.includes('medical/clinical') || type.includes('healthcare')) {
-            clinicalHours += hours;
-        }
-
-        // 2. Medical Service (Specific: Community Service/Volunteer - Medical/Clinical)
-        if (type.includes('community service/volunteer - medical/clinical')) {
-            medicalServiceHours += hours;
-        }
-
-        // 3. Non-Medical Service (Specific: Community Service/Volunteer - Not Medical/Clinical)
-        if (type.includes('community service/volunteer - not medical/clinical')) {
-            nonMedicalServiceHours += hours;
-        }
-
-        // 4. Shadowing
-        if (type.includes('shadowing')) {
-            shadowingHours += hours;
-        }
-
-        // 5. Research
-        if (type.includes('research')) {
-            researchHours += hours;
-        }
-
-        // 6. Leadership
-        if (type.includes('leadership')) {
-            leadershipHours += hours;
-        }
-
-        a.competencies?.forEach(c => uniqueCompetencies.add(c));
-    });
-
-    // Activity Volume Bonus (Max 15)
-    score += activeActivities.length;
-
-    // Competency Saturation Bonus (Max 15)
-    const saturationBonus = Math.min(15, uniqueCompetencies.size);
-    score += saturationBonus;
-
-    const MAX_RAW_SCORE = 90;
-    const normalizedScore = Math.min(100, Math.round((score / MAX_RAW_SCORE) * 100));
-
-    let level = "Foundation";
-    if (normalizedScore >= 40) level = "Building";
-    if (normalizedScore >= 70) level = "Competitive";
-    if (normalizedScore >= 90) level = "Exceptional";
-
-    const feedbackItems: { text: string; icon: React.ReactNode; color: string; category: string; borderColor: string }[] = [];
-
-    if (activeActivities.length < 15) {
-        feedbackItems.push({
-            text: `Maximize your narrative real estate. You have filled ${activeActivities.length}/15 slots. Aim to utilize all 15 spaces to show breadth.`,
-            category: 'Volume',
-            icon: <Briefcase className="w-3.5 h-3.5" />,
-            color: 'text-brand-gold',
-            borderColor: 'border-amber-200'
-        });
-    }
-
-    if (clinicalHours < 150) {
-        feedbackItems.push({
-            text: `Clinical hours are at ${clinicalHours}h. Targeted goal is 150h+. Consider scribing or patient intake volunteering.`,
-            category: 'Clinical Gap',
-            icon: <AlertTriangle className="w-3.5 h-3.5" />,
-            color: 'text-rose-500',
-            borderColor: 'border-rose-200'
-        });
-    }
-
-    if (medicalServiceHours < 100) {
-        feedbackItems.push({
-            text: `Medical Volunteering is a core pillar. You are at ${medicalServiceHours}h. Aim for 100h+ of altruistic clinical service.`,
-            category: 'Med. Service',
-            icon: <Heart className="w-3.5 h-3.5" />,
-            color: 'text-brand-teal',
-            borderColor: 'border-emerald-200'
-        });
-    }
-
-    if (nonMedicalServiceHours < 100) {
-        feedbackItems.push({
-            text: `Service beyond medicine is crucial. You have ${nonMedicalServiceHours}h. Target 100h+ in non-clinical volunteering to show diverse altruism.`,
-            category: 'Non-Med Service',
-            icon: <Users className="w-3.5 h-3.5" />,
-            color: 'text-indigo-500',
-            borderColor: 'border-indigo-200'
-        });
-    }
-
-    if (shadowingHours < 100) {
-        feedbackItems.push({
-            text: `Shadowing is low (${shadowingHours}h). Reach out to specialists to hit the 100h benchmark.`,
-            category: 'Shadowing',
-            icon: <Target className="w-3.5 h-3.5" />,
-            color: 'text-orange-500',
-            borderColor: 'border-orange-200'
-        });
-    }
-
-    if (leadershipHours < 100) {
-        feedbackItems.push({
-            text: `Leadership demonstrates initiative. You currently have ${leadershipHours}h. Aim for 100h+ in leadership roles.`,
-            category: 'Leadership',
-            icon: <Award className="w-3.5 h-3.5" />,
-            color: 'text-brand-dark',
-            borderColor: 'border-slate-300'
-        });
-    }
-
-    if (uniqueCompetencies.size < 8) {
-        feedbackItems.push({
-            text: `Narrative is missing key AAMC pillars. Reflect on 'Teamwork' or 'Resilience' in your current drafts.`,
-            category: 'Competencies',
-            icon: <Brain className="w-3.5 h-3.5" />,
-            color: 'text-purple-500',
-            borderColor: 'border-purple-200'
-        });
-    }
-
-    if (mmeCount < 3 && activeActivities.length >= 3) {
-        feedbackItems.push({
-            text: `Strategic Gap: You haven't designated 3 'Most Meaningful' experiences yet. This is critical for AMCAS.`,
-            category: 'Strategy',
-            icon: <Zap className="w-3.5 h-3.5" />,
-            color: 'text-amber-600',
-            borderColor: 'border-amber-300'
-        });
-    }
-
-    const stats = {
-        clinical: { val: clinicalHours, target: 150, label: 'Clinical (Total)' },
-        medicalService: { val: medicalServiceHours, target: 100, label: 'Medical Vol.' },
-        nonMedicalService: { val: nonMedicalServiceHours, target: 100, label: 'Non-Medical Vol.' },
-        shadowing: { val: shadowingHours, target: 100, label: 'Physician Shadowing' },
-        leadership: { val: leadershipHours, target: 100, label: 'Leadership' },
-        research: { val: researchHours, target: 100, label: 'Research' },
-        competencies: { val: uniqueCompetencies.size, target: 15, label: 'Competency Depth' }
-    };
-
-    return { score: normalizedScore, feedback: feedbackItems, level, stats, competencyCount: uniqueCompetencies.size };
-};
 
 // --- Helper Components ---
 
-const NavItem = ({ icon, label, onClick, active }: { icon: React.ReactNode, label: string, onClick: () => void, active?: boolean }) => (
-    <div
-        onClick={onClick}
-        className={`flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all ${active ? 'bg-brand-teal text-white shadow-lg shadow-brand-teal/20' : 'text-slate-500 hover:bg-brand-light hover:text-brand-teal-hover'}`}
-    >
-        {React.cloneElement(icon as React.ReactElement<any>, { className: active ? 'text-white' : 'text-current', size: 20 })}
-        <span className="font-bold text-sm tracking-tight">{label}</span>
-    </div>
-);
-
-const FocusCard = ({ icon, title, subtitle, color, onClick, textColor = "text-white", subtitleColor = "text-white/80" }: any) => (
-    <div onClick={onClick} className={`p-6 rounded-[2rem] ${color} shadow-lg cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden group`}>
-        <div className="relative z-10 flex flex-col h-full justify-between gap-4">
-            <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10 shadow-sm">
-                {icon}
-            </div>
-            <div>
-                <h3 className={`text-lg font-bold ${textColor} leading-tight mb-1`}>{title}</h3>
-                <p className={`text-xs font-bold ${subtitleColor} uppercase tracking-wider`}>{subtitle}</p>
-            </div>
-        </div>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none group-hover:bg-white/20 transition-colors"></div>
-    </div>
-);
-
-const CompetencyAuditModal = ({ activities, onClose }: { activities: Activity[], onClose: () => void }) => (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
-        <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white z-10">
-                <div className="flex items-center gap-3">
-                    <div className="bg-brand-teal/10 p-2 rounded-xl">
-                        <Brain className="w-5 h-5 text-brand-teal" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-serif font-bold text-brand-dark leading-none">Competency Matrix</h2>
-                        <p className="text-slate-500 font-medium text-[10px] mt-1 uppercase tracking-wide">AAMC Core Competencies Coverage</p>
-                    </div>
-                </div>
-                <button
-                    onClick={onClose}
-                    className="p-2 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600"
-                >
-                    <X className="w-5 h-5" />
-                </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto bg-slate-50/50 p-8 custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {AAMC_CORE_COMPETENCIES.map((comp, i) => {
-                        const related = activities.filter(a => a.competencies?.includes(comp));
-                        const isMet = related.length > 0;
-                        return (
-                            <div key={i} className={`p-5 rounded-2xl border transition-all hover:shadow-md ${isMet ? 'bg-white border-brand-teal/30 shadow-sm' : 'bg-slate-100/50 border-slate-200 opacity-60 grayscale'}`}>
-                                <div className="flex justify-between items-start mb-3">
-                                    <h4 className={`text-xs font-black uppercase tracking-wider leading-relaxed pr-4 ${isMet ? 'text-brand-dark' : 'text-slate-400'}`}>{comp}</h4>
-                                    {isMet ? <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0"></div>}
-                                </div>
-                                {isMet ? (
-                                    <div className="space-y-1.5">
-                                        {related.map(a => (
-                                            <div key={a.id} className="flex items-center gap-2 text-[10px] font-medium text-slate-600 bg-slate-50 px-2 py-1.5 rounded-lg border border-slate-100">
-                                                <div className="w-1 h-1 rounded-full bg-brand-teal flex-shrink-0"></div>
-                                                <span className="truncate">{a.title || "Untitled Activity"}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-[10px] text-slate-400 italic">No evidence detected yet.</p>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        </div>
-    </div>
-);
+import { NavItem } from './Dashboard/NavItem.tsx';
+import { FocusCard } from './Dashboard/FocusCard.tsx';
+import { CompetencyAuditModal } from './Dashboard/CompetencyAuditModal.tsx';
 
 // --- Main Dashboard Component ---
 
 export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onDeleteActivity }) => {
     const { signOut } = useAuth();
-    const [activeTab, setActiveTab] = useState<'overview' | 'mission-fit'>('overview');
-    const [isCompetencyModalOpen, setIsCompetencyModalOpen] = useState(false);
-    const [isReadinessModalOpen, setIsReadinessModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-
-    const activitiesRef = useRef<HTMLDivElement>(null);
-
-    const scrollToActivities = () => {
-        setActiveTab('overview');
-        // Small timeout to allow render if switching tabs
-        setTimeout(() => {
-            activitiesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    };
-
-    const scrollToTop = () => {
-        setActiveTab('overview');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const filledActivities = useMemo(() => activities.filter(a => a.status !== ActivityStatus.EMPTY), [activities]);
-    const filteredActivities = useMemo(() => {
-        if (!searchQuery) return filledActivities;
-        const query = searchQuery.toLowerCase();
-        return filledActivities.filter(a =>
-            a.title.toLowerCase().includes(query) ||
-            a.organization.toLowerCase().includes(query) ||
-            a.experienceType.toLowerCase().includes(query)
-        );
-    }, [filledActivities, searchQuery]);
-
-    const readiness = useMemo(() => calculateAdComScore(activities), [activities]);
-
-    const handleOpenCompetencyAudit = () => {
-        setIsCompetencyModalOpen(true);
-    };
+    const {
+        activeTab,
+        setActiveTab,
+        isCompetencyModalOpen,
+        setIsCompetencyModalOpen,
+        isReadinessModalOpen,
+        setIsReadinessModalOpen,
+        searchQuery,
+        setSearchQuery,
+        activitiesRef,
+        scrollToActivities,
+        handleOpenCompetencyAudit,
+        filledActivities,
+        filteredActivities,
+        readiness
+    } = useDashboardState(activities);
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-brand-light font-sans overflow-hidden">
