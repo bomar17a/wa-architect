@@ -72,7 +72,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
         <div className="fixed inset-0 bg-brand-light flex flex-col z-20 overflow-y-auto scroll-smooth overscroll-contain">
             <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
                 <div className="max-w-5xl mx-auto px-4 h-16 flex justify-between items-center">
-                    <button onClick={onBack} className="group flex items-center gap-2 text-slate-500 hover:text-brand-dark transition-colors">
+                    <button onClick={onBack} className="group flex items-center gap-2 text-slate-500 hover:text-brand-dark transition-colors p-3 md:p-0 -ml-3 md:ml-0">
                         <div className="p-1.5 rounded-full bg-slate-100 group-hover:bg-slate-200">
                             <ArrowLeft className="w-4 h-4" />
                         </div>
@@ -136,7 +136,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 uppercase">Experience Type</label>
                                 <div className="relative">
-                                    <select value={localActivity.experienceType} onChange={(e) => handleChange('experienceType', e.target.value)} className="w-full bg-slate-50 border border-transparent focus:border-brand-teal/30 text-slate-700 text-sm rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all appearance-none font-medium">
+                                    <select value={localActivity.experienceType} onChange={(e) => handleChange('experienceType', e.target.value)} className="w-full bg-slate-50 border border-transparent focus:border-brand-teal/30 text-slate-700 text-base md:text-sm rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all appearance-none font-medium">
                                         <option value="">Select a category...</option>
                                         {experienceTypes.map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
@@ -145,15 +145,15 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 uppercase">Experience Name</label>
-                                <input type="text" value={localActivity.title} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-slate-50 border border-transparent focus:border-brand-teal/30 text-slate-800 text-sm font-semibold rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all" placeholder="e.g. Clinical Volunteer" />
+                                <input type="text" value={localActivity.title} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-slate-50 border border-transparent focus:border-brand-teal/30 text-slate-800 text-base md:text-sm font-semibold rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all" placeholder="e.g. Clinical Volunteer" />
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2"><Building className="w-3 h-3" /> Organization</label>
-                                <input type="text" value={localActivity.organization} onChange={(e) => handleChange('organization', e.target.value)} className="w-full bg-slate-50 border border-transparent focus:border-brand-teal/30 text-slate-800 text-sm font-medium rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all" placeholder="e.g. St. Mary's Medical Center" />
+                                <input type="text" value={localActivity.organization} onChange={(e) => handleChange('organization', e.target.value)} className="w-full bg-slate-50 border border-transparent focus:border-brand-teal/30 text-slate-800 text-base md:text-sm font-medium rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all" placeholder="e.g. St. Mary's Medical Center" />
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-brand-teal uppercase flex items-center gap-2"><Target className="w-3 h-3" /> Target Finish Date</label>
-                                <input type="date" value={localActivity.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)} className="w-full bg-brand-light border border-transparent focus:border-brand-teal/30 text-slate-800 text-sm font-medium rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all" />
+                                <input type="date" value={localActivity.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)} className="w-full bg-brand-light border border-transparent focus:border-brand-teal/30 text-slate-800 text-base md:text-sm font-medium rounded-lg p-3 outline-none focus:ring-4 focus:ring-brand-teal/10 transition-all" />
                             </div>
                         </div>
 
@@ -163,16 +163,16 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                             <div className="space-y-4">
                                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2"><MapPin className="w-4 h-4 text-brand-teal" /> Location</h3>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <input value={localActivity.city} onChange={(e) => handleChange('city', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="City" />
-                                    <input value={localActivity.country} onChange={(e) => handleChange('country', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Country" />
+                                    <input value={localActivity.city} onChange={(e) => handleChange('city', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="City" />
+                                    <input value={localActivity.country} onChange={(e) => handleChange('country', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Country" />
                                 </div>
                             </div>
                             <div className="space-y-4">
                                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2"><User className="w-4 h-4 text-brand-teal" /> Point of Contact</h3>
                                 <div className="space-y-3">
                                     <div className="grid grid-cols-2 gap-3">
-                                        <input value={localActivity.contactName} onChange={(e) => handleChange('contactName', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Name" />
-                                        <input value={localActivity.contactTitle} onChange={(e) => handleChange('contactTitle', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Title" />
+                                        <input value={localActivity.contactName} onChange={(e) => handleChange('contactName', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Name" />
+                                        <input value={localActivity.contactTitle} onChange={(e) => handleChange('contactTitle', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Title" />
                                     </div>
                                 </div>
                             </div>
@@ -198,7 +198,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                                                 <div className="hidden md:block h-8 w-px bg-slate-100 mx-2"></div>
                                                 <div className="relative col-span-1 md:col-span-1">
                                                     <label className="absolute -top-3 left-0 text-[9px] font-bold text-slate-400 uppercase">Hours</label>
-                                                    <input type="number" value={range.hours || ''} onChange={(e) => updateRange(range.id, 'hours', e.target.value)} className="w-full bg-slate-50 hover:bg-white border border-transparent rounded-md text-sm p-1.5 focus:ring-2 focus:ring-brand-teal/20 outline-none transition-all font-medium text-right" placeholder="0" />
+                                                    <input type="number" value={range.hours || ''} onChange={(e) => updateRange(range.id, 'hours', e.target.value)} className="w-full bg-slate-50 hover:bg-white border border-transparent rounded-md text-base md:text-sm p-1.5 focus:ring-2 focus:ring-brand-teal/20 outline-none transition-all font-medium text-right" placeholder="0" />
                                                 </div>
                                                 {index > 0 && (
                                                     <button onClick={() => removeRange(range.id)} className="col-span-1 md:col-span-1 justify-self-end md:justify-self-auto p-1.5 text-slate-400 hover:text-rose-500 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>

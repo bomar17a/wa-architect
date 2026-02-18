@@ -4,15 +4,26 @@
 
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
-      display: none;
+    display: none;
   }
+
   .scrollbar-hide {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
   }
 }
 
-html, body {
-  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+html,
+body {
+  overflow-x: hidden;
+  /* Prevent horizontal scroll on mobile */
   width: 100%;
 }
