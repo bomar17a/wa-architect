@@ -140,23 +140,50 @@ serve(async (req) => {
 
             case 'parse-resume': {
                 const { text } = payload;
-
-                3. If an activity clearly fits one of these, assign it.
-          4. If an activity is ambiguous or does not fit well, assign 'Unclassified' as the experienceType.
-          5. Return a JSON object with an array 'activities'.Each activity should have:
-                - title(string)
-                    - organization(string)
-                    - experienceType(string: One of the list above or 'Unclassified')
-                    - startDateMonth(string: Full month name e.g. "January")
-                    - startDateYear(string: YYYY)
-                    - endDateMonth(string: Full month name or "Present")
-                    - endDateYear(string: YYYY or "Present")
-                    - description(string: Summary of the activity from the resume, max 700 chars)
-                    - hours(string: estimated total hours if available, else empty string)
-
-          Resume Text:
-          ${ text }
-`;
+                const prompt = `
+                You are an expert resume parser for AAMC/AACOMAS medical school applications.
+                
+                TASK:
+                Extract work and activity entries from the provided resume text.
+                
+                CRITICAL EXTRACTION RULES:
+                1. EXTRACT ONLY:
+                   - Role Title
+                   - Organization Name
+                   - Location (City, Country)
+                   - Start Date (Month Year)
+                   - End Date (Month Year)
+                   - Description (The core narrative/bullets of the role)
+                
+                2. DO NOT EXTRACT / LEAVE EMPTY:
+                   - Contact Information (Email, Phone, Address) -> Ignore completely.
+                   - Total Hours -> Set to "0" or empty.
+                   - Contact Person/Supervisor -> Ignore completely.
+                
+                3. AMCAS CLASSIFICATION:
+                   - Categorize each entry into one of the 18 AMCAS Experience Types (e.g., "Physician Shadowing", "Community Service/Volunteer - Medical/Clinical", etc.).
+                   - If uncertain, use "Unclassified".
+                
+                4. OUTPUT FORMAT:
+                   - Return a JSON object with a "activities" array.
+                   - Each activity object MUST match this structure:
+                     {
+                       "title": "string",
+                       "organization": "string",
+                       "city": "string",
+                       "country": "string",
+                       "experienceType": "string",
+                       "startDateMonth": "string",
+                       "startDateYear": "string",
+                       "endDateMonth": "string", 
+                       "endDateYear": "string",
+                       "description": "string",
+                       "hours": "string"
+                     }
+                
+                RESUME TEXT:
+                ${text}
+                `;
 
                 const response = await genAI.models.generateContent({
                     model: MODEL_NAME,
@@ -179,7 +206,9 @@ serve(async (req) => {
                                             endDateMonth: { type: Type.STRING },
                                             endDateYear: { type: Type.STRING },
                                             description: { type: Type.STRING },
-                                            hours: { type: Type.STRING }
+                                            hours: { type: Type.STRING },
+                                            city: { type: Type.STRING },
+                                            country: { type: Type.STRING }
                                         }
                                     }
                                 }
@@ -187,18 +216,29 @@ serve(async (req) => {
                         }
                     }
                 });
-                result = JSON.parse(response.text || "{}");
+
+                // Clean the response text (remove markdown code blocks if present)
+                let cleanText = response.text || "{}";
+                cleanText = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                try {
+                    result = JSON.parse(cleanText);
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    console.log("Raw Text:", response.text);
+                    result = { activities: [] }; // Fallback
+                }
                 break;
             }
 
             case 'theme-analysis': {
                 const { activities } = payload;
                 const activityTexts = activities
-                    .map((a: any) => `Activity ID ${ a.id }: ${ a.description } `)
+                    .map((a: any) => `Activity ID ${a.id}: ${a.description} `)
                     .join('\n\n');
 
                 const prompt = `Analyze these medical school activities for AAMC Core Competencies.
-    Descriptions: ${ activityTexts }
+    Descriptions: ${activityTexts}
           Return top 5 - 7 competencies in JSON.
           `;
 
@@ -232,7 +272,7 @@ serve(async (req) => {
             }
 
             default:
-                throw new Error(`Unknown action: ${ action } `);
+                throw new Error(`Unknown action: ${action} `);
         }
 
         return new Response(JSON.stringify(result), {
