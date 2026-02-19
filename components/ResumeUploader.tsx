@@ -12,6 +12,7 @@ interface ResumeUploaderProps {
 export const ResumeUploader: React.FC<ResumeUploaderProps> = React.memo(({ onTextExtracted, isProcessing, compact = false }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isReading, setIsReading] = useState(false);
     const { addToast } = useToast();
 
     const handleButtonClick = useCallback(() => {
@@ -24,6 +25,10 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = React.memo(({ onTex
 
         console.log("File selected:", file.name, file.type, file.size);
         setError(null);
+        setIsReading(true);
+        // Toast for immediate feedback
+        addToast("Reading file...", "info");
+
         try {
             let text = '';
             if (file.type === 'application/pdf') {
@@ -50,9 +55,10 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = React.memo(({ onTex
             setError(msg);
             addToast(msg, 'error');
         } finally {
+            setIsReading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
-    }, [onTextExtracted]);
+    }, [onTextExtracted, addToast]);
 
     return (
         <div className="w-full">
@@ -74,12 +80,14 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = React.memo(({ onTex
                     : 'p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-brand-teal hover:bg-brand-teal/5'
                     }`}
                 aria-busy={isProcessing}
-                aria-label={isProcessing ? "Analyzing resume..." : "Upload Resume (PDF or DOCX)"}
+                aria-label={isProcessing || isReading ? "Analyzing resume..." : "Upload Resume (PDF or DOCX)"}
             >
-                {isProcessing ? (
+                {isProcessing || isReading ? (
                     <>
                         <Loader2 className={`animate-spin ${compact ? 'w-4 h-4' : 'w-5 h-5 text-brand-teal'}`} aria-hidden="true" />
-                        <span className={`${compact ? '' : 'text-slate-500 font-medium'}`}>Analyzing...</span>
+                        <span className={`${compact ? '' : 'text-slate-500 font-medium'}`}>
+                            {isReading ? 'Reading File...' : 'Analyzing...'}
+                        </span>
                     </>
                 ) : (
                     <>
