@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Activity, ActivityStatus, DateRange, ApplicationType, ArchitectAnalysis } from '../types';
 import { DESC_LIMITS } from '../constants';
 import * as geminiService from '../services/geminiService';
+import { useToast } from '../contexts/ToastContext';
 
 type SaveStatus = 'UNSAVED' | 'SAVING' | 'SAVED';
 
@@ -30,6 +31,7 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
     const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
     const [analysis, setAnalysis] = useState<ArchitectAnalysis | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const { addToast } = useToast();
 
     const triggerSave = useDebouncedSave(onSave, 1500);
 
@@ -92,7 +94,7 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
 
     const handleAnalyzeDraft = async () => {
         if (!localActivity.description || localActivity.description.length < 20) {
-            alert("Please draft a bit more content before analyzing.");
+            addToast("Please draft a bit more content before analyzing.", "info");
             return;
         }
         setIsAnalyzing(true);
@@ -103,8 +105,11 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
             if (result.suggestedCompetencies) {
                 handleChange('competencies', result.suggestedCompetencies);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            setIsAnalyzeOpen(false); // Close modal on error so they can see toast
+            const msg = e.message || "Failed to generate analysis.";
+            addToast(msg, "error");
         } finally {
             setIsAnalyzing(false);
         }

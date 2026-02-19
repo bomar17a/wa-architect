@@ -14,14 +14,11 @@ export const getDraftAnalysis = async (draft: string, limit: number): Promise<Ar
 
     if (error) throw error;
     return data as ArchitectAnalysis;
+    if (error) throw error;
+    return data as ArchitectAnalysis;
   } catch (error) {
     console.error("Error generating draft analysis:", error);
-    return {
-      generalFeedback: "Error: Could not generate analysis. Please try again or adjust your draft.",
-      keepers: [],
-      trimmers: [],
-      suggestedCompetencies: []
-    };
+    throw error;
   }
 };
 
