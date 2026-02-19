@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { extractTextFromPdf, extractTextFromDocx } from '../utils/file-parsers';
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext.tsx';
 
 interface ResumeUploaderProps {
     onTextExtracted: (text: string) => void;
@@ -11,6 +12,7 @@ interface ResumeUploaderProps {
 export const ResumeUploader: React.FC<ResumeUploaderProps> = React.memo(({ onTextExtracted, isProcessing, compact = false }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState<string | null>(null);
+    const { addToast } = useToast();
 
     const handleButtonClick = useCallback(() => {
         fileInputRef.current?.click();
@@ -44,7 +46,9 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = React.memo(({ onTex
             onTextExtracted(text);
         } catch (err: any) {
             console.error("Extraction error:", err);
-            setError(err.message || 'Failed to read file');
+            const msg = err.message || 'Failed to read file';
+            setError(msg);
+            addToast(msg, 'error');
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
         }

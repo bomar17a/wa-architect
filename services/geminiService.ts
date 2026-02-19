@@ -93,6 +93,6 @@ export const parseResume = async (text: string): Promise<Activity[]> => {
     return (data as any).activities || [];
   } catch (error) {
     console.error("Error parsing resume:", error);
-    return [];
+    throw error; // Propagate the error to the hook for handling (and Toasting)
   }
 };
