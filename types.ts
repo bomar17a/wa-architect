@@ -41,6 +41,8 @@ export interface Activity {
   mmeEssay: string;
   competencies: string[];
   dueDate?: string; // ISO Date string YYYY-MM-DD
+  tags?: string[];
+  notes?: string;
 }
 
 export type View = 'LANDING' | 'DASHBOARD' | 'EDITOR';

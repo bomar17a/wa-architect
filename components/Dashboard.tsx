@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useDashboardState } from '../hooks/useDashboardState.ts';
+import { useResumeProcessor } from '../hooks/useResumeProcessor.ts';
+import { useToast } from '../contexts/ToastContext.tsx';
 
 interface DashboardProps {
     activities: Activity[];
@@ -36,13 +38,12 @@ const STATUS_CONFIG: { [key in ActivityStatus]: { color: string; icon: React.Rea
 
 
 // --- Helper Components ---
-import { LoadingScreen } from './LoadingScreen.tsx';
+import { LoadingScreen } from './LoadingScreen';
 import { NavItem } from './Dashboard/NavItem.tsx';
 import { FocusCard } from './Dashboard/FocusCard.tsx';
 import { CompetencyAuditModal } from './Dashboard/CompetencyAuditModal.tsx';
 import { ResumeUploader } from './ResumeUploader.tsx';
 import { ResumeReviewModal } from './ResumeReviewModal.tsx';
-import { parseResume } from '../services/geminiService.ts';
 
 // --- Main Dashboard Component ---
 
@@ -65,63 +66,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
         readiness
     } = useDashboardState(activities);
 
-    const [isResumeProcessing, setIsResumeProcessing] = useState(false);
-    const [parsedResumeActivities, setParsedResumeActivities] = useState<Activity[]>([]);
+    const { addToast } = useToast();
+
+    const {
+        isProcessing: isResumeProcessing,
+        error: resumeError,
+        parsedActivities: parsedResumeActivities,
+        processResumeText,
+        reset: resetResumeProcessor
+    } = useResumeProcessor();
+
     const [showResumeModal, setShowResumeModal] = useState(false);
 
-    const handleResumeTextExtracted = async (text: string) => {
-        setIsResumeProcessing(true);
-        console.log("Processing resume text length:", text.length);
-        try {
-            const newActivities = await parseResume(text);
-            console.log("Parsed activities:", newActivities);
-
-            if (!newActivities || newActivities.length === 0) {
-                alert("AI extracted no activities. The resume format might be tricky.");
-                return;
-            }
-
-            // Assign temporary IDs (negative to avoid conflict, or large random)
-            // dashboard will handle real ID assignment on save?
-            // actually, let's just give them temp IDs
-            const stampedActivities = newActivities.map((a: any, i) => ({
-                id: Date.now() + i, // Temp ID
-                title: a.title,
-                organization: a.organization,
-                experienceType: a.experienceType,
-                city: a.city || '',
-                country: a.country || '',
-                contactName: '',
-                contactTitle: '',
-                contactEmail: '',
-                contactPhone: '',
-                status: ActivityStatus.DRAFT,
-                isMostMeaningful: false,
-                description: a.description, // Mapped to Narrative Studio
-                mmeAction: '',
-                mmeResult: '',
-                mmeEssay: '',
-                competencies: [],
-                dueDate: '',
-                dateRanges: [{
-                    id: `dr-${Date.now()}-${i}`,
-                    startDateMonth: a.startDateMonth || '',
-                    startDateYear: a.startDateYear || '',
-                    endDateMonth: a.endDateMonth || '',
-                    endDateYear: a.endDateYear || '',
-                    hours: '0', // Explicitly empty per requirement
-                    isAnticipated: false
-                }]
-            } as Activity));
-
-            setParsedResumeActivities(stampedActivities);
+    // Effect to show modal when activities are parsed
+    React.useEffect(() => {
+        if (parsedResumeActivities.length > 0) {
             setShowResumeModal(true);
-        } catch (err) {
-            console.error("Resume parsing error:", err);
-            alert("Failed to parse resume. Check console for details.");
-        } finally {
-            setIsResumeProcessing(false);
+            addToast("Resume parsed successfully!", "success");
         }
+    }, [parsedResumeActivities, addToast]);
+
+    // Effect to show error if any
+    React.useEffect(() => {
+        if (resumeError) {
+            addToast(resumeError, "error");
+        }
+    }, [resumeError, addToast]);
+
+    const handleResumeTextExtracted = (text: string) => {
+        processResumeText(text);
+    };
+
+    const handleCloseResumeModal = () => {
+        setShowResumeModal(false);
+        resetResumeProcessor();
     };
 
     const handleImportActivities = (newActivities: Activity[]) => {
@@ -140,6 +118,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
         // For this step, I'll add the logic assuming the prop exists or I'll add it.
         if (onImportActivities) {
             onImportActivities(newActivities);
+            addToast(`Imported ${newActivities.length} activities.`, "success");
         } else {
             console.warn("onImportActivities prop missing");
         }

@@ -276,11 +276,15 @@ const AppContent: React.FC = () => {
   );
 };
 
+import { ToastProvider } from './contexts/ToastContext.tsx';
+
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 

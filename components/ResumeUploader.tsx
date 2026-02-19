@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { extractTextFromPdf, extractTextFromDocx } from '../utils/file-parsers';
-import { Upload, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, Loader2, AlertCircle } from 'lucide-react';
 
 interface ResumeUploaderProps {
     onTextExtracted: (text: string) => void;
@@ -8,11 +8,15 @@ interface ResumeUploaderProps {
     compact?: boolean;
 }
 
-export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted, isProcessing, compact = false }) => {
+export const ResumeUploader: React.FC<ResumeUploaderProps> = React.memo(({ onTextExtracted, isProcessing, compact = false }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleButtonClick = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
+
+    const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -44,7 +48,7 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
-    };
+    }, [onTextExtracted]);
 
     return (
         <div className="w-full">
@@ -54,24 +58,28 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
                 onChange={handleFileChange}
                 accept=".pdf,.docx"
                 className="hidden"
+                aria-label="Upload Resume File"
+                disabled={isProcessing}
             />
 
             <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={handleButtonClick}
                 disabled={isProcessing}
                 className={`w-full flex items-center justify-center gap-2 transition-all group disabled:opacity-50 disabled:cursor-not-allowed ${compact
                     ? 'p-3 bg-brand-teal/5 text-brand-teal rounded-xl hover:bg-brand-teal hover:text-white font-bold text-sm border border-brand-teal/20'
                     : 'p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-brand-teal hover:bg-brand-teal/5'
                     }`}
+                aria-busy={isProcessing}
+                aria-label={isProcessing ? "Analyzing resume..." : "Upload Resume (PDF or DOCX)"}
             >
                 {isProcessing ? (
                     <>
-                        <Loader2 className={`animate-spin ${compact ? 'w-4 h-4' : 'w-5 h-5 text-brand-teal'}`} />
+                        <Loader2 className={`animate-spin ${compact ? 'w-4 h-4' : 'w-5 h-5 text-brand-teal'}`} aria-hidden="true" />
                         <span className={`${compact ? '' : 'text-slate-500 font-medium'}`}>Analyzing...</span>
                     </>
                 ) : (
                     <>
-                        <Upload className={`${compact ? 'w-4 h-4' : 'w-5 h-5 text-slate-400 group-hover:text-brand-teal'}`} />
+                        <Upload className={`${compact ? 'w-4 h-4' : 'w-5 h-5 text-slate-400 group-hover:text-brand-teal'}`} aria-hidden="true" />
                         <span className={`${compact ? '' : 'text-slate-500 group-hover:text-brand-teal font-medium'}`}>
                             {compact ? 'Upload Resume' : 'Upload Resume (PDF/DOCX)'}
                         </span>
@@ -80,8 +88,8 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
             </button>
 
             {error && (
-                <div className="mt-2 flex items-center gap-2 text-rose-500 text-xs bg-rose-50 p-2 rounded">
-                    <AlertCircle className="w-3 h-3" />
+                <div role="alert" className="mt-2 flex items-center gap-2 text-rose-500 text-xs bg-rose-50 p-2 rounded">
+                    <AlertCircle className="w-3 h-3" aria-hidden="true" />
                     <span>{error}</span>
                 </div>
             )}
@@ -93,4 +101,6 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({ onTextExtracted,
             )}
         </div>
     );
-};
+});
+
+ResumeUploader.displayName = 'ResumeUploader';
