@@ -184,7 +184,7 @@ async function handleParseResume(payload: any, model: any, retryFn: any) {
        - Location (City, Country)
        - Start Date (Month Year)
        - End Date (Month Year)
-       - Description (The core narrative/bullets of the role)
+       - Description (The core narrative/bullets of the role as a single string)
     
     2. DO NOT EXTRACT / LEAVE EMPTY:
        - Contact Information (Email, Phone, Address) -> Ignore completely.

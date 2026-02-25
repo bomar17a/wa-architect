@@ -310,6 +310,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                 />
             )}
             {isCompetencyModalOpen && <CompetencyAuditModal activities={filledActivities} onClose={() => setIsCompetencyModalOpen(false)} />}
+
+            {showResumeModal && (
+                <ResumeReviewModal
+                    isOpen={showResumeModal}
+                    onClose={handleCloseResumeModal}
+                    parsedActivities={parsedResumeActivities}
+                    onImport={handleImportActivities}
+                />
+            )}
+
             {/* Mobile Bottom Navigation */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-50 pb-safe">
                 <div onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 ${activeTab === 'overview' ? 'text-brand-teal' : 'text-slate-400'}`}>

@@ -1,0 +1,45 @@
+
+Running 2 tests using 1 worker
+
+On Landing Page. Skipping Upload test as generic user.
+  Γ£ô  1 tests\resume_upload.spec.ts:20:5 ΓÇ║ Resume Upload Feature ΓÇ║ should have a resume upload button (1.3s)
+  Γ£ÿ  2 tests\resume_upload.spec.ts:33:5 ΓÇ║ Resume Upload Feature ΓÇ║ should handle file selection (30.1s)
+
+
+  1) tests\resume_upload.spec.ts:33:5 ΓÇ║ Resume Upload Feature ΓÇ║ should handle file selection ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForEvent: Test timeout of 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for event "filechooser"
+    ============================================================
+
+      37 |         if (await loginBtn.isVisible()) return;
+      38 |
+    > 39 |         const fileChooserPromise = page.waitForEvent('filechooser');
+         |                                         ^
+      40 |         await page.getByRole('button', { name: /upload resume/i }).click();
+      41 |         const fileChooser = await fileChooserPromise;
+      42 |
+        at C:\Users\ch230748\Downloads\wa-architect\tests\resume_upload.spec.ts:39:41
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /upload resume/i })[22m
+
+
+      38 |
+      39 |         const fileChooserPromise = page.waitForEvent('filechooser');
+    > 40 |         await page.getByRole('button', { name: /upload resume/i }).click();
+         |                                                                    ^
+      41 |         const fileChooser = await fileChooserPromise;
+      42 |
+      43 |         await fileChooser.setFiles({
+        at C:\Users\ch230748\Downloads\wa-architect\tests\resume_upload.spec.ts:40:68
+
+    Error Context: test-results\tests-resume_upload-Resume-f7f20-hould-handle-file-selection\error-context.md
+
+  1 failed
+    tests\resume_upload.spec.ts:33:5 ΓÇ║ Resume Upload Feature ΓÇ║ should handle file selection ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  1 passed (33.7s)

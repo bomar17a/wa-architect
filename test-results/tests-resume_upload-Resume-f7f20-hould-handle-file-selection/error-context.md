@@ -1,0 +1,257 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - generic [ref=e9]: W&A Architect
+    - generic [ref=e10]:
+      - link "Methodology" [ref=e11] [cursor=pointer]:
+        - /url: "#methodology"
+      - link "Benchmarks" [ref=e12] [cursor=pointer]:
+        - /url: "#benchmarks"
+      - link "FAQ" [ref=e13] [cursor=pointer]:
+        - /url: "#faq"
+    - button "Member Login" [ref=e14] [cursor=pointer]:
+      - text: Member Login
+      - img [ref=e16]
+  - main [ref=e19]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]: v2.5 Release
+        - generic [ref=e24]: The Admissions Standard
+      - heading "Architect Your AMCAS Work & Activities Narrative." [level=1] [ref=e25]
+      - heading "It is not just a list—it's a narrative of your journey, values, and personal growth." [level=2] [ref=e26]
+      - paragraph [ref=e28]: A well-crafted Work & Activities section is a powerful tool in your journey toward medical school to showcase your unique story and commitment to becoming an exceptional physician.
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - button "Start Your Narrative" [ref=e31] [cursor=pointer]:
+            - text: Start Your Narrative
+            - img [ref=e32]
+          - link "How It Works" [ref=e34] [cursor=pointer]:
+            - /url: "#methodology"
+        - generic [ref=e35]:
+          - generic [ref=e36]: "Methodology aligned with core competencies from:"
+          - generic [ref=e37]:
+            - generic [ref=e38]: AAMC
+            - generic [ref=e40]: Harvard Medical School
+            - generic [ref=e42]: Stanford Medicine
+            - generic [ref=e44]: Johns Hopkins
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - heading "Not All Activities Are Created Equal" [level=3] [ref=e48]:
+            - text: Not All Activities
+            - text: Are Created Equal
+          - paragraph [ref=e49]:
+            - img [ref=e50]
+            - text: Application Readiness Audit
+        - generic [ref=e53]:
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - img [ref=e57]
+              - generic [ref=e60]:
+                - generic [ref=e61]: AdCom Score
+                - generic [ref=e62]: "84"
+                - generic [ref=e63]: Excellent
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e66]: Next Milestone
+                - generic [ref=e67]: Max Score
+              - generic [ref=e68]:
+                - generic [ref=e69]: Points to Level Up
+                - generic [ref=e70]: "16"
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - heading "Core Benchmarks" [level=4] [ref=e75]:
+                - img [ref=e76]
+                - text: Core Benchmarks
+              - generic [ref=e80]:
+                - generic [ref=e82]:
+                  - generic [ref=e83]:
+                    - img [ref=e84]
+                    - text: Clinical (Total)
+                  - generic [ref=e87]:
+                    - text: "180"
+                    - generic [ref=e88]: / 150h
+                - generic [ref=e92]:
+                  - generic [ref=e93]:
+                    - img [ref=e94]
+                    - text: Research
+                  - generic [ref=e97]:
+                    - text: "450"
+                    - generic [ref=e98]: / 100h
+                - generic [ref=e102]:
+                  - generic [ref=e103]: Shadowing
+                  - generic [ref=e105]:
+                    - text: "40"
+                    - generic [ref=e106]: / 100h
+            - generic [ref=e109]:
+              - heading "Priority Actions (1)" [level=4] [ref=e110]:
+                - img [ref=e111]
+                - text: Priority Actions (1)
+              - generic [ref=e113]:
+                - img [ref=e115]
+                - generic [ref=e119]:
+                  - generic [ref=e120]: Shadowing Gap
+                  - paragraph [ref=e121]: You only have 40 hours. We recommend reaching out to more specialists to hit the 50–100+ hours to stand out as a competitive applicant.
+      - generic [ref=e122]:
+        - generic [ref=e123]:
+          - generic [ref=e124]:
+            - heading "Activity Hub" [level=3] [ref=e125]
+            - paragraph [ref=e126]: Strategic Narrative Planning
+          - generic [ref=e128]: 12/15 Slots Used
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - img [ref=e135]
+                - generic [ref=e141]:
+                  - heading "Emergency Dept Scribe" [level=4] [ref=e142]
+                  - text: Most Meaningful Experience
+              - generic [ref=e143]: Final
+            - generic [ref=e145]: 450 Hours
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]:
+                - img [ref=e154]
+                - generic [ref=e158]:
+                  - heading "Cardiology Research Asst." [level=4] [ref=e159]
+                  - text: Research Lab
+              - generic [ref=e160]: Draft v2
+            - generic [ref=e162]: 200 Hours
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - img [ref=e167]
+                - generic [ref=e170]:
+                  - heading "Literacy Tutor" [level=4] [ref=e171]
+                  - text: Community Service
+              - generic [ref=e172]: Final
+            - generic [ref=e174]: 120 Hours
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - img [ref=e179]
+                - generic [ref=e183]:
+                  - 'heading "Shadowing: Dr. Smith" [level=4] [ref=e184]'
+                  - text: Shadowing
+              - generic [ref=e185]: Empty
+            - generic [ref=e187]: "-- Hours"
+  - generic [ref=e190]:
+    - generic [ref=e191]:
+      - heading "The Architect Method" [level=2] [ref=e192]
+      - paragraph [ref=e193]: Stop staring at a blank page. Our 4-step wizard guides you from basic facts to a compelling narrative aligned with AAMC core competencies.
+    - generic [ref=e194]:
+      - generic [ref=e195]:
+        - generic [ref=e196]: "1"
+        - img [ref=e198]
+        - heading "Context & Role" [level=3] [ref=e201]
+        - paragraph [ref=e202]: Define the 'What'. Establish your specific responsibilities clearly.
+        - generic [ref=e203]:
+          - generic [ref=e204]: Example Input
+          - paragraph [ref=e205]: "\"Scribed for Dr. Smith in the ED.\""
+        - img [ref=e207]
+      - generic [ref=e209]:
+        - generic [ref=e210]: "2"
+        - img [ref=e212]
+        - heading "Impact & Outcomes" [level=3] [ref=e216]
+        - paragraph [ref=e217]: Define the 'Show'. Use numbers and active verbs to prove value.
+        - generic [ref=e218]:
+          - generic [ref=e219]: Example Input
+          - paragraph [ref=e220]: "\"Reduced documentation lag by 20%.\""
+        - img [ref=e222]
+      - generic [ref=e224]:
+        - generic [ref=e225]: "3"
+        - img [ref=e227]
+        - heading "Reflection & Growth" [level=3] [ref=e237]
+        - paragraph [ref=e238]: Define the 'Tell'. Connect the activity to your future as a physician.
+        - generic [ref=e239]:
+          - generic [ref=e240]: Example Input
+          - paragraph [ref=e241]: "\"Learned the vital role of efficiency.\""
+        - img [ref=e243]
+      - generic [ref=e245]:
+        - generic [ref=e246]: "4"
+        - img [ref=e248]
+        - heading "Strengthen" [level=3] [ref=e254]
+        - paragraph [ref=e255]: Add accolades. Mention awards or specific recognition received.
+        - generic [ref=e256]:
+          - generic [ref=e257]: Example Input
+          - paragraph [ref=e258]: "\"Recognized as Scribe of the Month.\""
+  - generic [ref=e261]:
+    - generic [ref=e262]:
+      - heading "See the Transformation" [level=2] [ref=e263]
+      - paragraph [ref=e264]: Drag the slider to compare a standard draft vs. an architected narrative.
+    - generic [ref=e265]:
+      - generic [ref=e268]:
+        - generic [ref=e270]: Architected Narrative
+        - paragraph [ref=e277]: "\"Spearheaded patient triage protocols, reducing wait times by 15% during peak trauma hours. Coordinated across 3 nursing teams to ensure seamless hand-offs.\""
+        - generic [ref=e278]:
+          - generic [ref=e279]: ✓ Leadership Pillar
+          - generic [ref=e280]: ✓ Quantifiable Impact
+      - generic [ref=e282]:
+        - generic [ref=e284]: Standard Draft
+        - paragraph [ref=e285]: "\"I helped patients at the front desk and made sure they were comfortable. I also watched the doctors and nurses work during my shifts.\""
+        - generic [ref=e286]:
+          - generic [ref=e287]: ⚠ Passive Voice
+          - generic [ref=e288]: ⚠ Vague Description
+      - img [ref=e291]
+  - generic [ref=e295]:
+    - generic [ref=e296]:
+      - img [ref=e298]
+      - generic [ref=e302]:
+        - generic [ref=e303]: Candidacy Goal
+        - generic [ref=e304]: Identify Strategic Gaps
+    - generic [ref=e305]:
+      - img [ref=e307]
+      - generic [ref=e317]:
+        - generic [ref=e318]: Analysis Engine
+        - generic [ref=e319]: AAMC Pillar Saturation
+    - generic [ref=e320]:
+      - img [ref=e322]
+      - generic [ref=e324]:
+        - generic [ref=e325]: Dataset Sample
+        - generic [ref=e326]: +10k Verified Profiles
+  - generic [ref=e328]:
+    - generic [ref=e329]:
+      - heading "Common Questions" [level=2] [ref=e330]
+      - paragraph [ref=e331]: Expert answers to the most common Work & Activities inquiries.
+    - generic [ref=e332]:
+      - generic [ref=e333]:
+        - heading "Q How many activities should be on AMCAS?" [level=3] [ref=e334]:
+          - generic [ref=e335]: Q
+          - text: How many activities should be on AMCAS?
+        - paragraph [ref=e336]: Applicants have 15 slots for work and activities on the AMCAS application. While 15 is the maximum, successful matriculants average 12-13 high-quality entries. Quality over quantity is preferred; empty slots are better than "fluff" fillers.
+      - generic [ref=e337]:
+        - heading "Q What counts as clinical experience for medical school?" [level=3] [ref=e338]:
+          - generic [ref=e339]: Q
+          - text: What counts as clinical experience for medical school?
+        - paragraph [ref=e340]: Clinical experience is defined by direct patient interaction. Active roles (EMT, Scribe, CNA) are weighted significantly higher than passive roles (Hospital Greeter). Competitive applicants often target 150+ hours of clinical exposure plus separate shadowing hours.
+      - generic [ref=e341]:
+        - heading "Q How do I write a Most Meaningful Experience (MME) essay?" [level=3] [ref=e342]:
+          - generic [ref=e343]: Q
+          - text: How do I write a Most Meaningful Experience (MME) essay?
+        - paragraph [ref=e344]: A Most Meaningful Experience (MME) essay is a 1,325-character reflection designated for your top 3 activities. Unlike standard descriptions which focus on duties, MME essays must articulate why the experience mattered and how it prepared you for a career in medicine.
+  - generic [ref=e348]:
+    - heading "Architect your medical narrative with absolute certainty." [level=2] [ref=e349]:
+      - text: Architect your medical narrative
+      - text: with absolute certainty.
+    - paragraph [ref=e350]: The most successful applications are built on strategic positioning, not just volume.
+    - button "Start Your Draft" [ref=e351] [cursor=pointer]:
+      - text: Start Your Draft
+      - img [ref=e352]
+  - contentinfo [ref=e354]:
+    - generic [ref=e355]:
+      - generic [ref=e356]:
+        - img [ref=e358]
+        - generic [ref=e360]: W&A Architect
+      - generic [ref=e361]:
+        - link "Methodology" [ref=e362] [cursor=pointer]:
+          - /url: "#"
+        - link "Ethics" [ref=e363] [cursor=pointer]:
+          - /url: "#"
+        - link "Contact" [ref=e364] [cursor=pointer]:
+          - /url: "#"
+      - generic [ref=e365]: © 2025 W&A Architect Studio.
+```

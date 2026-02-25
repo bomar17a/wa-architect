@@ -1,0 +1,76 @@
+≡ƒÜÇ Starting Resume Architect Verification (API Test)...
+---------------------------------------------------------
+Γ£à Success! Parsed Activities:
+{
+  "activities": [
+    {
+      "title": "Senior Clinical Research Coordinator",
+      "organization": "Cityville General Hospital",
+      "city": "Cityville",
+      "country": "USA",
+      "experienceType": "Research",
+      "startDateMonth": "June",
+      "startDateYear": "2021",
+      "endDateMonth": "Present",
+      "endDateYear": "Present",
+      "description": [
+        "Managed clinical trials for oncology patients.",
+        "Coordinated with multidisciplinary teams to ensure protocol compliance.",
+        "Facilitated patient enrollment and data management for 15+ active studies."
+      ],
+      "hours": "0"
+    },
+    {
+      "title": "Volunteer Medical Assistant",
+      "organization": "Free Clinic of Cityville",
+      "city": "Cityville",
+      "country": "USA",
+      "experienceType": "Clinical - Volunteer",
+      "startDateMonth": "January",
+      "startDateYear": "2019",
+      "endDateMonth": "May",
+      "endDateYear": "2021",
+      "description": [
+        "Performed vitals and recorded patient history for underserved populations.",
+        "Assisted physicians with minor procedures and translation services.",
+        "Managed front-desk operations and scheduled follow-up appointments."
+      ],
+      "hours": "0"
+    },
+    {
+      "title": "President",
+      "organization": "Pre-Health Honor Society",
+      "city": "Cityville",
+      "country": "USA",
+      "experienceType": "Leadership",
+      "startDateMonth": "August",
+      "startDateYear": "2019",
+      "endDateMonth": "May",
+      "endDateYear": "2021",
+      "description": [
+        "Led a student organization of 200+ members interested in healthcare careers.",
+        "Organized annual health symposium featuring 20 guest speakers.",
+        "Mentored underclassmen on application timelines and course selection."
+      ],
+      "hours": "0"
+    }
+  ]
+}
+
+--- Verification Summary ---
+- Total Activities Parsed: 3
+
+Activity 1: Senior Clinical Research Coordinator
+  - Organization: Cityville General Hospital
+  - Type: Research
+  - Restricted Field (Hours): Γ£à Success (Empty)
+
+Activity 2: Volunteer Medical Assistant
+  - Organization: Free Clinic of Cityville
+  - Type: Clinical - Volunteer
+  - Restricted Field (Hours): Γ£à Success (Empty)
+
+Activity 3: President
+  - Organization: Pre-Health Honor Society
+  - Type: Leadership
+  - Restricted Field (Hours): Γ£à Success (Empty)

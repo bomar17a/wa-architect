@@ -21,16 +21,20 @@ export const useResumeProcessor = (): UseResumeProcessorReturn => {
         setIsProcessing(true);
         setError(null);
         try {
+            console.log("processResumeText started. Text length:", text?.length);
             if (!text || text.trim().length === 0) {
                 throw new Error("Resume text is empty.");
             }
 
             const newActivities = await parseResume(text);
+            console.log("Raw response from parseResume:", newActivities);
 
             if (!newActivities || newActivities.length === 0) {
+                console.warn("AI extracted no activities. Raw newActivities:", newActivities);
                 throw new Error("AI extracted no activities. The resume format might be tricky.");
             }
 
+            console.log("Mapping activities...");
             // Transform simple objects into full Activity objects
             const stampedActivities: Activity[] = newActivities.map((a: any, i: number) => ({
                 id: Date.now() + i, // Temp ID
@@ -65,11 +69,13 @@ export const useResumeProcessor = (): UseResumeProcessorReturn => {
                 notes: ''
             }));
 
+            console.log("Successfully mapped activities:", stampedActivities);
             setParsedActivities(stampedActivities);
         } catch (err: any) {
-            console.error("Resume processing error:", err);
+            console.error("Resume processing error in hook:", err);
             setError(err.message || "Failed to process resume.");
         } finally {
+            console.log("processResumeText finished.");
             setIsProcessing(false);
         }
     }, []);

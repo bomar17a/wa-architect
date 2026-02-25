@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test('mobile layout verification', async ({ page }) => {
     // 1. Visit Landing Page
-    await page.goto('http://localhost:5173');
+    await page.goto('http://localhost:3000');
 
     // Check for vertical stacking on mobile (viewport emulation needed in real runner, here we check classes)
     // We expect the "Live Visuals" container to have 'flex-col'

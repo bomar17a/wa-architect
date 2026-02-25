@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Resume Upload Feature', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('http://localhost:5173');
+        await page.goto('http://localhost:3000');
         // Note: In a real environment, we'd need to bypass auth.
         // Assuming dev environment has a mechanism or defaults to dashboard if session persists/mocked.
         // For this test, we verify the Landing Page components if strictly unauthenticated,
