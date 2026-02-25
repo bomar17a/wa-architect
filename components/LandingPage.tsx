@@ -216,8 +216,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup }) =
 
             {/* Background Decor */}
             <div className="fixed inset-0 pointer-events-none z-0">
-                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-white blur-[140px] rounded-full opacity-60"></div>
-                <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-teal/10 blur-[140px] rounded-full opacity-40"></div>
+                <div className="absolute inset-0 bg-grid-pattern opacity-[0.25] [mask-image:radial-gradient(ellipse_at_top,white,transparent_80%)]"></div>
             </div>
 
             {/* Navigation */}
@@ -259,11 +258,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup }) =
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">The Admissions Standard</span>
                         </motion.div>
 
-                        <motion.h1 variants={itemVariants} className="text-[3.5rem] md:text-[4.5rem] lg:text-[5rem] font-serif font-medium text-brand-dark leading-[1] tracking-tight mb-4">
+                        <motion.h1 variants={itemVariants} className="text-[3.5rem] md:text-[4.5rem] lg:text-[5rem] font-serif font-medium text-brand-dark leading-[1.1] tracking-tight mb-4">
                             Architect Your <span className="italic text-slate-500">AMCAS Work & Activities</span> Narrative.
                         </motion.h1>
 
-                        <motion.h2 variants={itemVariants} className="text-2xl md:text-3xl text-brand-dark font-medium leading-snug mb-4 max-w-2xl">
+                        <motion.h2 variants={itemVariants} className="text-2xl md:text-3xl text-brand-dark font-medium leading-[1.1] mb-4 max-w-2xl">
                             It is not just a list—it's a narrative of your journey, values, and personal growth.
                         </motion.h2>
 
@@ -291,16 +290,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup }) =
                             </div>
 
                             {/* Trust Bar - E-E-A-T Signal */}
-                            <div className="flex flex-col items-center lg:items-start gap-3 mt-4">
+                            <div className="flex flex-col items-center lg:items-start gap-3 mt-4 bg-white/60 backdrop-blur-md border border-slate-200 p-5 rounded-2xl shadow-sm w-full max-w-xl">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Methodology aligned with core competencies from:</span>
-                                <div className="flex flex-wrap justify-center lg:justify-start gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                                <div className="flex flex-wrap justify-center lg:justify-start gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500 w-full items-center">
                                     <span className="font-serif text-lg font-bold text-slate-700">AAMC</span>
-                                    <span className="h-6 w-px bg-slate-300"></span>
-                                    <span className="font-serif text-lg font-bold text-slate-700">Harvard Medical School</span>
-                                    <span className="h-6 w-px bg-slate-300"></span>
-                                    <span className="font-serif text-lg font-bold text-slate-700">Stanford Medicine</span>
-                                    <span className="h-6 w-px bg-slate-300"></span>
-                                    <span className="font-serif text-lg font-bold text-slate-700">Johns Hopkins</span>
+                                    <span className="h-4 w-px bg-slate-400"></span>
+                                    <span className="font-serif text-lg font-bold text-slate-700">Harvard Medical</span>
+                                    <span className="h-4 w-px bg-slate-400"></span>
+                                    <span className="font-serif text-lg font-bold text-slate-700">Stanford</span>
+                                    <span className="hidden sm:block h-4 w-px bg-slate-400"></span>
+                                    <span className="font-serif text-lg font-bold text-slate-700 hidden sm:block">Johns Hopkins</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -308,8 +307,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onSignup }) =
                 </div>
 
                 {/* Right Side: LIVE Visuals - Replaced Static Cards */}
-                {/* Mobile: Vertical Grid | Desktop: Vertical Grid */}
-                <div className="lg:col-span-5 flex flex-col gap-6 lg:gap-8 overflow-visible pb-8 lg:pb-0 px-0 lg:px-0">
+                {/* Mobile: Vertical Grid | Desktop: Overlapping Grid */}
+                <div className="lg:col-span-5 flex flex-col gap-6 lg:gap-8 overflow-visible pb-8 lg:pb-0 px-0 lg:px-0 lg:-ml-16 lg:z-20 lg:mt-6">
 
                     {/* AdCom Score Card (Detailed Preview) - Moved to Top */}
                     <motion.div

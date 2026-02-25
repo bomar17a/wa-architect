@@ -201,16 +201,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-100">
         {/* Helper to show Landing Page if selected, but usually dashboard is home for auth users */}
-        {currentView === 'LANDING' ? (
-          <Dashboard
-            activities={activities}
-            onSelectActivity={handleSelectActivity}
-            appType={appType}
-            onAppTypeChange={setAppType}
-            onToggleMME={handleToggleMME}
-            onDeleteActivity={handleDeleteActivity}
-          />
-        ) : currentView === 'DASHBOARD' ? (
+        {currentView === 'LANDING' || currentView === 'DASHBOARD' ? (
           <Dashboard
             activities={activities}
             onSelectActivity={handleSelectActivity}
@@ -223,13 +214,13 @@ const AppContent: React.FC = () => {
               const activitiesToSave = newActivities.map(a => ({
                 ...a,
                 // Ensure ID is unique if mostly temp
-                id: Date.now() + Math.random(),
+                id: Date.now() + Math.floor(Math.random() * 10000),
                 status: ActivityStatus.DRAFT
               }));
 
               setActivities(prev => [...prev, ...activitiesToSave]);
 
-              // Persist each one (parallel or sequential)
+              // Persist each one
               activitiesToSave.forEach(activity => {
                 activityService.saveActivity(activity).catch(console.error);
               });
