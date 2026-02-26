@@ -293,7 +293,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                 </div>
                             </header>
                             <div className="bg-white p-4 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex-1 overflow-y-auto pb-24 md:pb-8">
-                                <MissionFitRadar activities={activities} />
+                                <MissionFitRadar activities={activities} onNavigateToRecommender={() => setActiveTab('school-recommender')} />
                             </div>
                         </div>
                     )}
