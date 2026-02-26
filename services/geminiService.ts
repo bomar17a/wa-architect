@@ -12,14 +12,25 @@ export const checkUserAuth = async () => {
 const throwIfEdgeFunctionError = async (error: any) => {
   if (!error) return;
 
-  if (error.context && typeof error.context.json === 'function') {
+  if (error.context && typeof error.context.text === 'function') {
     try {
-      const body = await error.context.json();
+      const text = await error.context.text();
+      let body;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // If it isn't JSON, throw the raw text directly if there's text
+        if (text) throw new Error(text);
+        throw error;
+      }
       if (body && body.error) {
         throw new Error(body.error);
+      } else if (text) {
+        throw new Error(text);
       }
-    } catch {
-      // Proceed to throw the original error if JSON parsing fails
+    } catch (e: any) {
+      // Don't swallow the error we just threw in the inner try
+      throw e;
     }
   }
   throw error;
