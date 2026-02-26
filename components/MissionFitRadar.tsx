@@ -20,7 +20,7 @@ interface MissionFitRadarProps {
 }
 
 // --- 1. The Mission Math Engine ---
-const useCompetencyScores = (activities: Activity[]) => {
+export const useCompetencyScores = (activities: Activity[]) => {
   return useMemo(() => {
     let inquiry = 1;
     let service = 1;

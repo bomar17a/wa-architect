@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Activity, ApplicationType, ActivityStatus, ThemeAnalysis } from '../types.ts';
 import { ACTIVITY_WEIGHTS, AAMC_CORE_COMPETENCIES } from '../constants.ts';
 import { MissionFitRadar } from './MissionFitRadar.tsx';
+import { SchoolRecommender } from './SchoolRecommender.tsx';
 import { StarIconFilled } from './icons/StarIconFilled.tsx';
 import { SparklesIcon } from './icons/SparklesIcon.tsx';
 import { TrashIcon } from './icons/TrashIcon.tsx';
@@ -9,7 +10,7 @@ import {
     LayoutDashboard, BookOpen, BarChart2, Calendar, Settings,
     Search, Bell, ChevronRight, CheckCircle2, Clock, Map as MapIcon, Code, Image as ImageIcon,
     PenTool, FileText, ChevronLeft, Sparkles, X, ShieldCheck, ChevronDown,
-    Rocket, HelpCircle, GraduationCap, Info,
+    Rocket, HelpCircle, GraduationCap, Info, Building,
     Activity as ActivityIcon, Brain, Trophy, Plus, LogOut,
     Briefcase, AlertTriangle, Heart, Users, Target, Award, Zap
 } from 'lucide-react';
@@ -157,6 +158,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                         <Target size={20} />
                         <span className="font-bold text-sm tracking-tight">Mission Fit Radar</span>
                     </div>
+                    <div
+                        onClick={() => setActiveTab('school-recommender')}
+                        className={`flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all ${activeTab === 'school-recommender' ? 'bg-brand-dark text-white shadow-lg' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                        <Building size={20} />
+                        <span className="font-bold text-sm tracking-tight">Recommender</span>
+                    </div>
                 </nav>
 
                 {/* Sidebar Score Widget - Fixed UI */}
@@ -284,7 +292,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                 </div>
                             </div>
                         </div>
-                    ) : (
+                    ) : activeTab === 'mission-fit' ? (
                         <div className="animate-fade-in pt-4 h-full flex flex-col">
                             <header className="flex justify-between items-center mb-8">
                                 <div>
@@ -295,6 +303,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                             <div className="bg-white p-4 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex-1 overflow-y-auto pb-24 md:pb-8">
                                 <MissionFitRadar activities={activities} onNavigateToRecommender={() => setActiveTab('school-recommender')} />
                             </div>
+                        </div>
+                    ) : (
+                        <div className="animate-fade-in pt-4 h-full flex flex-col">
+                            <SchoolRecommender activities={activities} />
                         </div>
                     )}
                 </div>
