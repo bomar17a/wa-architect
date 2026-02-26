@@ -21,8 +21,8 @@ serve(async (req) => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Use gemini-2.0-flash as confirmed available and performant
-        const MODEL_NAME = 'gemini-2.0-flash';
+        // Use gemini-1.5-flash as it has higher rate limits on the free tier
+        const MODEL_NAME = 'gemini-1.5-flash';
         const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
         const { action, payload } = await req.json()
