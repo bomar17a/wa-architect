@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { RewriteType } from '../../types';
 import * as geminiService from '../../services/geminiService';
+import { useToast } from '../../contexts/ToastContext';
 
 interface CoPilotEditorProps {
     text: string;
@@ -16,6 +17,7 @@ export const CoPilotEditor: React.FC<CoPilotEditorProps> = ({ text, onTextChange
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const editorRef = useRef<HTMLTextAreaElement>(null);
+    const { addToast } = useToast();
 
     useEffect(() => {
         if (editorRef.current) {
@@ -27,9 +29,18 @@ export const CoPilotEditor: React.FC<CoPilotEditorProps> = ({ text, onTextChange
     const handleRewrite = async (type: RewriteType) => {
         if (!selectedText) return;
         setIsLoading(true); setShowSuggestions(true);
-        try { const res = await geminiService.getRewriteSuggestions(selectedText, type); setRewriteSuggestions(res); }
-        catch { setRewriteSuggestions(["Error."]); }
-        finally { setIsLoading(false); }
+        try {
+            const res = await geminiService.getRewriteSuggestions(selectedText, type);
+            setRewriteSuggestions(res);
+        } catch (e: any) {
+            const msg = e.message === 'AUTH_REQUIRED'
+                ? "You must be logged in to use the AI Analysis features."
+                : "Error generating suggestions.";
+            addToast(msg, "error");
+            setShowSuggestions(false);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (

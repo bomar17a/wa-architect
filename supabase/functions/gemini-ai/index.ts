@@ -60,6 +60,9 @@ serve(async (req) => {
             case 'parse-resume':
                 result = await handleParseResume(payload, model, generateWithRetry);
                 break;
+            case 'parse-msar':
+                result = await handleParseMsar(payload, model, generateWithRetry);
+                break;
             case 'theme-analysis':
                 result = await handleThemeAnalysis(payload, model, generateWithRetry);
                 break;
@@ -96,7 +99,7 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
     ---
 
     Your task is to provide feedback in four parts:
-    1.  **General Feedback:** A top-level comment. ${overLimitInstruction}
+    1.  **General Feedback:** A top-level comment evaluating the strength of their draft and suggesting thematic improvements.
     2.  **'Keepers':** Bullet points of the most impactful sentences, phrases, or ideas from the draft that are essential to the story. These are the elements that "show" rather than "tell".
     3.  **'Trimmers':** Bullet points of details, sentences, or phrases that are less critical, redundant, or could be expressed more concisely to save space.
     4.  **'Suggested Competencies':** Map the draft against the AAMC Core Competencies. Identify 2-4 competencies that are strongly demonstrated by the evidence in the draft.
@@ -258,6 +261,63 @@ async function handleParseResume(payload: any, model: any, retryFn: any) {
         console.log("Raw Text:", result_raw.response.text());
         return { activities: [] }; // Fallback
     }
+}
+
+async function handleParseMsar(payload: any, model: any, retryFn: any) {
+    const { text } = payload;
+    const prompt = `
+    You are an expert medical school admissions counselor. 
+    
+    TASK:
+    Extract a list of medical schools from the provided raw text block. For each school you identify in the text, you must extract its name, its raw mission statement, and classify it based on constraints below.
+    
+    CRITICAL CLASSIFICATION RULES:
+    1. Degree Type (degree_type):
+       - Return exactly "MD" or "DO". (Assume MD unless it explicitly mentions Osteopathic).
+       
+    2. Application System (application_system):
+       - If it is a public medical school in Texas (e.g., UT systems, Dell, McGovern, Texas Tech, Texas A&M), label it "TMDSAS".
+       - If its degree type is DO, label it "AACOMAS".
+       - For all other schools, label it "AMCAS".
+       
+    3. Primary Archetype (primary_category):
+       - Assign EXACTLY ONE of the following tags based on the primary focus of its mission text:
+         - "The Investigator" (Focuses heavily on basic science, bench research, discoveries)
+         - "The Advocate" (Focuses on social justice, community service, underserved populations, equity)
+         - "The Practitioner" (Emphasizes clinical excellence, primary care, rural medicine)
+         - "The Innovator" (Intersection of engineering/tech/systemic delivery with medicine)
+         - "The Leader" (Producing leaders, academic medicine, global health, health policy)
+         
+    TEXT TO PARSE:
+    ${text}
+    `;
+
+    const result_raw = await retryFn(() => model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    schools: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                school_name: { type: "STRING" },
+                                mission_statement: { type: "STRING" },
+                                degree_type: { type: "STRING" },
+                                application_system: { type: "STRING" },
+                                primary_category: { type: "STRING" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }));
+
+    return JSON.parse(result_raw.response.text());
 }
 
 async function handleThemeAnalysis(payload: any, model: any, retryFn: any) {

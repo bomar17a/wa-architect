@@ -2,9 +2,16 @@
 import { supabase } from "./supabase.ts";
 import { Activity, RewriteType, ArchitectAnalysis, ThemeAnalysis } from "../types.ts";
 import { DESC_LIMITS, MME_LIMIT, AAMC_CORE_COMPETENCIES } from "../constants.ts";
+export const checkUserAuth = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('AUTH_REQUIRED');
+  }
+};
 
 export const getDraftAnalysis = async (draft: string, limit: number): Promise<ArchitectAnalysis> => {
   try {
+    await checkUserAuth();
     const { data, error } = await supabase.functions.invoke('gemini-ai', {
       body: {
         action: 'draft-analysis',
@@ -12,8 +19,6 @@ export const getDraftAnalysis = async (draft: string, limit: number): Promise<Ar
       }
     });
 
-    if (error) throw error;
-    return data as ArchitectAnalysis;
     if (error) throw error;
     return data as ArchitectAnalysis;
   } catch (error) {
@@ -24,6 +29,7 @@ export const getDraftAnalysis = async (draft: string, limit: number): Promise<Ar
 
 export const getRewriteSuggestions = async (sentence: string, rewriteType: RewriteType): Promise<string[]> => {
   try {
+    await checkUserAuth();
     const { data, error } = await supabase.functions.invoke('gemini-ai', {
       body: {
         action: 'rewrite',
@@ -41,6 +47,7 @@ export const getRewriteSuggestions = async (sentence: string, rewriteType: Rewri
 
 export const synthesizeMmeEssay = async (baseDescription: string, action: string, result: string): Promise<string> => {
   try {
+    await checkUserAuth();
     const { data, error } = await supabase.functions.invoke('gemini-ai', {
       body: {
         action: 'mme-synthesis',
@@ -58,6 +65,7 @@ export const synthesizeMmeEssay = async (baseDescription: string, action: string
 
 export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalysis> => {
   try {
+    await checkUserAuth();
     const { data, error } = await supabase.functions.invoke('gemini-ai', {
       body: {
         action: 'theme-analysis',
@@ -78,6 +86,7 @@ export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalys
 
 export const parseResume = async (text: string): Promise<Activity[]> => {
   try {
+    await checkUserAuth();
     const { data, error } = await supabase.functions.invoke('gemini-ai', {
       body: {
         action: 'parse-resume',

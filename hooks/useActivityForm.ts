@@ -108,7 +108,9 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
         } catch (e: any) {
             console.error(e);
             setIsAnalyzeOpen(false); // Close modal on error so they can see toast
-            const msg = e.message || "Failed to generate analysis.";
+            const msg = e.message === 'AUTH_REQUIRED'
+                ? "You must be logged in to use the AI Analysis features and save your data."
+                : (e.message || "Failed to generate analysis.");
             addToast(msg, "error");
         } finally {
             setIsAnalyzing(false);
