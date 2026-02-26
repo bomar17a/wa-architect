@@ -35,7 +35,7 @@ export const CoPilotEditor: React.FC<CoPilotEditorProps> = ({ text, onTextChange
         } catch (e: any) {
             const msg = e.message === 'AUTH_REQUIRED'
                 ? "You must be logged in to use the AI Analysis features."
-                : "Error generating suggestions.";
+                : (e.message || "Error generating suggestions.");
             addToast(msg, "error");
             setShowSuggestions(false);
         } finally {

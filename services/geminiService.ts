@@ -9,6 +9,22 @@ export const checkUserAuth = async () => {
   }
 };
 
+const throwIfEdgeFunctionError = async (error: any) => {
+  if (!error) return;
+
+  if (error.context && typeof error.context.json === 'function') {
+    try {
+      const body = await error.context.json();
+      if (body && body.error) {
+        throw new Error(body.error);
+      }
+    } catch {
+      // Proceed to throw the original error if JSON parsing fails
+    }
+  }
+  throw error;
+};
+
 export const getDraftAnalysis = async (draft: string, limit: number): Promise<ArchitectAnalysis> => {
   try {
     await checkUserAuth();
@@ -19,7 +35,7 @@ export const getDraftAnalysis = async (draft: string, limit: number): Promise<Ar
       }
     });
 
-    if (error) throw error;
+    await throwIfEdgeFunctionError(error);
     return data as ArchitectAnalysis;
   } catch (error) {
     console.error("Error generating draft analysis:", error);
@@ -37,7 +53,7 @@ export const getRewriteSuggestions = async (sentence: string, rewriteType: Rewri
       }
     });
 
-    if (error) throw error;
+    await throwIfEdgeFunctionError(error);
     return data as string[];
   } catch (error) {
     console.error("Error rewriting sentence:", error);
@@ -55,7 +71,7 @@ export const synthesizeMmeEssay = async (baseDescription: string, action: string
       }
     });
 
-    if (error) throw error;
+    await throwIfEdgeFunctionError(error);
     return data as string;
   } catch (error) {
     console.error("Error synthesizing MME essay:", error);
@@ -73,7 +89,7 @@ export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalys
       }
     });
 
-    if (error) throw error;
+    await throwIfEdgeFunctionError(error);
     return data as ThemeAnalysis;
   } catch (error) {
     console.error("Error analyzing themes:", error);
@@ -94,7 +110,7 @@ export const parseResume = async (text: string): Promise<Activity[]> => {
       }
     });
 
-    if (error) throw error;
+    await throwIfEdgeFunctionError(error);
     // Ensure we return an array, defaulting to empty if response is weird
     return (data as any).activities || [];
   } catch (error) {
