@@ -35,6 +35,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => subscription.unsubscribe();
     }, []);
 
+    // Session Idle Timeout Logic (Auto-logout after 60 minutes of inactivity)
+    useEffect(() => {
+        if (!session) return;
+
+        let timeoutId: NodeJS.Timeout;
+        const TIMEOUT_DURATION_MS = 60 * 60 * 1000; // 60 minutes
+
+        const resetTimer = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(async () => {
+                console.log("Session expired due to inactivity. Auto-logging out.");
+                await supabase.auth.signOut();
+            }, TIMEOUT_DURATION_MS);
+        };
+
+        // Initialize the first timer
+        resetTimer();
+
+        // Listen for user activity
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        events.forEach(event => document.addEventListener(event, resetTimer, { passive: true }));
+
+        return () => {
+            clearTimeout(timeoutId);
+            events.forEach(event => document.removeEventListener(event, resetTimer));
+        };
+    }, [session]);
+
     const signOut = async () => {
         await supabase.auth.signOut();
     };

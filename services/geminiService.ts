@@ -68,7 +68,7 @@ export const getRewriteSuggestions = async (sentence: string, rewriteType: Rewri
     return data as string[];
   } catch (error) {
     console.error("Error rewriting sentence:", error);
-    return ["Error generating suggestions."];
+    throw error;
   }
 };
 
