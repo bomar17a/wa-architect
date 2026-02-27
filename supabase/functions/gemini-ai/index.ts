@@ -21,9 +21,11 @@ serve(async (req) => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
 
-        // Use gemini-2.5-flash as it is supported by the current SDK version for generateContent
-        const MODEL_NAME = 'gemini-2.5-flash';
-        const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+        // Core workhorse for complex JSON extraction and logic
+        const flashModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+        // Fast, cost-effective model for simple text generation/summarization
+        const liteModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
         const { action, payload } = await req.json()
 
@@ -49,22 +51,22 @@ serve(async (req) => {
 
         switch (action) {
             case 'draft-analysis':
-                result = await handleDraftAnalysis(payload, model, generateWithRetry);
+                result = await handleDraftAnalysis(payload, flashModel, generateWithRetry);
                 break;
             case 'rewrite':
-                result = await handleRewrite(payload, model, generateWithRetry);
+                result = await handleRewrite(payload, liteModel, generateWithRetry);
                 break;
             case 'mme-synthesis':
-                result = await handleMmeSynthesis(payload, model, generateWithRetry);
+                result = await handleMmeSynthesis(payload, liteModel, generateWithRetry);
                 break;
             case 'parse-resume':
-                result = await handleParseResume(payload, model, generateWithRetry);
+                result = await handleParseResume(payload, flashModel, generateWithRetry);
                 break;
             case 'parse-msar':
-                result = await handleParseMsar(payload, model, generateWithRetry);
+                result = await handleParseMsar(payload, flashModel, generateWithRetry);
                 break;
             case 'theme-analysis':
-                result = await handleThemeAnalysis(payload, model, generateWithRetry);
+                result = await handleThemeAnalysis(payload, liteModel, generateWithRetry);
                 break;
             default:
                 throw new Error(`Unknown action: ${action} `);
