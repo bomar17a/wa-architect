@@ -54,6 +54,11 @@ export interface ArchitectAnalysis {
   keepers: string[];
   trimmers: string[];
   suggestedCompetencies: string[];
+  frameworkAlignment?: {
+    context: string;
+    impact: string;
+    reflection: string;
+  };
 }
 
 export interface CompetencyAnalysis {

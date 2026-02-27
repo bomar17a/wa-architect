@@ -100,7 +100,7 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
         setIsAnalyzing(true);
         setIsAnalyzeOpen(true);
         try {
-            const result = await geminiService.getDraftAnalysis(localActivity.description, DESC_LIMITS[appType]);
+            const result = await geminiService.getDraftAnalysis(localActivity.description, DESC_LIMITS[appType], localActivity.experienceType);
             setAnalysis(result);
             if (result.suggestedCompetencies) {
                 handleChange('competencies', result.suggestedCompetencies);

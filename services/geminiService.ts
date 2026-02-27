@@ -36,13 +36,13 @@ const throwIfEdgeFunctionError = async (error: any) => {
   throw error;
 };
 
-export const getDraftAnalysis = async (draft: string, limit: number): Promise<ArchitectAnalysis> => {
+export const getDraftAnalysis = async (draft: string, limit: number, experienceType?: string): Promise<ArchitectAnalysis> => {
   try {
     await checkUserAuth();
     const { data, error } = await supabase.functions.invoke('gemini-ai', {
       body: {
         action: 'draft-analysis',
-        payload: { draft, limit }
+        payload: { draft, limit, experienceType }
       }
     });
 

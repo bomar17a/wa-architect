@@ -85,11 +85,25 @@ serve(async (req) => {
 // --- Handler Functions ---
 
 async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
-    const { draft, limit } = payload;
+    const { draft, limit, experienceType } = payload;
     const isOverLimit = draft.length > limit;
     const overLimitInstruction = isOverLimit
         ? `The user is currently at ${draft.length} / ${limit} characters. Your general feedback must start with this exact sentence: "This is a fantastic start and full of great detail! You're currently at ${draft.length} / ${limit} characters. My other comments below will help you identify the most impactful parts to keep (the 'keepers') and which sections we can safely condense or trim to get you under the ${limit}-character limit."`
         : `The user is within the character limit. Provide encouraging and constructive feedback on their draft, suggesting one or two areas for potential improvement if applicable.`;
+
+    let typeSpecificInstruction = '';
+    if (experienceType) {
+        const typeStr = experienceType.toLowerCase();
+        if (typeStr.includes('clinical') || typeStr.includes('healthcare') || typeStr.includes('shadowing')) {
+            typeSpecificInstruction = `\n    Crucially, since this is a ${experienceType} experience, specifically check if they described meaningful patient interactions, empathy, and what they learned about the patient experience rather than just listing clinical duties. For shadowing, check if they reflected on the doctor-patient relationship and clinical insights.`;
+        } else if (typeStr.includes('research')) {
+            typeSpecificInstruction = `\n    Crucially, since this is a ${experienceType} experience, evaluate whether they highlighted their specific contribution, understanding of the scientific method, and any tangible outcomes (like posters, papers, or presentations).`;
+        } else if (typeStr.includes('leadership')) {
+            typeSpecificInstruction = `\n    Crucially, since this is a ${experienceType} experience, specifically look for examples of guiding others, taking initiative, handling conflict, or driving measurable change.`;
+        } else if (typeStr.includes('community') || typeStr.includes('volunteer')) {
+            typeSpecificInstruction = `\n    Crucially, since this is a ${experienceType} experience, look for themes of altruism, engagement with diverse populations, and tangible community impact.`;
+        }
+    }
 
     const prompt = `You are an expert medical school admissions writing tutor. A pre-med applicant has written a draft for their Work & Activities section and needs your feedback. Do NOT rewrite their draft. Your role is to provide strategic analysis.
 
@@ -98,11 +112,18 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
     ${draft}
     ---
 
-    Your task is to provide feedback in four parts:
+    ${overLimitInstruction}
+    ${typeSpecificInstruction}
+
+    Your task is to provide feedback in five parts:
     1.  **General Feedback:** A top-level comment evaluating the strength of their draft and suggesting thematic improvements.
     2.  **'Keepers':** Bullet points of the most impactful sentences, phrases, or ideas from the draft that are essential to the story. These are the elements that "show" rather than "tell".
     3.  **'Trimmers':** Bullet points of details, sentences, or phrases that are less critical, redundant, or could be expressed more concisely to save space.
-    4.  **'Suggested Competencies':** Map the draft against the AAMC Core Competencies. Identify 2-4 competencies that are strongly demonstrated by the evidence in the draft.
+    4.  **'Framework Alignment':** Evaluate the draft against three core pillars:
+        - **Context:** How well did they establish the "What" and their role?
+        - **Impact:** How well did they "Show" their impact with metrics, outcomes, and concrete details?
+        - **Reflection:** How well did they "Tell" what they learned and how it shaped their path to medicine?
+    5.  **'Suggested Competencies':** Map the draft against the AAMC Core Competencies. Identify 2-4 competencies that are strongly demonstrated by the evidence in the draft.
 
     Provide the output in a structured JSON format.
     `;
@@ -117,6 +138,14 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
                     generalFeedback: { type: "STRING" },
                     keepers: { type: "ARRAY", items: { type: "STRING" } },
                     trimmers: { type: "ARRAY", items: { type: "STRING" } },
+                    frameworkAlignment: {
+                        type: "OBJECT",
+                        properties: {
+                            context: { type: "STRING" },
+                            impact: { type: "STRING" },
+                            reflection: { type: "STRING" }
+                        }
+                    },
                     suggestedCompetencies: {
                         type: "ARRAY",
                         items: { type: "STRING" }

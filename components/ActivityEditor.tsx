@@ -246,6 +246,25 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                                             <ul className="space-y-1">{analysis.keepers.map((k, i) => <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">• {k}</li>)}</ul>
                                         </div>
                                     </div>
+                                    {analysis.frameworkAlignment && (
+                                        <div className="mt-4 bg-white/60 p-4 rounded-lg border border-indigo-100">
+                                            <h5 className="font-bold text-indigo-700 text-xs uppercase mb-3 flex items-center gap-1"><Wand2 className="w-3 h-3" /> Framework Alignment</h5>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-700">Context: </span>
+                                                    <span className="text-xs text-slate-600">{analysis.frameworkAlignment.context}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-700">Impact: </span>
+                                                    <span className="text-xs text-slate-600">{analysis.frameworkAlignment.impact}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-700">Reflection: </span>
+                                                    <span className="text-xs text-slate-600">{analysis.frameworkAlignment.reflection}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             <div className="flex-1 relative rounded-xl overflow-hidden">
