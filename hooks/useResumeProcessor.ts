@@ -43,7 +43,7 @@ export const useResumeProcessor = (): UseResumeProcessorReturn => {
                 experienceType: a.experienceType || 'General Entry',
                 city: a.city || '',
                 country: a.country || '',
-                contactName: '', // Explicitly empty
+                contactName: '',
                 contactTitle: '',
                 contactEmail: '',
                 contactPhone: '',
@@ -61,10 +61,9 @@ export const useResumeProcessor = (): UseResumeProcessorReturn => {
                     startDateYear: a.startDateYear || '',
                     endDateMonth: a.endDateMonth || '',
                     endDateYear: a.endDateYear || '',
-                    hours: '0', // Explicitly empty
+                    hours: a.hours || '0',
                     isAnticipated: false
                 }],
-                // Ensure required fields from Activity type are present
                 tags: [],
                 notes: ''
             }));
