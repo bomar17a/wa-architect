@@ -1,12 +1,14 @@
 
-import { supabase } from "./supabase.ts";
+import { supabase, supabaseAnonKey } from "./supabase.ts";
 import { Activity, RewriteType, ArchitectAnalysis, ThemeAnalysis } from "../types.ts";
 import { DESC_LIMITS, MME_LIMIT, AAMC_CORE_COMPETENCIES } from "../constants.ts";
+
 export const checkUserAuth = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
     throw new Error('AUTH_REQUIRED');
   }
+  return session;
 };
 
 const throwIfEdgeFunctionError = async (error: any) => {
@@ -36,14 +38,57 @@ const throwIfEdgeFunctionError = async (error: any) => {
   throw error;
 };
 
+/**
+ * Calls the gemini-ai edge function via raw fetch() so we fully control headers.
+ *
+ * Auth strategy (two-layer):
+ *   1. Authorization: Bearer <anonKey>  — satisfies Supabase's API gateway
+ *   2. x-user-token: <access_token>     — verified inside the edge function via
+ *      JWT_SECRET, proving the caller is a real, non-expired logged-in user.
+ */
+const invokeEdgeFunction = async (body: object): Promise<{ data: any; error: any }> => {
+  const EDGE_FUNCTION_URL =
+    'https://jitzwwxsnpylaistotgq.supabase.co/functions/v1/gemini-ai';
+
+  // Get the live session — throws AUTH_REQUIRED if logged out
+  const session = await checkUserAuth();
+
+  let response: Response;
+  try {
+    response = await fetch(EDGE_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Anon key for the Supabase gateway (never expires)
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        // User's live JWT — verified inside the edge function
+        'x-user-token': session.access_token,
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (networkError) {
+    return { data: null, error: networkError };
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    const err: any = new Error(`Edge function error: ${response.status}`);
+    err.context = {
+      text: () => Promise.resolve(errorText),
+      status: response.status,
+    };
+    return { data: null, error: err };
+  }
+
+  const data = await response.json();
+  return { data, error: null };
+};
+
 export const getDraftAnalysis = async (draft: string, limit: number, experienceType?: string): Promise<ArchitectAnalysis> => {
   try {
-    await checkUserAuth();
-    const { data, error } = await supabase.functions.invoke('gemini-ai', {
-      body: {
-        action: 'draft-analysis',
-        payload: { draft, limit, experienceType }
-      }
+    const { data, error } = await invokeEdgeFunction({
+      action: 'draft-analysis',
+      payload: { draft, limit, experienceType }
     });
 
     await throwIfEdgeFunctionError(error);
@@ -56,12 +101,9 @@ export const getDraftAnalysis = async (draft: string, limit: number, experienceT
 
 export const getRewriteSuggestions = async (sentence: string, rewriteType: RewriteType): Promise<string[]> => {
   try {
-    await checkUserAuth();
-    const { data, error } = await supabase.functions.invoke('gemini-ai', {
-      body: {
-        action: 'rewrite',
-        payload: { sentence, rewriteType }
-      }
+    const { data, error } = await invokeEdgeFunction({
+      action: 'rewrite',
+      payload: { sentence, rewriteType }
     });
 
     await throwIfEdgeFunctionError(error);
@@ -74,12 +116,9 @@ export const getRewriteSuggestions = async (sentence: string, rewriteType: Rewri
 
 export const synthesizeMmeEssay = async (baseDescription: string, action: string, result: string): Promise<string> => {
   try {
-    await checkUserAuth();
-    const { data, error } = await supabase.functions.invoke('gemini-ai', {
-      body: {
-        action: 'mme-synthesis',
-        payload: { baseDescription, action, result }
-      }
+    const { data, error } = await invokeEdgeFunction({
+      action: 'mme-synthesis',
+      payload: { baseDescription, action, result }
     });
 
     await throwIfEdgeFunctionError(error);
@@ -92,12 +131,9 @@ export const synthesizeMmeEssay = async (baseDescription: string, action: string
 
 export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalysis> => {
   try {
-    await checkUserAuth();
-    const { data, error } = await supabase.functions.invoke('gemini-ai', {
-      body: {
-        action: 'theme-analysis',
-        payload: { activities }
-      }
+    const { data, error } = await invokeEdgeFunction({
+      action: 'theme-analysis',
+      payload: { activities }
     });
 
     await throwIfEdgeFunctionError(error);
@@ -113,19 +149,15 @@ export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalys
 
 export const parseResume = async (text: string): Promise<Activity[]> => {
   try {
-    await checkUserAuth();
-    const { data, error } = await supabase.functions.invoke('gemini-ai', {
-      body: {
-        action: 'parse-resume',
-        payload: { text }
-      }
+    const { data, error } = await invokeEdgeFunction({
+      action: 'parse-resume',
+      payload: { text }
     });
 
     await throwIfEdgeFunctionError(error);
-    // Ensure we return an array, defaulting to empty if response is weird
     return (data as any).activities || [];
   } catch (error) {
     console.error("Error parsing resume:", error);
-    throw error; // Propagate the error to the hook for handling (and Toasting)
+    throw error;
   }
 };
