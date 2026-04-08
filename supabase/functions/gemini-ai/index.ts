@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { GoogleGenerativeAI } from "npm:@google/generative-ai"
-import { verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -15,11 +15,13 @@ serve(async (req) => {
     }
 
     try {
-        // --- Auth guard: verify user JWT from x-user-token header ---
-        const jwtSecret = Deno.env.get('JWT_SECRET');
-        if (!jwtSecret) {
-            throw new Error('JWT_SECRET is not configured on the edge function.');
-        }
+        // --- Auth guard: verify user token via Supabase admin client ---
+        // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically
+        // into every Supabase edge function — no manual secrets needed.
+        const supabaseAdmin = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        );
 
         const userToken = req.headers.get('x-user-token');
         if (!userToken) {
@@ -29,21 +31,8 @@ serve(async (req) => {
             });
         }
 
-        try {
-            const cryptoKey = await crypto.subtle.importKey(
-                'raw',
-                new TextEncoder().encode(jwtSecret),
-                { name: 'HMAC', hash: 'SHA-256' },
-                false,
-                ['verify'],
-            );
-            const payload = await verify(userToken, cryptoKey);
-
-            // Ensure the token has a subject (user ID) and hasn't expired
-            if (!payload.sub) {
-                throw new Error('Token missing subject claim.');
-            }
-        } catch (_verifyError) {
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(userToken);
+        if (authError || !user) {
             return new Response(JSON.stringify({ error: 'Unauthorized: invalid or expired session. Please log in again.' }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 401,
