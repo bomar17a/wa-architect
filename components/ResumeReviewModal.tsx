@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Activity, ActivityStatus } from '../types';
 import { AMCAS_EXPERIENCE_TYPES } from '../constants';
+import { useToast } from '../contexts/ToastContext';
 import { Check, AlertTriangle, X, Save, Edit3 } from 'lucide-react';
 
 interface ResumeReviewModalProps {
@@ -19,6 +20,13 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
     const [activities, setActivities] = useState<Activity[]>(parsedActivities);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set(parsedActivities.map(a => a.id)));
     const [editingId, setEditingId] = useState<number | null>(null);
+    const { addToast } = useToast();
+
+    // Sync internal state when a new batch of parsed activities arrives (e.g. second upload)
+    useEffect(() => {
+        setActivities(parsedActivities);
+        setSelectedIds(new Set(parsedActivities.map(a => a.id)));
+    }, [parsedActivities]);
 
     const unclassifiedCount = useMemo(() =>
         activities.filter(a => a.experienceType === 'Unclassified').length,
@@ -45,9 +53,8 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
 
     const handleImport = () => {
         const toImport = activities.filter(a => selectedIds.has(a.id));
-        // Prevent import if "Unclassified" items are selected
         if (toImport.some(a => a.experienceType === 'Unclassified')) {
-            alert("Please classify all selected activities before importing.");
+            addToast("Please classify all selected activities before importing.", "error");
             return;
         }
         onImport(toImport);
