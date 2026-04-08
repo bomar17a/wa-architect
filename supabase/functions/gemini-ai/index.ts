@@ -1,10 +1,11 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { GoogleGenerativeAI } from "npm:@google/generative-ai"
+import { verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
 }
 
 serve(async (req) => {
@@ -14,6 +15,42 @@ serve(async (req) => {
     }
 
     try {
+        // --- Auth guard: verify user JWT from x-user-token header ---
+        const jwtSecret = Deno.env.get('JWT_SECRET');
+        if (!jwtSecret) {
+            throw new Error('JWT_SECRET is not configured on the edge function.');
+        }
+
+        const userToken = req.headers.get('x-user-token');
+        if (!userToken) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: missing user token.' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 401,
+            });
+        }
+
+        try {
+            const cryptoKey = await crypto.subtle.importKey(
+                'raw',
+                new TextEncoder().encode(jwtSecret),
+                { name: 'HMAC', hash: 'SHA-256' },
+                false,
+                ['verify'],
+            );
+            const payload = await verify(userToken, cryptoKey);
+
+            // Ensure the token has a subject (user ID) and hasn't expired
+            if (!payload.sub) {
+                throw new Error('Token missing subject claim.');
+            }
+        } catch (_verifyError) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: invalid or expired session. Please log in again.' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 401,
+            });
+        }
+        // --- End auth guard ---
+
         const apiKey = Deno.env.get('API_KEY');
         if (!apiKey) {
             throw new Error('API_KEY is not set');
