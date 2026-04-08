@@ -36,7 +36,8 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
     const triggerSave = useDebouncedSave(onSave, 1500);
 
     useEffect(() => {
-        if (activity.id !== localActivity.id) setLocalActivity(activity);
+        // Always sync when the editor is opened for a different (or newly imported) activity
+        setLocalActivity(activity);
     }, [activity.id]);
 
     const handleChange = useCallback(<K extends keyof Activity>(field: K, value: Activity[K]) => {
@@ -107,7 +108,7 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
             }
         } catch (e: any) {
             console.error(e);
-            setIsAnalyzeOpen(false); // Close modal on error so they can see toast
+            setIsAnalyzeOpen(false);
             const msg = e.message === 'AUTH_REQUIRED'
                 ? "You must be logged in to use the AI Analysis features and save your data."
                 : (e.message || "Failed to generate analysis.");
