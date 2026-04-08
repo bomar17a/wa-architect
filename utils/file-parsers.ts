@@ -13,7 +13,11 @@ export const extractTextFromPdf = async (file: File): Promise<string> => {
     for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        // Preserve newlines between items so the AI receives structured text
+        // (bullet points, section breaks) rather than a single flattened blob.
+        const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join('\n');
         fullText += pageText + '\n';
     }
 
