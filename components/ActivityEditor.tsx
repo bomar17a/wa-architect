@@ -287,7 +287,9 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                         <div className="p-6">
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {AAMC_CORE_COMPETENCIES.map((competency, i) => {
-                                    const isDetected = localActivity.competencies?.includes(competency);
+                                    const isDetected = localActivity.competencies?.some(
+                                        c => c.toLowerCase().trim() === competency.toLowerCase().trim()
+                                    );
                                     return (
                                         <div
                                             key={i}
