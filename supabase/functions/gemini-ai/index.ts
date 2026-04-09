@@ -151,7 +151,7 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
         - **Context:** How well did they establish the "What" and their role?
         - **Impact:** How well did they "Show" their impact with metrics, outcomes, and concrete details?
         - **Reflection:** How well did they "Tell" what they learned and how it shaped their path to medicine?
-    5.  **'Suggested Competencies':** Map the draft against the AAMC Core Competencies. Identify 2-4 competencies that are strongly demonstrated by the evidence in the draft.
+    5.  **'Suggested Competencies':** Map the draft against the AAMC Core Competencies. Identify 2-4 competencies that are strongly demonstrated by the evidence in the draft. MUST choose EXACTLY from this list: "Service Orientation", "Social Skills", "Cultural Competence", "Teamwork", "Oral Communication", "Ethical Responsibility to Self and Others", "Reliability and Dependability", "Resilience and Adaptability", "Capacity for Improvement", "Critical Thinking", "Quantitative Reasoning", "Scientific Inquiry", "Written Communication", "Living Systems", "Human Behavior".
 
     Provide the output in a structured JSON format.
     `;
