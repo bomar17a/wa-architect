@@ -23,6 +23,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
 
     const [schools, setSchools] = useState<MedicalSchool[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [searchTerm, setSearchQuery] = useState('');
 
     // Filters
@@ -33,9 +34,17 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
     useEffect(() => {
         const fetchSchools = async () => {
             setLoading(true);
+            setErrorMsg(null);
             const { data, error } = await supabase.from('medical_schools').select('*');
 
-            if (!error && data) {
+            if (error) {
+                console.error("Error fetching medical schools:", error);
+                setErrorMsg("Unable to fetch school data. Please ensure the medical_schools table exists and Row Level Security (RLS) is configured correctly.");
+                setLoading(false);
+                return;
+            }
+
+            if (data) {
                 // Calculate match scores post-fetch
                 const processedSchools = data.map((school: MedicalSchool) => {
                     const arch = SCHOOL_ARCHETYPES.find(a => a.dbCategory === school.primary_category);
@@ -71,7 +80,8 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
         });
     }, [schools, searchTerm, degreeFilter, systemFilter]);
 
-    const topMatch = schools.length > 0 ? schools[0] : null;
+    const hasData = studentScores.Inquiry > 0 || studentScores.Service > 0 || studentScores.Teamwork > 0 || studentScores.Clinical > 0;
+    const topMatch = schools.length > 0 && hasData ? schools[0] : null;
 
     return (
         <div className="w-full h-full flex flex-col pt-4 animate-fade-in">
@@ -83,7 +93,19 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
             </header>
 
             {/* Highlights / Stats */}
-            {topMatch && !loading && (
+            {errorMsg && (
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-5 flex items-center justify-between gap-4 shadow-sm">
+                    <p className="text-red-600 font-medium">{errorMsg}</p>
+                </div>
+            )}
+
+            {!hasData && !loading && !errorMsg && schools.length > 0 && (
+                 <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-center justify-between gap-4 shadow-sm">
+                    <p className="text-amber-800 font-medium">Add activities to the Narrative Studio to generate personalized match scores for each school.</p>
+                 </div>
+            )}
+
+            {topMatch && !loading && !errorMsg && (
                 <div className="mb-6 bg-gradient-to-r from-brand-teal/10 to-brand-dark/5 border border-brand-teal/20 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="bg-white p-3 rounded-full shadow-sm text-brand-teal">
@@ -196,7 +218,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                             </div>
                                             <div className="flex items-center justify-between border-t border-slate-100 pt-3">
                                                 <span className="text-xs font-medium text-slate-400">Match Potential</span>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2" title={`Based on your proximity to the ${archData?.label || 'school'} targets.`}>
                                                     <div className="w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                         <div
                                                             className="h-full bg-brand-teal rounded-full"
