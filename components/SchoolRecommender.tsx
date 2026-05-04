@@ -158,7 +158,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                 <div className="bg-white/80 backdrop-blur-xl p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-[2.5rem] shadow-[0_4px_25px_rgb(0,0,0,0.02)] border border-slate-100/50 flex-1 flex flex-col sm:overflow-hidden relative border-t-white/80">
                     
                     {/* Glassmorphic Toolbar */}
-                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6 pb-2 sticky top-0 bg-white/70 backdrop-blur-lg z-10 p-2 rounded-xl border border-white">
+                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6 pb-2 sticky top-0 bg-white/90 backdrop-blur-xl z-30 p-2 rounded-xl border border-white shadow-sm">
                         <div className="relative w-full lg:w-96 group">
                             <Search className="absolute left-4 top-3 w-4 h-4 text-slate-400 group-focus-within:text-brand-teal transition-colors" />
                             <input
