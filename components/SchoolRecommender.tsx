@@ -3,6 +3,7 @@ import { Search, Filter, Building, Target, Award, ArrowLeft, Loader2, ChevronDow
 import { Activity } from '../types';
 import { supabase } from '../services/supabase';
 import { useCompetencyScores, SCHOOL_ARCHETYPES } from './MissionFitRadar';
+import { getSchoolState, US_STATES, CA_PROVINCES } from '../utils/schoolStates';
 
 interface SchoolRecommenderProps {
     activities: Activity[];
@@ -32,6 +33,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
     // Filters
     const [degreeFilter, setDegreeFilter] = useState<string>('All');
     const [systemFilter, setSystemFilter] = useState<string>('All');
+    const [stateFilter, setStateFilter] = useState<string>('All');
 
     // Load all schools from Supabase
     useEffect(() => {
@@ -79,9 +81,11 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
             const matchesSearch = school.school_name.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesDegree = degreeFilter === 'All' || school.degree_type === degreeFilter;
             const matchesSystem = systemFilter === 'All' || school.application_system === systemFilter;
-            return matchesSearch && matchesDegree && matchesSystem;
+            const schoolState = getSchoolState(school.school_name);
+            const matchesState = stateFilter === 'All' || schoolState === stateFilter;
+            return matchesSearch && matchesDegree && matchesSystem && matchesState;
         });
-    }, [schools, searchTerm, degreeFilter, systemFilter]);
+    }, [schools, searchTerm, degreeFilter, systemFilter, stateFilter]);
 
     const hasData = studentScores.Inquiry > 0 || studentScores.Service > 0 || studentScores.Teamwork > 0 || studentScores.Clinical > 0;
     const topMatch = schools.length > 0 && hasData ? schools[0] : null;
@@ -169,29 +173,46 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                 className="w-full bg-slate-50/50 backdrop-blur-sm pl-11 pr-4 py-2.5 rounded-xl text-sm font-medium border border-slate-200/60 focus:bg-white focus:border-brand-teal focus:ring-4 focus:ring-brand-teal/10 outline-none transition-all shadow-inner"
                             />
                         </div>
-                        <div className="flex items-center gap-3 w-full lg:w-auto">
-                            <div className="relative w-1/2 lg:w-36 group">
-                                <Filter className="absolute left-3 top-3 w-3.5 h-3.5 text-slate-400 z-10 pointer-events-none" />
-                                <ChevronDown className="absolute right-3 top-3.5 w-3 h-3 text-slate-400 z-10 pointer-events-none" />
+                        <div className="flex items-center gap-2 w-full lg:w-auto">
+                            <div className="relative w-1/3 lg:w-32 group">
+                                <Filter className="absolute left-2 lg:left-3 top-3 w-3.5 h-3.5 text-slate-400 z-10 pointer-events-none" />
+                                <ChevronDown className="absolute right-2 lg:right-3 top-3.5 w-3 h-3 text-slate-400 z-10 pointer-events-none" />
+                                <select
+                                    value={stateFilter}
+                                    onChange={(e) => setStateFilter(e.target.value)}
+                                    className="w-full appearance-none bg-slate-50/50 backdrop-blur-sm border border-slate-200/60 rounded-xl pl-7 lg:pl-9 pr-6 lg:pr-8 py-2.5 text-[12px] lg:text-sm font-bold text-slate-600 outline-none cursor-pointer focus:border-brand-teal transition-all shadow-inner"
+                                >
+                                    <option value="All">State</option>
+                                    <optgroup label="US States">
+                                        {US_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+                                    </optgroup>
+                                    <optgroup label="Canada">
+                                        {CA_PROVINCES.map(st => <option key={st} value={st}>{st}</option>)}
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div className="relative w-1/3 lg:w-32 group">
+                                <Filter className="absolute left-2 lg:left-3 top-3 w-3.5 h-3.5 text-slate-400 z-10 pointer-events-none" />
+                                <ChevronDown className="absolute right-2 lg:right-3 top-3.5 w-3 h-3 text-slate-400 z-10 pointer-events-none" />
                                 <select
                                     value={degreeFilter}
                                     onChange={(e) => setDegreeFilter(e.target.value)}
-                                    className="w-full appearance-none bg-slate-50/50 backdrop-blur-sm border border-slate-200/60 rounded-xl pl-9 pr-8 py-2.5 text-sm font-bold text-slate-600 outline-none cursor-pointer focus:border-brand-teal transition-all shadow-inner"
+                                    className="w-full appearance-none bg-slate-50/50 backdrop-blur-sm border border-slate-200/60 rounded-xl pl-7 lg:pl-9 pr-6 lg:pr-8 py-2.5 text-[12px] lg:text-sm font-bold text-slate-600 outline-none cursor-pointer focus:border-brand-teal transition-all shadow-inner"
                                 >
-                                    <option value="All">All Degrees</option>
+                                    <option value="All">Degree</option>
                                     <option value="MD">MD</option>
                                     <option value="DO">DO</option>
                                 </select>
                             </div>
-                            <div className="relative w-1/2 lg:w-40 group">
-                                <Filter className="absolute left-3 top-3 w-3.5 h-3.5 text-slate-400 z-10 pointer-events-none" />
-                                <ChevronDown className="absolute right-3 top-3.5 w-3 h-3 text-slate-400 z-10 pointer-events-none" />
+                            <div className="relative w-1/3 lg:w-36 group">
+                                <Filter className="absolute left-2 lg:left-3 top-3 w-3.5 h-3.5 text-slate-400 z-10 pointer-events-none" />
+                                <ChevronDown className="absolute right-2 lg:right-3 top-3.5 w-3 h-3 text-slate-400 z-10 pointer-events-none" />
                                 <select
                                     value={systemFilter}
                                     onChange={(e) => setSystemFilter(e.target.value)}
-                                    className="w-full appearance-none bg-slate-50/50 backdrop-blur-sm border border-slate-200/60 rounded-xl pl-9 pr-8 py-2.5 text-sm font-bold text-slate-600 outline-none cursor-pointer focus:border-brand-teal transition-all shadow-inner"
+                                    className="w-full appearance-none bg-slate-50/50 backdrop-blur-sm border border-slate-200/60 rounded-xl pl-7 lg:pl-9 pr-6 lg:pr-8 py-2.5 text-[12px] lg:text-sm font-bold text-slate-600 outline-none cursor-pointer focus:border-brand-teal transition-all shadow-inner"
                                 >
-                                    <option value="All">All Systems</option>
+                                    <option value="All">System</option>
                                     <option value="AMCAS">AMCAS</option>
                                     <option value="AACOMAS">AACOMAS</option>
                                     <option value="TMDSAS">TMDSAS</option>
