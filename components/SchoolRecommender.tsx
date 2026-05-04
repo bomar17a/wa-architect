@@ -109,8 +109,8 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
     };
 
     return (
-        <div className="w-full h-full flex pt-4 overflow-hidden relative">
-            <div className={`flex-1 flex flex-col h-full transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${selectedSchool ? 'mr-0 lg:mr-[400px] opacity-20 lg:opacity-100 scale-[0.98] lg:scale-100 pointer-events-none lg:pointer-events-auto' : ''}`}>
+        <div className="w-full sm:h-full flex pt-4 sm:overflow-hidden relative">
+            <div className={`flex-1 flex flex-col sm:h-full transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${selectedSchool ? 'mr-0 lg:mr-[400px] opacity-20 lg:opacity-100 scale-[0.98] lg:scale-100 pointer-events-none lg:pointer-events-auto' : ''}`}>
                 <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
                     <div>
                         <h1 className="text-3xl font-bold text-brand-dark font-serif">School Recommender</h1>
@@ -155,7 +155,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                 )}
 
                 {/* Main Content Area */}
-                <div className="bg-white/80 backdrop-blur-xl p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-[2.5rem] shadow-[0_4px_25px_rgb(0,0,0,0.02)] border border-slate-100/50 flex-1 flex flex-col overflow-hidden relative border-t-white/80">
+                <div className="bg-white/80 backdrop-blur-xl p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-[2.5rem] shadow-[0_4px_25px_rgb(0,0,0,0.02)] border border-slate-100/50 flex-1 flex flex-col sm:overflow-hidden relative border-t-white/80">
                     
                     {/* Glassmorphic Toolbar */}
                     <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6 pb-2 sticky top-0 bg-white/70 backdrop-blur-lg z-10 p-2 rounded-xl border border-white">
@@ -201,7 +201,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                     </div>
 
                     {/* List of Schools */}
-                    <div className="flex-1 overflow-y-auto px-2 pb-10 scrollbar-hide">
+                    <div className="flex-1 sm:overflow-y-auto px-2 pb-24 sm:pb-10 scrollbar-hide">
                         {loading ? (
                             <div className="w-full h-40 flex items-center justify-center">
                                 <Loader2 className="w-8 h-8 text-brand-teal animate-spin" />

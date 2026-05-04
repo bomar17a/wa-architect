@@ -305,7 +305,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                             </div>
                         </div>
                     ) : (
-                        <div className="animate-fade-in pt-4 h-full flex flex-col">
+                        <div className="animate-fade-in pt-4 sm:h-full flex flex-col">
                             <SchoolRecommender activities={activities} />
                         </div>
                     )}
