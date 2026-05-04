@@ -300,7 +300,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                     <p className="text-slate-400 text-sm mt-1">Strategic alignment with medical school archetypes.</p>
                                 </div>
                             </header>
-                            <div className="bg-white p-4 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex-1 overflow-y-auto pb-24 md:pb-8">
+                            <div className="bg-white p-4 md:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-sm border border-slate-100 flex-1 overflow-y-auto pb-24 md:pb-8">
                                 <MissionFitRadar activities={activities} onNavigateToRecommender={() => setActiveTab('school-recommender')} />
                             </div>
                         </div>
@@ -333,22 +333,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
             )}
 
             {/* Mobile Bottom Navigation */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-50 pb-safe">
-                <div onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-1 ${activeTab === 'overview' ? 'text-brand-teal' : 'text-slate-400'}`}>
-                    <LayoutDashboard size={24} />
-                    <span className="text-[10px] font-bold">Dash</span>
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2.5 flex justify-around items-center z-50 pb-safe">
+                <div onClick={() => setActiveTab('overview')} className={`flex flex-col items-center gap-0.5 cursor-pointer ${activeTab === 'overview' ? 'text-brand-teal' : 'text-slate-400'}`}>
+                    <LayoutDashboard size={22} />
+                    <span className="text-[9px] font-bold">Dash</span>
                 </div>
-                <div onClick={scrollToActivities} className={`flex flex-col items-center gap-1 text-slate-400`}>
-                    <BookOpen size={24} />
-                    <span className="text-[10px] font-bold">List</span>
+                <div onClick={scrollToActivities} className={`flex flex-col items-center gap-0.5 cursor-pointer text-slate-400`}>
+                    <BookOpen size={22} />
+                    <span className="text-[9px] font-bold">List</span>
                 </div>
-                <div onClick={() => setActiveTab('mission-fit')} className={`flex flex-col items-center gap-1 ${activeTab === 'mission-fit' ? 'text-brand-teal' : 'text-slate-400'}`}>
-                    <Target size={24} />
-                    <span className="text-[10px] font-bold">Radar</span>
+                <div onClick={() => setActiveTab('mission-fit')} className={`flex flex-col items-center gap-0.5 cursor-pointer ${activeTab === 'mission-fit' ? 'text-brand-teal' : 'text-slate-400'}`}>
+                    <Target size={22} />
+                    <span className="text-[9px] font-bold">Radar</span>
                 </div>
-                <div onClick={signOut} className={`flex flex-col items-center gap-1 text-rose-400`}>
-                    <LogOut size={24} />
-                    <span className="text-[10px] font-bold">Exit</span>
+                <div onClick={() => setActiveTab('school-recommender')} className={`flex flex-col items-center gap-0.5 cursor-pointer ${activeTab === 'school-recommender' ? 'text-brand-teal' : 'text-slate-400'}`}>
+                    <Building size={22} />
+                    <span className="text-[9px] font-bold">Schools</span>
+                </div>
+                <div onClick={signOut} className={`flex flex-col items-center gap-0.5 cursor-pointer text-rose-400`}>
+                    <LogOut size={22} />
+                    <span className="text-[9px] font-bold">Exit</span>
                 </div>
             </nav>
         </div>
@@ -389,8 +393,8 @@ const ReadinessDetailModal = ({ score, level, stats, feedback, onClose }: any) =
     const progressToNext = Math.min(100, (score / nextGoal) * 100);
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-2 sm:p-4 animate-fade-in">
+            <div className="bg-white rounded-xl sm:rounded-[2rem] shadow-2xl w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white z-20">
@@ -399,7 +403,7 @@ const ReadinessDetailModal = ({ score, level, stats, feedback, onClose }: any) =
                             <ShieldCheck className="w-5 h-5 text-brand-teal" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-serif font-bold text-brand-dark leading-none">Not All Activities Are Created Equal</h2>
+                            <h2 className="text-base sm:text-xl font-serif font-bold text-brand-dark leading-tight">Not All Activities Are Created Equal</h2>
                             <p className="text-slate-500 font-medium text-[10px] mt-1 uppercase tracking-wide">Application Readiness Audit</p>
                         </div>
                     </div>
@@ -412,19 +416,19 @@ const ReadinessDetailModal = ({ score, level, stats, feedback, onClose }: any) =
                 </div>
 
                 {/* Content Body */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50">
-                    <div className="max-w-6xl mx-auto p-6 lg:p-8">
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50">
+                    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
                         <div className="flex flex-col lg:flex-row gap-8 items-start">
 
                             {/* Left: Score Card */}
-                            <div className="w-full lg:w-[360px] flex-shrink-0 sticky top-0">
+                            <div className="w-full lg:w-[360px] flex-shrink-0 lg:sticky lg:top-0">
                                 <div className="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-xl shadow-slate-900/10 ring-1 ring-black/5 flex flex-col items-center">
                                     {/* Effects */}
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-teal/20 blur-[50px] rounded-full pointer-events-none opacity-50"></div>
                                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-gold/10 blur-[50px] rounded-full pointer-events-none opacity-30"></div>
 
                                     {/* Ring */}
-                                    <div className="relative w-48 h-48 mb-6 mt-4">
+                                    <div className="relative w-36 h-36 sm:w-48 sm:h-48 mb-6 mt-4">
                                         <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                                             <defs>
                                                 <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -440,8 +444,8 @@ const ReadinessDetailModal = ({ score, level, stats, feedback, onClose }: any) =
                                             <circle cx="50" cy="50" r="42" stroke="url(#scoreGradient)" strokeWidth="6" fill="none" strokeDasharray="263.89" strokeDashoffset={263.89 - (263.89 * score) / 100} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
                                         </svg>
                                         <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-                                            <span className="text-6xl font-black tracking-tighter text-white drop-shadow-lg leading-none">{score}</span>
-                                            <span className={`text-sm font-bold uppercase tracking-widest mt-2 ${tierColor}`}>{level}</span>
+                                            <span className="text-4xl sm:text-6xl font-black tracking-tighter text-white drop-shadow-lg leading-none">{score}</span>
+                                            <span className={`text-[10px] sm:text-sm font-bold uppercase tracking-widest mt-0.5 sm:mt-2 ${tierColor}`}>{level}</span>
                                         </div>
                                     </div>
 
@@ -555,7 +559,7 @@ const ReadinessDetailModal = ({ score, level, stats, feedback, onClose }: any) =
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-slate-100 bg-white z-20 flex justify-end">
-                    <button onClick={onClose} className="px-8 py-3 bg-brand-dark text-white font-bold rounded-xl hover:bg-black transition-all shadow-xl shadow-slate-900/10 text-sm flex items-center gap-2">
+                    <button onClick={onClose} className="w-full sm:w-auto px-8 py-3 bg-brand-dark text-white font-bold rounded-xl hover:bg-black transition-all shadow-xl shadow-slate-900/10 text-sm flex items-center justify-center gap-2">
                         <ArrowLeft className="w-4 h-4" />
                         Return to Studio
                     </button>

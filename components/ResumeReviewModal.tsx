@@ -63,7 +63,7 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="bg-white rounded-xl sm:rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white rounded-t-xl sticky top-0 z-10">
                     <div>
@@ -99,9 +99,9 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
 
                                 {/* Content */}
                                 <div className="flex-1 space-y-2">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-bold text-slate-900 text-lg">{activity.title}</h3>
+                                    <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-slate-900 text-base sm:text-lg">{activity.title}</h3>
                                             <p className="text-slate-500 font-medium text-sm">{activity.organization}</p>
                                         </div>
 
@@ -151,23 +151,21 @@ export const ResumeReviewModal: React.FC<ResumeReviewModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 bg-white rounded-b-xl flex justify-between items-center sticky bottom-0 z-10">
+                <div className="p-4 sm:p-6 border-t border-slate-100 bg-white rounded-b-xl flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sticky bottom-0 z-10">
                     <div className="text-sm text-slate-500">
                         {selectedIds.size} activities selected
                     </div>
-                    <div className="flex gap-3">
-                        <button onClick={onClose} className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-colors">
+                    <button onClick={onClose} className="w-full sm:w-auto px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-colors order-2 sm:order-1 text-center">
                             Cancel
                         </button>
                         <button
                             onClick={handleImport}
                             disabled={selectedIds.size === 0}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-brand-teal hover:bg-brand-dark text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-brand-teal/30 disabled:opacity-50 disabled:shadow-none"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-brand-teal hover:bg-brand-dark text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-brand-teal/30 disabled:opacity-50 disabled:shadow-none order-1 sm:order-2"
                         >
                             <Save className="w-4 h-4" />
                             Import Selected
                         </button>
-                    </div>
                 </div>
             </div>
         </div>

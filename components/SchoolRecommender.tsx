@@ -155,7 +155,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                 )}
 
                 {/* Main Content Area */}
-                <div className="bg-white/80 backdrop-blur-xl p-4 md:p-6 rounded-[2.5rem] shadow-[0_4px_25px_rgb(0,0,0,0.02)] border border-slate-100/50 flex-1 flex flex-col overflow-hidden relative border-t-white/80">
+                <div className="bg-white/80 backdrop-blur-xl p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-[2.5rem] shadow-[0_4px_25px_rgb(0,0,0,0.02)] border border-slate-100/50 flex-1 flex flex-col overflow-hidden relative border-t-white/80">
                     
                     {/* Glassmorphic Toolbar */}
                     <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-6 pb-2 sticky top-0 bg-white/70 backdrop-blur-lg z-10 p-2 rounded-xl border border-white">
@@ -240,7 +240,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                                 `}>
                                                     <Building className="w-6 h-6" />
                                                 </div>
-                                                <div className="flex-1 min-w-0 pr-16 lg:pr-0">
+                                                <div className="flex-1 min-w-0 pr-4 sm:pr-16 lg:pr-0">
                                                     <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-brand-teal transition-colors break-words">
                                                         {school.school_name}
                                                     </h3>
@@ -309,7 +309,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                 </div>
 
                 {selectedSchool && (
-                    <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 md:pb-6 scrollbar-hide">
                         {/* School Basic Info */}
                         <div className="mb-8">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-teal to-[#1A61C2] shadow-md shadow-brand-teal/20 flex items-center justify-center text-white mb-4">

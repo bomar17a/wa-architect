@@ -375,28 +375,29 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
   return (
     <div className="w-full space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 font-serif">Mission Fit Radar</h2>
-          <p className="text-sm text-slate-500 mt-1">Compare your profile against our 5 major medical school archetypes.</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 font-serif">Mission Fit Radar</h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Compare your profile against our 5 major medical school archetypes.</p>
         </div>
         {onNavigateToRecommender && (
-          <button onClick={onNavigateToRecommender} className="px-5 py-2.5 bg-brand-dark text-white text-sm font-bold rounded-xl shadow-md hover:bg-slate-800 transition-colors flex items-center gap-2">
+          <button onClick={onNavigateToRecommender} className="px-4 py-2 sm:px-5 sm:py-2.5 bg-brand-dark text-white text-sm font-bold rounded-xl shadow-md hover:bg-slate-800 transition-colors flex items-center gap-2 self-start sm:self-auto">
             <Search className="w-4 h-4" />
-            Full School Recommender
+            <span className="hidden sm:inline">Full School Recommender</span>
+            <span className="sm:hidden">Schools</span>
           </button>
         )}
       </div>
 
       {/* Archetype Toggles */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
         {SCHOOL_ARCHETYPES.map(arch => {
           const isActive = arch.id === activeArchetypeId;
           return (
             <button
               key={arch.id}
               onClick={() => setActiveArchetypeId(arch.id)}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 border ${isActive ? arch.activeColor + ' shadow-md scale-105 border-transparent' : arch.color + ' opacity-70 hover:opacity-100 hover:scale-105'}`}
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 border ${isActive ? arch.activeColor + ' shadow-md scale-105 border-transparent' : arch.color + ' opacity-70 hover:opacity-100 hover:scale-105'}`}
             >
               {arch.name}
             </button>
@@ -406,18 +407,18 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Radar Card */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-col">
-          <div className="w-full flex justify-between items-start mb-2">
+        <div className="lg:col-span-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col">
+          <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-2">
             <div>
-              <h3 className="font-bold text-slate-800 text-lg">{activeArchetype.name}</h3>
-              <p className="text-sm text-slate-500 max-w-md">{activeArchetype.description}</p>
+              <h3 className="font-bold text-slate-800 text-base sm:text-lg">{activeArchetype.name}</h3>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-md">{activeArchetype.description}</p>
             </div>
-            <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-black tracking-tight border border-emerald-100">
+            <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-black tracking-tight border border-emerald-100 self-start sm:self-auto shrink-0">
               {matchPercentage}% Match
             </div>
           </div>
 
-          <div className="w-full h-[350px] relative mt-4">
+          <div className="w-full h-[280px] sm:h-[350px] relative mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
                 <PolarGrid stroke="#e2e8f0" />

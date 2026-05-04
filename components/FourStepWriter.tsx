@@ -86,7 +86,7 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                 >
 
                     {/* Step 1: Context & Role */}
-                    <motion.div variants={itemVariants} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative group focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                    <motion.div variants={itemVariants} className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm relative group focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all overflow-visible">
                         <div className="absolute -left-3 top-6 bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">1</div>
                         <div className="pl-4">
                             <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
@@ -117,7 +117,7 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                                 exit={{ opacity: 0, height: 0 }}
                                 className="overflow-hidden"
                             >
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative pl-10 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                                <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm relative pl-8 sm:pl-10 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all overflow-visible">
                                     <div className="absolute -left-3 top-6 bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">2</div>
                                     <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
                                         Impact & Outcomes
@@ -149,7 +149,7 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                                 exit={{ opacity: 0, height: 0 }}
                                 className="overflow-hidden"
                             >
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative pl-10 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                                <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm relative pl-8 sm:pl-10 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all overflow-visible">
                                     <div className="absolute -left-3 top-6 bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">3</div>
                                     <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
                                         Reflection & Growth
@@ -181,7 +181,7 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                                 exit={{ opacity: 0, height: 0 }}
                                 className="overflow-hidden"
                             >
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative pl-10 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+                                <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm relative pl-8 sm:pl-10 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all overflow-visible">
                                     <div className="absolute -left-3 top-6 bg-slate-400 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">4</div>
                                     <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
                                         Awards & Recognition
@@ -257,7 +257,7 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                         <button
                             onClick={() => onApply(fullDraft)}
                             disabled={fullDraft.length === 0}
-                            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="w-full sm:w-auto px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <Check className="w-4 h-4" />
                             Apply to Activity

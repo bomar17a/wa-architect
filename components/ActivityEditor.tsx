@@ -268,7 +268,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                                 </div>
                             )}
                             <div className="flex-1 relative rounded-xl overflow-hidden">
-                                <CoPilotEditor text={localActivity.description} onTextChange={(val) => handleChange('description', val)} className="w-full p-8 text-lg font-serif text-slate-800 leading-relaxed min-h-[400px]" placeholder="Draft your story here..." />
+                                <CoPilotEditor text={localActivity.description} onTextChange={(val) => handleChange('description', val)} className="w-full p-4 md:p-8 text-base md:text-lg font-serif text-slate-800 leading-relaxed min-h-[300px] md:min-h-[400px]" placeholder="Draft your story here..." />
                             </div>
                         </div>
                     </div>
