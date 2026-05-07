@@ -396,10 +396,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                     <LayoutDashboard size={22} />
                     <span className="text-[9px] font-bold">Dash</span>
                 </div>
-                <div onClick={scrollToActivities} className={`flex flex-col items-center gap-0.5 cursor-pointer text-slate-400`}>
-                    <BookOpen size={22} />
-                    <span className="text-[9px] font-bold">List</span>
-                </div>
                 <div onClick={() => setActiveTab('mission-fit')} className={`flex flex-col items-center gap-0.5 cursor-pointer ${activeTab === 'mission-fit' ? 'text-brand-teal' : 'text-slate-400'}`}>
                     <Target size={22} />
                     <span className="text-[9px] font-bold">Radar</span>
