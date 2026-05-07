@@ -49,7 +49,7 @@ import { ResumeReviewModal } from './ResumeReviewModal.tsx';
 // --- Main Dashboard Component ---
 
 export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onDeleteActivity, onImportActivities }) => {
-    const { signOut } = useAuth();
+    const { user, signOut } = useAuth();
     const {
         activeTab,
         setActiveTab,
@@ -97,6 +97,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
     const handleResumeTextExtracted = (text: string) => {
         processResumeText(text);
     };
+
+    const userName = user?.user_metadata?.full_name?.split(' ')[0] || "Scholar";
+    
+    // Calculate days to AMCAS opening
+    const today = new Date();
+    const amcasDate = new Date(today.getFullYear(), 4, 28); // May 28th
+    if (today > amcasDate) amcasDate.setFullYear(amcasDate.getFullYear() + 1);
+    const daysToAmcas = Math.ceil((amcasDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    const primaryGap = readiness.feedback.length > 0 ? readiness.feedback[0] : null;
 
     const handleCloseResumeModal = () => {
         setShowResumeModal(false);
@@ -223,29 +233,82 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
 
                     {activeTab === 'overview' ? (
                         <div className="animate-fade-in">
-                            <header className="flex justify-between items-center mb-8 pt-4">
+                            <header className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pt-4 gap-4">
                                 <div>
-                                    <h1 className="text-3xl font-bold text-brand-dark font-serif">Dashboard</h1>
-                                    <p className="text-slate-400 text-sm mt-1">Refine your narrative, track your readiness.</p>
+                                    <h1 className="text-3xl font-bold text-slate-800 font-serif">Welcome, Future Doctor {userName}</h1>
+                                    <p className="text-slate-500 text-sm mt-1">You are <span className="font-bold text-brand-teal">{daysToAmcas} days</span> from the AMCAS opening. Let's polish your narrative.</p>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="relative hidden lg:block">
-                                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search activities..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="bg-white pl-10 pr-4 py-2.5 rounded-xl text-sm border border-slate-100 focus:ring-2 focus:ring-brand-teal/20 outline-none w-64 shadow-sm text-slate-600 placeholder:text-slate-300"
-                                        />
-                                    </div>
+                                <div className="relative hidden lg:block">
+                                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search activities..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="bg-white pl-10 pr-4 py-2 rounded-xl text-sm border border-slate-100 focus:ring-2 focus:ring-brand-teal/20 outline-none w-64 shadow-sm text-slate-600 placeholder:text-slate-300"
+                                    />
                                 </div>
                             </header>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-                                <FocusCard onClick={handleOpenCompetencyAudit} icon={<Brain className="w-6 h-6 text-white" />} title="Competencies Saturation" subtitle={`${readiness.competencyCount}/15 Competencies`} color="bg-brand-teal" />
-                                <FocusCard onClick={scrollToActivities} icon={<FileText className="w-6 h-6 text-white" />} title="Activity Hub" subtitle={`${filledActivities.length} Active Slots`} color="bg-brand-dark" />
-                                <FocusCard onClick={() => setIsReadinessModalOpen(true)} icon={<Target className="w-6 h-6 text-brand-dark" />} title="AdCom Score" subtitle={`Level: ${readiness.level}`} color="bg-brand-gold" textColor="text-brand-dark" subtitleColor="text-brand-dark/80" />
+                            {/* Actionable Gap Nudge */}
+                            {primaryGap && (
+                                <div className="mb-8 bg-white p-5 rounded-2xl shadow-[0_0_15px_rgba(56,189,248,0.1)] border border-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-sky-400"></div>
+                                    <div className="flex items-start gap-4">
+                                        <div className={`p-2.5 rounded-xl bg-sky-50 ${primaryGap.color} shrink-0`}>
+                                            {primaryGap.icon}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-800 text-sm mb-1">Clinical Insight Nudge</h3>
+                                            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-2xl">{primaryGap.text}</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => onSelectActivity(activities.length + 1)}
+                                        className="whitespace-nowrap px-4 py-2.5 bg-brand-teal text-white text-xs font-bold rounded-xl shadow-sm hover:bg-brand-teal-hover transition-colors flex items-center justify-center gap-2 shrink-0"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" /> Add Activity
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Metric Tiles Row */}
+                            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                                <div onClick={() => setIsReadinessModalOpen(true)} className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-brand-teal/30 transition-all group">
+                                    <div className="relative w-12 h-12 flex-shrink-0">
+                                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="44" stroke="#F1F5F9" strokeWidth="8" fill="none" />
+                                            <circle cx="50" cy="50" r="44" stroke="#2E6B6B" strokeWidth="8" fill="none" strokeDasharray="276.46" strokeDashoffset={276.46 - (276.46 * readiness.score) / 100} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+                                        </svg>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-xs font-bold text-brand-dark">{readiness.score}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-brand-teal/70 transition-colors">AdCom Readiness</h4>
+                                        <p className="text-sm font-bold text-slate-800">{readiness.level}</p>
+                                    </div>
+                                </div>
+                                
+                                <div onClick={handleOpenCompetencyAudit} className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-blue-300 transition-all group">
+                                    <div className="w-12 h-12 rounded-full bg-blue-50/80 flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                                        <Brain className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-blue-500/70 transition-colors">Competencies</h4>
+                                        <p className="text-sm font-bold text-slate-800">{readiness.competencyCount} / 15 <span className="text-slate-400 text-xs font-normal">Saturated</span></p>
+                                    </div>
+                                </div>
+
+                                <div onClick={scrollToActivities} className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-emerald-300 transition-all group">
+                                    <div className="w-12 h-12 rounded-full bg-emerald-50/80 flex items-center justify-center text-emerald-600 flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
+                                        <FileText className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-emerald-500/70 transition-colors">Activity Hub</h4>
+                                        <p className="text-sm font-bold text-slate-800">{filledActivities.length} <span className="text-slate-400 text-xs font-normal">Active Slots</span></p>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="mb-6" ref={activitiesRef}>
@@ -265,23 +328,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                         </div>
                                     ) : (
                                         filteredActivities.map(activity => (
-                                            <div key={activity.id} onClick={() => onSelectActivity(activity.id)} className="group bg-white p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:shadow-sm transition-all border border-slate-100 hover:border-brand-teal/30">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${activity.isMostMeaningful ? 'bg-brand-gold/10 text-brand-gold border border-brand-gold/20' : 'bg-slate-50 text-slate-400'}`}>
-                                                        {activity.isMostMeaningful ? <Award className="w-5 h-5" /> : <ActivityIcon className="w-5 h-5" />}
-                                                    </div>
+                                            <div key={activity.id} onClick={() => onSelectActivity(activity.id)} className="group bg-white p-3 sm:p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm border border-slate-100 hover:border-brand-teal/30 hover:shadow-md transition-all">
+                                                <div className="flex items-center gap-3 sm:gap-4">
+                                                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${activity.status === ActivityStatus.FINAL ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : activity.status === ActivityStatus.REFINED ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]' : activity.status === ActivityStatus.DRAFT ? 'bg-brand-teal shadow-[0_0_8px_rgba(46,107,107,0.4)]' : 'bg-slate-300'}`} />
                                                     <div>
-                                                        <h4 className="font-bold text-slate-800 text-sm group-hover:text-brand-teal transition-colors">{activity.title || "Untilled Slot"}</h4>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{activity.experienceType || 'General Entry'}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-brand-teal transition-colors line-clamp-1">{activity.title || "Untitled Slot"}</h4>
+                                                            {activity.isMostMeaningful && <Award className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />}
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{activity.experienceType || 'General Entry'}</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-lg border transition-all ${STATUS_CONFIG[activity.status].color}`}>
-                                                        {STATUS_CONFIG[activity.status].icon}
-                                                        <span className="uppercase tracking-widest">{activity.status}</span>
-                                                    </div>
-                                                    <button onClick={(e) => { e.stopPropagation(); onDeleteActivity(activity.id); }} className="p-2 text-slate-200 hover:text-rose-500 transition-colors"><TrashIcon className="w-4 h-4" /></button>
-                                                </div>
+                                                <button onClick={(e) => { e.stopPropagation(); onDeleteActivity(activity.id); }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
                                             </div>
                                         ))
                                     )}
