@@ -1,12 +1,18 @@
 import React from 'react';
 import { Activity, ActivityStatus } from '../types';
 import { ACTIVITY_WEIGHTS } from '../constants';
+import { computeCompetencyScores, milestone } from '../components/MissionFitRadar';
 import {
     Briefcase, AlertTriangle, Heart, Users, Target, Award, Brain, Zap
 } from 'lucide-react';
 
 export const calculateAdComScore = (activities: Activity[]) => {
-    let score = 0;
+    const activeActivities = activities.filter(a => a.status !== ActivityStatus.EMPTY);
+
+    // ── Use the shared competency engine as the source of truth ──
+    const pillarScores = computeCompetencyScores(activities);
+
+    // ── AdCom-specific accumulators (for feedback thresholds only) ──
     let clinicalHours = 0;
     let shadowingHours = 0;
     let researchHours = 0;
@@ -15,69 +21,44 @@ export const calculateAdComScore = (activities: Activity[]) => {
     let leadershipHours = 0;
     let mmeCount = 0;
 
-    const activeActivities = activities.filter(a => a.status !== ActivityStatus.EMPTY);
-
-    // Track unique competencies
     const uniqueCompetencies = new Set<string>();
 
     activeActivities.forEach(a => {
-        const weight = ACTIVITY_WEIGHTS[a.experienceType] || 0;
-        score += weight;
-
-        if (a.isMostMeaningful) {
-            score += 4; // Higher weight for MME
-            mmeCount++;
-        }
-
-        if (a.status === ActivityStatus.FINAL || a.status === ActivityStatus.REFINED) {
-            score += 2;
-        }
+        if (a.isMostMeaningful) mmeCount++;
 
         const hours = a.dateRanges.reduce((acc, r) => acc + (parseInt(r.hours) || 0), 0);
         const type = a.experienceType.toLowerCase();
 
-        // 1. Clinical Total (General)
-        if (type.includes('medical/clinical') || type.includes('healthcare')) {
-            clinicalHours += hours;
-        }
-
-        // 2. Medical Service (Specific: Community Service/Volunteer - Medical/Clinical)
-        if (type.includes('community service/volunteer - medical/clinical')) {
-            medicalServiceHours += hours;
-        }
-
-        // 3. Non-Medical Service (Specific: Community Service/Volunteer - Not Medical/Clinical)
-        if (type.includes('community service/volunteer - not medical/clinical')) {
-            nonMedicalServiceHours += hours;
-        }
-
-        // 4. Shadowing
-        if (type.includes('shadowing')) {
-            shadowingHours += hours;
-        }
-
-        // 5. Research
-        if (type.includes('research')) {
-            researchHours += hours;
-        }
-
-        // 6. Leadership
-        if (type.includes('leadership')) {
-            leadershipHours += hours;
-        }
+        if (type.includes('medical/clinical') || type.includes('healthcare')) clinicalHours += hours;
+        if (type.includes('community service/volunteer - medical/clinical')) medicalServiceHours += hours;
+        if (type.includes('community service/volunteer - not medical/clinical')) nonMedicalServiceHours += hours;
+        if (type.includes('shadowing')) shadowingHours += hours;
+        if (type.includes('research')) researchHours += hours;
+        if (type.includes('leadership')) leadershipHours += hours;
 
         a.competencies?.forEach(c => uniqueCompetencies.add(c));
     });
 
-    // Activity Volume Bonus (Max 15)
-    score += activeActivities.length;
+    // ── Derive the AdCom score from pillar scores ──────────────────
+    // Each pillar is 0–10; average them and scale to 0–60 (60% of total)
+    const pillarAvg = (pillarScores.Inquiry + pillarScores.Service + pillarScores.Teamwork + pillarScores.Clinical) / 4;
+    let score = Math.round(pillarAvg * 6); // 0–60
 
-    // Competency Saturation Bonus (Max 15)
+    // Activity Volume Bonus (Max 15 pts)
+    score += Math.min(15, activeActivities.length);
+
+    // Competency Saturation Bonus (Max 15 pts)
     const saturationBonus = Math.min(15, uniqueCompetencies.size);
     score += saturationBonus;
 
-    const MAX_RAW_SCORE = 90;
-    const normalizedScore = Math.min(100, Math.round((score / MAX_RAW_SCORE) * 100));
+    // MME Designation Bonus (Max 12 pts — 4 per MME)
+    score += Math.min(12, mmeCount * 4);
+
+    // Narrative Polish Bonus (up to 5 pts)
+    const finalCount = activeActivities.filter(a => a.status === ActivityStatus.FINAL || a.status === ActivityStatus.REFINED).length;
+    score += Math.min(5, Math.round(finalCount * 0.5));
+
+    const normalizedScore = Math.min(100, score);
 
     let level = "Foundation";
     if (normalizedScore >= 40) level = "Building";
@@ -98,7 +79,7 @@ export const calculateAdComScore = (activities: Activity[]) => {
 
     if (clinicalHours < 150) {
         feedbackItems.push({
-            text: `Clinical hours are at ${clinicalHours}h. Targeted goal is 150h+. Consider scribing or patient intake volunteering.`,
+            text: `Clinical hours are at ${clinicalHours}h (excluding shadowing). Targeted goal is 150h+. Consider scribing or patient intake volunteering.`,
             category: 'Clinical Gap',
             icon: <AlertTriangle className="w-3.5 h-3.5" />,
             color: 'text-rose-500',
@@ -126,9 +107,9 @@ export const calculateAdComScore = (activities: Activity[]) => {
         });
     }
 
-    if (shadowingHours < 100) {
+    if (shadowingHours < 50) {
         feedbackItems.push({
-            text: `Shadowing is low (${shadowingHours}h). Reach out to specialists to hit the 100h benchmark.`,
+            text: `Shadowing is low (${shadowingHours}h). Aim for at least 50h across multiple specialties to demonstrate informed career choice.`,
             category: 'Shadowing',
             icon: <Target className="w-3.5 h-3.5" />,
             color: 'text-orange-500',
@@ -167,14 +148,14 @@ export const calculateAdComScore = (activities: Activity[]) => {
     }
 
     const stats = {
-        clinical: { val: clinicalHours, target: 150, label: 'Clinical (Total)' },
+        clinical: { val: clinicalHours, target: 150, label: 'Clinical (Hands-On)' },
         medicalService: { val: medicalServiceHours, target: 100, label: 'Medical Vol.' },
         nonMedicalService: { val: nonMedicalServiceHours, target: 100, label: 'Non-Medical Vol.' },
-        shadowing: { val: shadowingHours, target: 100, label: 'Physician Shadowing' },
+        shadowing: { val: shadowingHours, target: 50, label: 'Physician Shadowing' },
         leadership: { val: leadershipHours, target: 100, label: 'Leadership' },
         research: { val: researchHours, target: 100, label: 'Research' },
         competencies: { val: uniqueCompetencies.size, target: 15, label: 'Competency Depth' }
     };
 
-    return { score: normalizedScore, feedback: feedbackItems, level, stats, competencyCount: uniqueCompetencies.size };
+    return { score: normalizedScore, feedback: feedbackItems, level, stats, competencyCount: uniqueCompetencies.size, pillarScores };
 };

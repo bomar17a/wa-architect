@@ -19,30 +19,27 @@ interface MissionFitRadarProps {
   onNavigateToRecommender?: () => void;
 }
 
-// --- 1. The Mission Math Engine ---
+// --- 1. The Mission Math Engine (v2) ---
 //
 // Each pillar is scored 0–10 against AAMC-researched hour milestones
 // for a competitive applicant cycle. Bonus signals layer on top.
 //
 // Milestones (hours → points):
-//   Clinical:  50→2  100→4  200→6  300→8  500+→10
+//   Clinical:  50→2  100→4  200→6  300→8  500+→10  (shadowing at 0.25× weight)
 //   Research:  50→2  100→4  200→6  350→8  500+→10
-//   Service:   30→2   75→4  150→6  250→8  400+→10
-//   Teamwork: (no raw hour target — driven by role type + context signals)
+//   Service:   30→2   75→4  150→6  250→8  400+→10  (med volunteering at 0.5× weight)
+//   Teamwork:  50→2  100→4  200→6  300→8  400+→10  (non-med employment at 0.5×)
 //
 // Bonuses (capped at 2pts per pillar):
-//   Clinical:  paid clinical role, MME tagged clinical, isMostMeaningful
-//   Research:  publication/poster/presentation, PI/co-author signal
-//   Service:   isMostMeaningful, leadership within service org
-//   Teamwork:  leadership role, military, intercollegiate athletics, MME tagged teamwork
+//   - Per-type bonuses fire ONCE per pillar (Set-guarded)
+//   - Per-activity bonuses (MME, competency tags) fire per activity
+//   - Longitudinal bonus: +0.25 for activities spanning 12+ months
+//   - Narrative quality: +0.1 per "Final" status activity
 
-function milestone(hours: number, breaks: [number, number][]): number {
-  // breaks = [[hoursThreshold, points], ...] in ascending order
-  // Returns linearly interpolated score between thresholds, max = last points value
+export function milestone(hours: number, breaks: [number, number][]): number {
   for (let i = breaks.length - 1; i >= 0; i--) {
     if (hours >= breaks[i][0]) {
       if (i === breaks.length - 1) return breaks[i][1];
-      // Interpolate between this break and next
       const lo = breaks[i], hi = breaks[i + 1];
       const frac = (hours - lo[0]) / (hi[0] - lo[0]);
       return lo[1] + frac * (hi[1] - lo[1]);
@@ -51,122 +48,219 @@ function milestone(hours: number, breaks: [number, number][]): number {
   return 0;
 }
 
+// Helper: calculate duration in months from date ranges
+function calcDurationMonths(dateRanges: Activity['dateRanges']): number {
+  const MONTH_MAP: Record<string, number> = {
+    January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+    July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+  };
+  let earliest = Infinity;
+  let latest = -Infinity;
+  dateRanges.forEach(r => {
+    const startM = MONTH_MAP[r.startDateMonth] ?? 0;
+    const startY = parseInt(r.startDateYear) || 0;
+    const endM = MONTH_MAP[r.endDateMonth] ?? 0;
+    const endY = parseInt(r.endDateYear) || 0;
+    if (startY > 0) earliest = Math.min(earliest, startY * 12 + startM);
+    if (endY > 0) latest = Math.max(latest, endY * 12 + endM);
+  });
+  if (earliest === Infinity || latest === -Infinity) return 0;
+  return Math.max(0, latest - earliest);
+}
+
+export interface PillarScores {
+  Inquiry: number;
+  Service: number;
+  Teamwork: number;
+  Clinical: number;
+}
+
+// ── Extracted pure function: usable by both hooks and plain functions ──
+export function computeCompetencyScores(activities: Activity[]): PillarScores {
+  let clinicalHours = 0;
+  let researchHours = 0;
+  let serviceHours = 0;
+  let teamworkHours = 0;
+  let clinicalBonus = 0;
+  let researchBonus = 0;
+  let serviceBonus = 0;
+  let teamworkBonus = 0;
+
+  // Set-based guards for per-type bonuses (fire once per pillar)
+  const researchTypeBonuses = new Set<string>();
+  const teamworkTypeBonuses = new Set<string>();
+
+  const filledActivities = activities.filter(a => a.status !== 'Empty' && a.experienceType);
+
+  filledActivities.forEach((act) => {
+    const hours = act.dateRanges.reduce((sum, r) => sum + (Math.max(parseInt(r.hours) || 0, 0)), 0);
+    const type = act.experienceType;
+    const desc = (act.description + ' ' + act.mmeEssay + ' ' + act.mmeAction).toLowerCase();
+    const comps = act.competencies || [];
+    const durationMonths = calcDurationMonths(act.dateRanges);
+
+    // ── SHADOWING (separate from hands-on clinical) ──────────────
+    const isShadowing = type === 'Physician Shadowing/Clinical Observation';
+
+    // ── CLINICAL pillar ──────────────────────────────────────────
+    const isHandsOnClinical =
+      type === 'Paid Employment - Medical/Clinical' ||
+      type === 'Healthcare Experience';              // AACOMAS
+
+    // Medical volunteering: full hours → Clinical, 0.5× → Service (fixes double-count)
+    const isMedicalVolunteer = type === 'Community Service/Volunteer - Medical/Clinical';
+
+    if (isHandsOnClinical) {
+      clinicalHours += hours;
+      if (type === 'Paid Employment - Medical/Clinical') clinicalBonus += 0.5;
+      if (act.isMostMeaningful) clinicalBonus += 0.5;
+      if (comps.some(c => c.includes('Reliability') || c.includes('Service'))) clinicalBonus += 0.25;
+      if (durationMonths >= 12) clinicalBonus += 0.25; // longitudinal signal
+    }
+
+    if (isMedicalVolunteer) {
+      clinicalHours += hours;          // full credit to Clinical
+      serviceHours += hours * 0.5;     // half credit to Service (volunteering component)
+      if (act.isMostMeaningful) { clinicalBonus += 0.5; serviceBonus += 0.5; }
+      if (comps.some(c => c.includes('Reliability') || c.includes('Service'))) clinicalBonus += 0.25;
+      if (comps.some(c => c.includes('Cultural') || c.includes('Service'))) serviceBonus += 0.25;
+      if (durationMonths >= 12) { clinicalBonus += 0.25; serviceBonus += 0.25; }
+    }
+
+    if (isShadowing) {
+      clinicalHours += hours * 0.25;   // shadowing at 0.25× weight
+      clinicalBonus += 0.5;            // flat bonus: having shadowing at all matters
+      if (act.isMostMeaningful) clinicalBonus += 0.25;
+    }
+
+    // Depth signal from description keywords
+    if ((isHandsOnClinical || isMedicalVolunteer) &&
+        (desc.includes('patient') || desc.includes('clinic') || desc.includes('hospital'))) {
+      clinicalBonus += 0.25;
+    }
+
+    // Narrative quality: Final status activities boost their pillar
+    const isFinal = act.status === 'Final';
+
+    if ((isHandsOnClinical || isMedicalVolunteer || isShadowing) && isFinal) clinicalBonus += 0.1;
+
+    // ── RESEARCH pillar ──────────────────────────────────────────
+    const isResearch = type === 'Research/Lab' || type === 'Research';
+
+    if (isResearch) {
+      researchHours += hours;
+      if (act.isMostMeaningful) researchBonus += 0.5;
+      if (comps.some(c => c.includes('Scientific') || c.includes('Critical'))) researchBonus += 0.25;
+      if (durationMonths >= 12) researchBonus += 0.25;
+      if (isFinal) researchBonus += 0.1;
+    }
+
+    // Publications / Posters / Presentations: SET-GUARDED (fire once per type)
+    if (type === 'Publications' && !researchTypeBonuses.has('publication')) {
+      researchBonus += 1.0; researchTypeBonuses.add('publication');
+    }
+    if (type === 'Presentations/Posters' && !researchTypeBonuses.has('poster')) {
+      researchBonus += 1.0; researchTypeBonuses.add('poster');
+    }
+    // Description-based publication signal (once)
+    if (!researchTypeBonuses.has('desc_pub') &&
+        (desc.includes('publication') || desc.includes('published') ||
+         desc.includes('first author') || desc.includes('co-author'))) {
+      researchBonus += 0.75; researchTypeBonuses.add('desc_pub');
+    }
+    if (!researchTypeBonuses.has('desc_poster') && desc.includes('poster') && type !== 'Presentations/Posters') {
+      researchBonus += 0.5; researchTypeBonuses.add('desc_poster');
+    }
+    if (type === 'Conferences Attended' && !researchTypeBonuses.has('conference')) {
+      researchBonus += 0.25; researchTypeBonuses.add('conference');
+    }
+
+    // ── SERVICE pillar ───────────────────────────────────────────
+    // Non-medical volunteering (medical volunteering handled above with split)
+    const isNonMedService =
+      type === 'Community Service/Volunteer - Not Medical/Clinical' ||
+      type === 'Non-Healthcare Volunteer';
+
+    if (isNonMedService) {
+      serviceHours += hours;
+      if (act.isMostMeaningful) serviceBonus += 0.75;
+      if (comps.some(c => c.includes('Cultural') || c.includes('Service'))) serviceBonus += 0.25;
+      if (desc.includes('director') || desc.includes('led') || desc.includes('founded') || desc.includes('president')) serviceBonus += 0.5;
+      if (durationMonths >= 12) serviceBonus += 0.25;
+      if (isFinal) serviceBonus += 0.1;
+    }
+
+    // ── TEAMWORK pillar ──────────────────────────────────────────
+    const isTeamwork =
+      type === 'Leadership - Not Listed Elsewhere' ||
+      type === 'Leadership Experience' ||
+      type === 'Military Service' ||
+      type === 'Intercollegiate Athletics' ||
+      type === 'Extracurricular Activities' ||
+      type === 'Teaching/Tutoring/Teaching Assistant' ||
+      type === 'Teaching Experience';
+
+    if (isTeamwork) {
+      teamworkHours += hours;
+      // Per-type bonuses: SET-GUARDED (fire once)
+      if ((type === 'Leadership - Not Listed Elsewhere' || type === 'Leadership Experience') && !teamworkTypeBonuses.has('leadership')) {
+        teamworkBonus += 1.0; teamworkTypeBonuses.add('leadership');
+      }
+      if (type === 'Military Service' && !teamworkTypeBonuses.has('military')) {
+        teamworkBonus += 1.0; teamworkTypeBonuses.add('military');
+      }
+      if (type === 'Intercollegiate Athletics' && !teamworkTypeBonuses.has('athletics')) {
+        teamworkBonus += 0.75; teamworkTypeBonuses.add('athletics');
+      }
+      // Per-activity bonuses (these CAN fire per activity)
+      if (act.isMostMeaningful) teamworkBonus += 0.5;
+      if (comps.some(c => c.includes('Teamwork') || c.includes('Oral') || c.includes('Social'))) teamworkBonus += 0.25;
+      if (desc.includes('captain') || desc.includes('president') || desc.includes('chair') || desc.includes('founded') || desc.includes('managed')) teamworkBonus += 0.25;
+      if (durationMonths >= 12) teamworkBonus += 0.25;
+      if (isFinal) teamworkBonus += 0.1;
+    }
+
+    // ── NON-MEDICAL EMPLOYMENT → partial Teamwork credit ─────────
+    const isNonMedEmployment =
+      type === 'Paid Employment - Not Medical/Clinical' ||
+      type === 'Non-Healthcare Employment';
+
+    if (isNonMedEmployment) {
+      teamworkHours += hours * 0.5;    // 0.5× weight
+      if (durationMonths >= 12) teamworkBonus += 0.25;
+      if (isFinal) teamworkBonus += 0.1;
+    }
+
+    // ── HOBBIES & ARTISTIC ENDEAVORS → small Teamwork credit ─────
+    const isHobbyArt = type === 'Hobbies' || type === 'Artistic Endeavors';
+    if (isHobbyArt) {
+      teamworkHours += hours * 0.25;   // 0.25× weight
+      if (!teamworkTypeBonuses.has('hobby_art')) {
+        teamworkBonus += 0.25;         // flat bonus for having humanistic interests
+        teamworkTypeBonuses.add('hobby_art');
+      }
+    }
+  });
+
+  // ── Convert hours → 0–10 via milestone curves ─────────────────
+  const clinicalBase  = milestone(clinicalHours,  [[0,0],[50,2],[100,4],[200,6],[300,8],[500,10]]);
+  const researchBase  = milestone(researchHours,  [[0,0],[50,2],[100,4],[200,6],[350,8],[500,10]]);
+  const serviceBase   = milestone(serviceHours,   [[0,0],[30,2],[75,4],[150,6],[250,8],[400,10]]);
+  const teamworkBase  = milestone(teamworkHours,  [[0,0],[50,2],[100,4],[200,6],[300,8],[400,10]]);
+
+  const clampB = (b: number) => Math.min(b, 2);
+
+  return {
+    Inquiry:  Math.min(Math.round((researchBase  + clampB(researchBonus))  * 10) / 10, 10),
+    Service:  Math.min(Math.round((serviceBase   + clampB(serviceBonus))   * 10) / 10, 10),
+    Teamwork: Math.min(Math.round((teamworkBase  + clampB(teamworkBonus))  * 10) / 10, 10),
+    Clinical: Math.min(Math.round((clinicalBase  + clampB(clinicalBonus))  * 10) / 10, 10),
+  };
+}
+
+// Hook wrapper for React components
 export const useCompetencyScores = (activities: Activity[]) => {
-  return useMemo(() => {
-    // Accumulators per pillar
-    let clinicalHours = 0;
-    let researchHours = 0;
-    let serviceHours = 0;
-    let teamworkHours = 0;
-    let clinicalBonus = 0;
-    let researchBonus = 0;
-    let serviceBonus = 0;
-    let teamworkBonus = 0;
-
-    const filledActivities = activities.filter(a => a.status !== 'Empty' && a.experienceType);
-
-    filledActivities.forEach((act) => {
-      const hours = act.dateRanges.reduce((sum, r) => sum + (Math.max(parseInt(r.hours) || 0, 0)), 0);
-      const type = act.experienceType;
-      const desc = (act.description + ' ' + act.mmeEssay + ' ' + act.mmeAction).toLowerCase();
-      const comps = act.competencies || [];
-
-      // ── CLINICAL pillar ──────────────────────────────────────────
-      const isClinical =
-        type === 'Physician Shadowing/Clinical Observation' ||
-        type === 'Community Service/Volunteer - Medical/Clinical' ||
-        type === 'Paid Employment - Medical/Clinical' ||
-        type === 'Healthcare Experience';             // AACOMAS
-
-      if (isClinical) {
-        clinicalHours += hours;
-        // Paid clinical or scribe signals higher depth
-        if (type === 'Paid Employment - Medical/Clinical') clinicalBonus += 0.5;
-        if (act.isMostMeaningful) clinicalBonus += 0.5;
-        if (comps.some(c => c.includes('Reliability') || c.includes('Service'))) clinicalBonus += 0.25;
-      }
-
-      // Also count AACOMAS healthcare and medical volunteerism
-      if (desc.includes('patient') || desc.includes('clinic') || desc.includes('hospital')) {
-        if (isClinical) clinicalBonus += 0.25; // depth signal
-      }
-
-      // ── RESEARCH pillar ──────────────────────────────────────────
-      const isResearch =
-        type === 'Research/Lab' ||
-        type === 'Research';                          // AACOMAS
-
-      if (isResearch) {
-        researchHours += hours;
-        if (act.isMostMeaningful) researchBonus += 0.5;
-        if (comps.some(c => c.includes('Scientific') || c.includes('Critical'))) researchBonus += 0.25;
-      }
-      // Publications / Posters / Presentations boost inquiry regardless of type
-      if (
-        type === 'Publications' ||
-        type === 'Presentations/Posters' ||
-        desc.includes('publication') || desc.includes('published') ||
-        desc.includes('poster') || desc.includes('first author') || desc.includes('co-author')
-      ) {
-        researchBonus += 1.0;
-      }
-      // Conference presentation
-      if (type === 'Conferences Attended') researchBonus += 0.25;
-
-      // ── SERVICE pillar ───────────────────────────────────────────
-      const isService =
-        type === 'Community Service/Volunteer - Medical/Clinical' ||
-        type === 'Community Service/Volunteer - Not Medical/Clinical' ||
-        type === 'Non-Healthcare Volunteer';          // AACOMAS
-
-      if (isService) {
-        serviceHours += hours;
-        if (act.isMostMeaningful) serviceBonus += 0.75;
-        if (comps.some(c => c.includes('Cultural') || c.includes('Service'))) serviceBonus += 0.25;
-        // Leadership within service org
-        if (desc.includes('director') || desc.includes('led') || desc.includes('founded') || desc.includes('president')) serviceBonus += 0.5;
-      }
-
-      // ── TEAMWORK pillar ──────────────────────────────────────────
-      // Teamwork is more role-based than hours-based
-      const isTeamwork =
-        type === 'Leadership - Not Listed Elsewhere' ||
-        type === 'Leadership Experience' ||           // AACOMAS
-        type === 'Military Service' ||
-        type === 'Intercollegiate Athletics' ||
-        type === 'Extracurricular Activities' ||
-        type === 'Teaching/Tutoring/Teaching Assistant' ||
-        type === 'Teaching Experience';              // AACOMAS
-
-      if (isTeamwork) {
-        teamworkHours += hours;
-        if (type === 'Leadership - Not Listed Elsewhere' || type === 'Leadership Experience') teamworkBonus += 1.0;
-        if (type === 'Military Service') teamworkBonus += 1.0;
-        if (type === 'Intercollegiate Athletics') teamworkBonus += 0.75;
-        if (act.isMostMeaningful) teamworkBonus += 0.5;
-        if (comps.some(c => c.includes('Teamwork') || c.includes('Oral') || c.includes('Social'))) teamworkBonus += 0.25;
-        // Leadership language in desc
-        if (desc.includes('captain') || desc.includes('president') || desc.includes('chair') || desc.includes('founded') || desc.includes('managed')) teamworkBonus += 0.5;
-      }
-    });
-
-    // ── Convert hours → 0–10 via milestone curves ─────────────────
-    //    Thresholds from published AAMC/MSAR competitive applicant data
-    const clinicalBase  = milestone(clinicalHours,  [[0,0],[50,2],[100,4],[200,6],[300,8],[500,10]]);
-    const researchBase  = milestone(researchHours,  [[0,0],[50,2],[100,4],[200,6],[350,8],[500,10]]);
-    const serviceBase   = milestone(serviceHours,   [[0,0],[30,2],[75,4],[150,6],[250,8],[400,10]]);
-    const teamworkBase  = milestone(teamworkHours,  [[0,0],[50,2],[100,4],[200,6],[300,8],[400,10]]);
-
-    // Clamp bonuses so they can't exceed 2 pts
-    const clampB = (b: number) => Math.min(b, 2);
-
-    return {
-      Inquiry:  Math.min(Math.round((researchBase  + clampB(researchBonus))  * 10) / 10, 10),
-      Service:  Math.min(Math.round((serviceBase   + clampB(serviceBonus))   * 10) / 10, 10),
-      Teamwork: Math.min(Math.round((teamworkBase  + clampB(teamworkBonus))  * 10) / 10, 10),
-      Clinical: Math.min(Math.round((clinicalBase  + clampB(clinicalBonus))  * 10) / 10, 10),
-    };
-  }, [activities]);
+  return useMemo(() => computeCompetencyScores(activities), [activities]);
 };
 
 // --- 2. The Archetype Data ---
@@ -215,11 +309,20 @@ export const SCHOOL_ARCHETYPES = [
     color: 'bg-rose-50 border-rose-100 text-rose-700',
     activeColor: 'bg-rose-500 text-white',
     targets: { Inquiry: 5, Service: 8, Teamwork: 10, Clinical: 8 },
+  },
+  {
+    id: 'Balanced',
+    name: 'The Balanced',
+    dbCategory: 'The Balanced',
+    description: 'Well-rounded programs valuing equal depth across all four pillars with no single dominant emphasis.',
+    color: 'bg-slate-50 border-slate-200 text-slate-700',
+    activeColor: 'bg-slate-700 text-white',
+    targets: { Inquiry: 7, Service: 7, Teamwork: 7, Clinical: 7 },
   }
 ];
 
 const HERO_TARGET = {
-  name: 'Competitive Avg.',
+  name: 'Competitive Benchmark',
   targets: { Inquiry: 7, Service: 8, Teamwork: 7, Clinical: 8 }
 };
 
@@ -334,7 +437,7 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
         </div>
         <div className="mt-4 text-center px-4">
           <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-            Visualize your pillar strength vs. 10,000+ accepted profiles.
+            Visualize your pillar strength against competitive applicant benchmarks.
           </p>
         </div>
       </div>

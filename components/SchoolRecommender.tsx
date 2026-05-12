@@ -363,7 +363,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                 <BarChart3 className="w-4 h-4 text-brand-teal" /> Competency Breakdown 
                              </h3>
                              <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-                                This program operates as a <strong className="text-brand-dark">{selectedSchool.primary_category}</strong> archetype. Below is how your logged hours compare to this school's expected baseline tagets.
+                                This program operates as a <strong className="text-brand-dark">{selectedSchool.primary_category}</strong> archetype. Below is how your pillar scores (0–10) compare to this school's expected baseline targets.
                              </p>
 
                              <div className="space-y-5">
@@ -384,10 +384,10 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                                 <span className="text-xs font-bold text-slate-700">{category}</span>
                                                 <div className="flex items-center gap-1.5 text-[10px] font-bold">
                                                     <span className={myScore >= targetScore ? 'text-brand-teal' : 'text-slate-500'}>
-                                                        You: {myScore}h
+                                                        You: {myScore}/10
                                                     </span>
                                                     <span className="text-slate-300">|</span>
-                                                    <span className="text-slate-400">Target: {targetScore}h</span>
+                                                    <span className="text-slate-400">Target: {targetScore}/10</span>
                                                 </div>
                                             </div>
                                             
