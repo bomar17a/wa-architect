@@ -149,18 +149,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                         onClick={() => setActiveTab('overview')}
                         active={activeTab === 'overview'}
                     />
-                    <NavItem
-                        icon={<BookOpen size={20} />}
-                        label="Activities"
-                        onClick={scrollToActivities}
-                        active={false}
-                    />
-                    <NavItem
-                        icon={<BarChart2 size={20} />}
-                        label="Analytics"
-                        onClick={handleOpenCompetencyAudit}
-                        active={false}
-                    />
                     <div
                         onClick={() => setActiveTab('mission-fit')}
                         className={`flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all ${activeTab === 'mission-fit' ? 'bg-brand-teal text-white shadow-lg' : 'text-brand-teal hover:bg-brand-light hover:text-brand-teal-hover'}`}
@@ -263,33 +251,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-2xl">{primaryGap.text}</p>
                                         </div>
                                     </div>
-                                    <button 
-                                        onClick={() => onSelectActivity(activities.length + 1)}
-                                        className="whitespace-nowrap px-4 py-2.5 bg-brand-teal text-white text-xs font-bold rounded-xl shadow-sm hover:bg-brand-teal-hover transition-colors flex items-center justify-center gap-2 shrink-0"
-                                    >
-                                        <Plus className="w-3.5 h-3.5" /> Add Activity
-                                    </button>
                                 </div>
                             )}
 
-                            {/* Metric Tiles Row */}
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                                <div onClick={() => setIsReadinessModalOpen(true)} className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-brand-teal/30 transition-all group">
-                                    <div className="relative w-12 h-12 flex-shrink-0">
-                                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                                            <circle cx="50" cy="50" r="44" stroke="#F1F5F9" strokeWidth="8" fill="none" />
-                                            <circle cx="50" cy="50" r="44" stroke="#2E6B6B" strokeWidth="8" fill="none" strokeDasharray="276.46" strokeDashoffset={276.46 - (276.46 * readiness.score) / 100} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
-                                        </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-xs font-bold text-brand-dark">{readiness.score}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 group-hover:text-brand-teal/70 transition-colors">AdCom Readiness</h4>
-                                        <p className="text-sm font-bold text-slate-800">{readiness.level}</p>
-                                    </div>
-                                </div>
-                                
                                 <div onClick={handleOpenCompetencyAudit} className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-blue-300 transition-all group">
                                     <div className="w-12 h-12 rounded-full bg-blue-50/80 flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:bg-blue-100 transition-colors">
                                         <Brain className="w-5 h-5" />
