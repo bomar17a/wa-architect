@@ -60,7 +60,10 @@ export const calculateAdComScore = (activities: Activity[]) => {
         if (isResearch) researchHours += hours;
         if (isExplicitLeadership || hasLeadershipKeywords) leadershipHours += hours;
 
-        a.competencies?.forEach(c => uniqueCompetencies.add(c));
+        // Competency Superficiality Guard: Require depth (>= 50h) and cap at 3 per activity
+        if (hours >= 50) {
+            a.competencies?.slice(0, 3).forEach(c => uniqueCompetencies.add(c));
+        }
     });
 
     // ── Derive the AdCom score from pillar scores ──────────────────
@@ -81,6 +84,14 @@ export const calculateAdComScore = (activities: Activity[]) => {
     // Narrative Polish Bonus (up to 5 pts)
     const finalCount = activeActivities.filter(a => a.status === ActivityStatus.FINAL || a.status === ActivityStatus.REFINED).length;
     score += Math.min(5, Math.round(finalCount * 0.5));
+
+    // ── Breadth Multiplier (AdCom expects ~10-15 activities) ──
+    let breadthMultiplier = 1.0;
+    if (activeActivities.length < 5) breadthMultiplier = 0.5;
+    else if (activeActivities.length < 8) breadthMultiplier = 0.7;
+    else if (activeActivities.length < 10) breadthMultiplier = 0.85;
+
+    score = Math.round(score * breadthMultiplier);
 
     const normalizedScore = Math.min(100, score);
 

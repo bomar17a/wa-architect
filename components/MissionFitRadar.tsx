@@ -93,6 +93,7 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
   let researchBonus = 0;
   let serviceBonus = 0;
   let teamworkBonus = 0;
+  let mmeProcessed = 0; // MME Spam Guard
 
   // Set-based guards for per-type bonuses (fire once per pillar)
   const researchTypeBonuses = new Set<string>();
@@ -101,17 +102,30 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
   const filledActivities = activities.filter(a => a.status !== 'Empty' && a.experienceType);
 
   filledActivities.forEach((act) => {
-    const hours = act.dateRanges.reduce((sum, r) => {
+    let hours = act.dateRanges.reduce((sum, r) => {
       let rHours = Math.max(parseInt(r.hours) || 0, 0);
       if (r.isAnticipated) {
         rHours *= 0.25; // Apply 0.25x discount to future anticipated hours
       }
       return sum + rHours;
     }, 0);
+    const durationMonths = calcDurationMonths(act.dateRanges);
+
+    // Impossible Hours Guard: Max 80 hours/week (approx 340 hours/month)
+    hours = Math.min(hours, Math.max(1, durationMonths) * 340);
+
     const type = act.experienceType;
     const desc = [act.description, act.mmeEssay, act.mmeAction, act.mmeResult].filter(Boolean).join(' ').toLowerCase();
     const comps = act.competencies || [];
-    const durationMonths = calcDurationMonths(act.dateRanges);
+
+    // MME Spam Guard: Enforce AMCAS limit of 3 MMEs for bonuses
+    let isActMME = false;
+    if (act.isMostMeaningful) {
+      if (mmeProcessed < 3) {
+        isActMME = true;
+        mmeProcessed++;
+      }
+    }
 
     // ── SHADOWING (separate from hands-on clinical) ──────────────
     const isShadowing = type === 'Physician Shadowing/Clinical Observation';
@@ -127,7 +141,7 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
     if (isHandsOnClinical) {
       clinicalHours += hours;
       if (type === 'Paid Employment - Medical/Clinical') clinicalBonus += 0.5;
-      if (act.isMostMeaningful) clinicalBonus += 0.5;
+      if (isActMME) clinicalBonus += 0.5;
       if (comps.some(c => c.includes('Reliability') || c.includes('Service'))) clinicalBonus += 0.25;
       if (durationMonths >= 12) clinicalBonus += 0.25; // longitudinal signal
     }
@@ -135,16 +149,18 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
     if (isMedicalVolunteer) {
       clinicalHours += hours;          // full credit to Clinical
       serviceHours += hours * 0.5;     // half credit to Service (volunteering component)
-      if (act.isMostMeaningful) { clinicalBonus += 0.5; serviceBonus += 0.5; }
+      if (isActMME) { clinicalBonus += 0.5; serviceBonus += 0.5; }
       if (comps.some(c => c.includes('Reliability') || c.includes('Service'))) clinicalBonus += 0.25;
       if (comps.some(c => c.includes('Cultural') || c.includes('Service'))) serviceBonus += 0.25;
       if (durationMonths >= 12) { clinicalBonus += 0.25; serviceBonus += 0.25; }
     }
 
     if (isShadowing) {
-      clinicalHours += hours * 0.25;   // shadowing at 0.25× weight
+      // Shadowing Diminishing Returns: Cap raw hours at 150 per activity
+      const cappedShadowing = Math.min(hours, 150);
+      clinicalHours += cappedShadowing * 0.25;   // shadowing at 0.25× weight
       clinicalBonus += 0.5;            // flat bonus: having shadowing at all matters
-      if (act.isMostMeaningful) clinicalBonus += 0.25;
+      if (isActMME) clinicalBonus += 0.25;
     }
 
     // Depth signal from description keywords
@@ -163,7 +179,7 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
 
     if (isResearch) {
       researchHours += hours;
-      if (act.isMostMeaningful) researchBonus += 0.5;
+      if (isActMME) researchBonus += 0.5;
       if (comps.some(c => c.includes('Scientific') || c.includes('Critical'))) researchBonus += 0.25;
       if (durationMonths >= 12) researchBonus += 0.25;
       if (isFinal) researchBonus += 0.1;
@@ -197,7 +213,7 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
 
     if (isNonMedService) {
       serviceHours += hours;
-      if (act.isMostMeaningful) serviceBonus += 0.75;
+      if (isActMME) serviceBonus += 0.75;
       if (comps.some(c => c.includes('Cultural') || c.includes('Service'))) serviceBonus += 0.25;
       if (desc.includes('director') || desc.includes('led') || desc.includes('founded') || desc.includes('president')) serviceBonus += 0.5;
       if (durationMonths >= 12) serviceBonus += 0.25;
@@ -227,7 +243,7 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
         teamworkBonus += 0.75; teamworkTypeBonuses.add('athletics');
       }
       // Per-activity bonuses (these CAN fire per activity)
-      if (act.isMostMeaningful) teamworkBonus += 0.5;
+      if (isActMME) teamworkBonus += 0.5;
       if (comps.some(c => c.includes('Teamwork') || c.includes('Oral') || c.includes('Social'))) teamworkBonus += 0.25;
       if (desc.includes('captain') || desc.includes('president') || desc.includes('chair') || desc.includes('founded') || desc.includes('managed')) teamworkBonus += 0.25;
       if (durationMonths >= 12) teamworkBonus += 0.25;
