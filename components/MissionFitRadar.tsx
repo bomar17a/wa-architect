@@ -59,8 +59,16 @@ function calcDurationMonths(dateRanges: Activity['dateRanges']): number {
   dateRanges.forEach(r => {
     const startM = MONTH_MAP[r.startDateMonth] ?? 0;
     const startY = parseInt(r.startDateYear) || 0;
-    const endM = MONTH_MAP[r.endDateMonth] ?? 0;
-    const endY = parseInt(r.endDateYear) || 0;
+    let endM = MONTH_MAP[r.endDateMonth] ?? 0;
+    let endY = parseInt(r.endDateYear) || 0;
+    
+    // For ongoing activities, default to current month/year
+    if (endY === 0) {
+      const now = new Date();
+      endY = now.getFullYear();
+      endM = now.getMonth();
+    }
+
     if (startY > 0) earliest = Math.min(earliest, startY * 12 + startM);
     if (endY > 0) latest = Math.max(latest, endY * 12 + endM);
   });
@@ -93,9 +101,15 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
   const filledActivities = activities.filter(a => a.status !== 'Empty' && a.experienceType);
 
   filledActivities.forEach((act) => {
-    const hours = act.dateRanges.reduce((sum, r) => sum + (Math.max(parseInt(r.hours) || 0, 0)), 0);
+    const hours = act.dateRanges.reduce((sum, r) => {
+      let rHours = Math.max(parseInt(r.hours) || 0, 0);
+      if (r.isAnticipated) {
+        rHours *= 0.25; // Apply 0.25x discount to future anticipated hours
+      }
+      return sum + rHours;
+    }, 0);
     const type = act.experienceType;
-    const desc = (act.description + ' ' + act.mmeEssay + ' ' + act.mmeAction).toLowerCase();
+    const desc = [act.description, act.mmeEssay, act.mmeAction, act.mmeResult].filter(Boolean).join(' ').toLowerCase();
     const comps = act.competencies || [];
     const durationMonths = calcDurationMonths(act.dateRanges);
 
@@ -226,7 +240,7 @@ export function computeCompetencyScores(activities: Activity[]): PillarScores {
       type === 'Non-Healthcare Employment';
 
     if (isNonMedEmployment) {
-      teamworkHours += hours * 0.5;    // 0.5× weight
+      teamworkHours += hours;    // Equity fix: Full 1.0x weight for non-healthcare employment
       if (durationMonths >= 12) teamworkBonus += 0.25;
       if (isFinal) teamworkBonus += 0.1;
     }
@@ -337,17 +351,20 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
   // Auto-detect best fit on mount or when scores change
   useEffect(() => {
     let bestMatchId = SCHOOL_ARCHETYPES[0].id;
-    let smallestDeficit = Infinity;
+    let highestScore = -Infinity;
 
     SCHOOL_ARCHETYPES.forEach(arch => {
-      let deficit = 0;
-      if (studentScores.Inquiry < arch.targets.Inquiry) deficit += arch.targets.Inquiry - studentScores.Inquiry;
-      if (studentScores.Service < arch.targets.Service) deficit += arch.targets.Service - studentScores.Service;
-      if (studentScores.Teamwork < arch.targets.Teamwork) deficit += arch.targets.Teamwork - studentScores.Teamwork;
-      if (studentScores.Clinical < arch.targets.Clinical) deficit += arch.targets.Clinical - studentScores.Clinical;
+      const pillars = ['Inquiry', 'Service', 'Teamwork', 'Clinical'] as const;
+      const dot = pillars.reduce((sum, p) => sum + (studentScores[p] * arch.targets[p]), 0);
+      const sMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(studentScores[p], 2), 0));
+      const aMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(arch.targets[p], 2), 0));
+      
+      const cos = (sMag > 0 && aMag > 0) ? dot / (sMag * aMag) : 0;
+      const magRatio = aMag > 0 ? Math.min(sMag / aMag, 1.0) : 1.0;
+      const score = cos * magRatio;
 
-      if (deficit < smallestDeficit) {
-        smallestDeficit = deficit;
+      if (score > highestScore) {
+        highestScore = score;
         bestMatchId = arch.id;
       }
     });
@@ -460,20 +477,23 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
 
   const maxPossibleScore = activeArchetype.targets.Inquiry + activeArchetype.targets.Service + activeArchetype.targets.Teamwork + activeArchetype.targets.Clinical;
 
-  // Weighted cosine-style match:
-  // Each archetype target acts as the "weight" of that pillar.
-  // We credit (student / target) per pillar, capped at 1.0 (no bonus for exceeding target).
-  // Then weight each pillar by how much the archetype actually cares about it (its target score).
-  // This means a 1-point gap in Clinical (target=10) is penalized more than a gap in Inquiry (target=3)
-  // when evaluating a Practitioner archetype that highly values clinical.
+  // Cosine Similarity + Magnitude Ratio Match
+  // 1. Calculate how well the "shape" of the student matches the "shape" of the school (Cosine Similarity)
+  // 2. Calculate if the student has "enough" volume for the school (Magnitude Ratio, capped at 1.0)
   const pillars = ['Inquiry','Service','Teamwork','Clinical'] as const;
-  const weightedScore = pillars.reduce((acc, p) => {
-    const target = activeArchetype.targets[p];
-    const student = studentScores[p];
-    const ratio = target > 0 ? Math.min(student / target, 1.0) : 1.0;
-    return acc + ratio * target;   // weight = target, contribution = ratio × weight
-  }, 0);
-  const matchPercentage = Math.round((weightedScore / maxPossibleScore) * 100);
+  
+  const dotProduct = pillars.reduce((sum, p) => sum + (studentScores[p] * activeArchetype.targets[p]), 0);
+  const studentMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(studentScores[p], 2), 0));
+  const archetypeMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(activeArchetype.targets[p], 2), 0));
+  
+  let cosineSimilarity = 0;
+  if (studentMag > 0 && archetypeMag > 0) {
+    cosineSimilarity = dotProduct / (studentMag * archetypeMag);
+  }
+  
+  const magnitudeRatio = archetypeMag > 0 ? Math.min(studentMag / archetypeMag, 1.0) : 1.0;
+  
+  const matchPercentage = Math.round((cosineSimilarity * magnitudeRatio) * 100);
 
   return (
     <div className="w-full space-y-6 animate-fade-in">

@@ -42,34 +42,6 @@ export const AACOMAS_EXPERIENCE_TYPES = [
     "Achievements"
 ];
 
-// Weighted values based on AdCom criteria for the Readiness Score
-export const ACTIVITY_WEIGHTS: Record<string, number> = {
-  "Community Service/Volunteer - Medical/Clinical": 3,
-  "Community Service/Volunteer - Not Medical/Clinical": 3,
-  "Physician Shadowing/Clinical Observation": 3,
-  "Leadership - Not Listed Elsewhere": 3,
-  "Paid Employment - Medical/Clinical": 3,
-  "Research/Lab": 2.5,
-  "Military Service": 2.5,
-  "Paid Employment - Not Medical/Clinical": 2.5,
-  "Extracurricular Activities": 2.5,
-  "Artistic Endeavors": 2.5,
-  "Hobbies": 2.5,
-  "Other": 2.5,
-  "Teaching/Tutoring/Teaching Assistant": 2,
-  "Intercollegiate Athletics": 2,
-  "Honors/Awards/Recognitions": 2,
-  "Conferences Attended": 2,
-  "Presentations/Posters": 2,
-  "Publications": 2,
-  "Healthcare Experience": 3,
-  "Non-Healthcare Volunteer": 3,
-  "Non-Healthcare Employment": 2.5,
-  "Research": 2.5,
-  "Leadership Experience": 3,
-  "Teaching Experience": 2,
-  "Achievements": 2,
-};
 
 export const MONTHS = [
   "January", "February", "March", "April", "May", "June",

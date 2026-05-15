@@ -1,6 +1,5 @@
 import React from 'react';
 import { Activity, ActivityStatus } from '../types';
-import { ACTIVITY_WEIGHTS } from '../constants';
 import { computeCompetencyScores, milestone } from '../components/MissionFitRadar';
 import {
     Briefcase, AlertTriangle, Heart, Users, Target, Award, Brain, Zap
@@ -27,14 +26,39 @@ export const calculateAdComScore = (activities: Activity[]) => {
         if (a.isMostMeaningful) mmeCount++;
 
         const hours = a.dateRanges.reduce((acc, r) => acc + (parseInt(r.hours) || 0), 0);
-        const type = a.experienceType.toLowerCase();
+        const type = a.experienceType;
+        const desc = [a.description, a.mmeEssay, a.mmeAction, a.mmeResult].filter(Boolean).join(' ').toLowerCase();
 
-        if (type.includes('medical/clinical') || type.includes('healthcare')) clinicalHours += hours;
-        if (type.includes('community service/volunteer - medical/clinical')) medicalServiceHours += hours;
-        if (type.includes('community service/volunteer - not medical/clinical')) nonMedicalServiceHours += hours;
-        if (type.includes('shadowing')) shadowingHours += hours;
-        if (type.includes('research')) researchHours += hours;
-        if (type.includes('leadership')) leadershipHours += hours;
+        const isHandsOnClinical = 
+          type === 'Paid Employment - Medical/Clinical' || 
+          type === 'Healthcare Experience';
+        const isMedicalVolunteer = 
+          type === 'Community Service/Volunteer - Medical/Clinical';
+        const isShadowing = 
+          type === 'Physician Shadowing/Clinical Observation';
+        const isNonMedService = 
+          type === 'Community Service/Volunteer - Not Medical/Clinical' || 
+          type === 'Non-Healthcare Volunteer';
+        const isResearch = 
+          type === 'Research/Lab' || type === 'Research';
+        
+        // Leadership tracking
+        const isExplicitLeadership = 
+          type === 'Leadership - Not Listed Elsewhere' || 
+          type === 'Leadership Experience' ||
+          type === 'Military Service';
+          
+        const hasLeadershipKeywords = 
+          desc.includes('captain') || desc.includes('president') || 
+          desc.includes('chair') || desc.includes('founded') || 
+          desc.includes('managed') || desc.includes('director') || desc.includes('led');
+
+        if (isHandsOnClinical || isMedicalVolunteer) clinicalHours += hours;
+        if (isMedicalVolunteer) medicalServiceHours += hours;
+        if (isNonMedService) nonMedicalServiceHours += hours;
+        if (isShadowing) shadowingHours += hours;
+        if (isResearch) researchHours += hours;
+        if (isExplicitLeadership || hasLeadershipKeywords) leadershipHours += hours;
 
         a.competencies?.forEach(c => uniqueCompetencies.add(c));
     });
@@ -77,9 +101,9 @@ export const calculateAdComScore = (activities: Activity[]) => {
         });
     }
 
-    if (clinicalHours < 150) {
+    if (clinicalHours < 300) {
         feedbackItems.push({
-            text: `Clinical hours are at ${clinicalHours}h (excluding shadowing). Targeted goal is 150h+. Consider scribing or patient intake volunteering.`,
+            text: `Clinical hours are at ${clinicalHours}h (excluding shadowing). Targeted goal is 300h+. Consider scribing or patient intake volunteering.`,
             category: 'Clinical Gap',
             icon: <AlertTriangle className="w-3.5 h-3.5" />,
             color: 'text-rose-500',
@@ -139,7 +163,7 @@ export const calculateAdComScore = (activities: Activity[]) => {
 
     if (mmeCount < 3 && activeActivities.length >= 3) {
         feedbackItems.push({
-            text: `Strategic Gap: You haven't designated 3 'Most Meaningful' experiences yet. This is critical for AMCAS.`,
+            text: `Strategic Gap: You haven't designated 3 'Most Meaningful' experiences yet. This is critical for AMCAS (ignore if DO/AACOMAS exclusively).`,
             category: 'Strategy',
             icon: <Zap className="w-3.5 h-3.5" />,
             color: 'text-amber-600',
@@ -148,7 +172,7 @@ export const calculateAdComScore = (activities: Activity[]) => {
     }
 
     const stats = {
-        clinical: { val: clinicalHours, target: 150, label: 'Clinical (Hands-On)' },
+        clinical: { val: clinicalHours, target: 300, label: 'Clinical (Hands-On)' },
         medicalService: { val: medicalServiceHours, target: 100, label: 'Medical Vol.' },
         nonMedicalService: { val: nonMedicalServiceHours, target: 100, label: 'Non-Medical Vol.' },
         shadowing: { val: shadowingHours, target: 50, label: 'Physician Shadowing' },
