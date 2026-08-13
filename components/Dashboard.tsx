@@ -45,6 +45,7 @@ import { FocusCard } from './Dashboard/FocusCard.tsx';
 import { CompetencyAuditModal } from './Dashboard/CompetencyAuditModal.tsx';
 import { ResumeUploader } from './ResumeUploader.tsx';
 import { ResumeReviewModal } from './ResumeReviewModal.tsx';
+import { SettingsModal } from './Dashboard/SettingsModal.tsx';
 
 // --- Main Dashboard Component ---
 
@@ -57,6 +58,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
         setIsCompetencyModalOpen,
         isReadinessModalOpen,
         setIsReadinessModalOpen,
+        isSettingsModalOpen,
+        setIsSettingsModalOpen,
         searchQuery,
         setSearchQuery,
         activitiesRef,
@@ -194,8 +197,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                 <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 mt-1">{readiness.level}</span>
                             </div>
                         </div>
-                        <div className="w-full h-1 bg-slate-50 rounded-full overflow-hidden mt-2">
-                            <div className="h-full bg-brand-teal transition-all duration-700" style={{ width: `${readiness.score}%` }}></div>
+                        <div className="w-full mt-2">
+                            <div className="flex justify-between items-center mb-1 px-0.5">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
+                                <span className="text-[9px] font-black text-brand-teal">{readiness.score}%</span>
+                            </div>
+                            <div className="w-full h-1 bg-slate-50 rounded-full overflow-hidden">
+                                <div className="h-full bg-brand-teal transition-all duration-700" style={{ width: `${readiness.score}%` }}></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -208,7 +217,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                             compact={true}
                         />
                     </div>
-                    <NavItem icon={<Settings size={20} />} label="Settings" onClick={() => { }} />
+                    <NavItem icon={<Settings size={20} />} label="Settings" onClick={() => setIsSettingsModalOpen(true)} />
                     <div onClick={signOut} className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all text-rose-500 hover:bg-rose-50 hover:text-rose-600">
                         <LogOut size={20} />
                         <span className="font-bold text-sm tracking-tight">Sign Out</span>
@@ -287,13 +296,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                 </div>
                                 <div className="space-y-3 pb-10">
                                     {filteredActivities.length === 0 ? (
-                                        <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 border-dashed text-slate-400 text-sm">
-                                            No activities found. Start listing your experiences early to audit gaps.<br />
-                                            <button onClick={() => onSelectActivity(activities.length + 1)} className="text-brand-teal font-bold mt-2">Add Your First Activity</button>
+                                        <div className="text-center py-16 px-6 bg-white rounded-3xl border border-slate-100 border-dashed text-slate-400 text-sm flex flex-col items-center gap-4">
+                                            <div className="w-14 h-14 rounded-2xl bg-brand-light flex items-center justify-center text-brand-teal">
+                                                <FileText className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-600 text-base mb-1">No activities yet</p>
+                                                <p className="text-slate-400 text-sm max-w-sm mx-auto">Start listing your experiences early — even a rough draft helps us audit gaps in your application.</p>
+                                            </div>
+                                            <button onClick={() => onSelectActivity(activities.length + 1)} className="mt-1 flex items-center gap-2 px-6 py-3 bg-brand-teal hover:bg-brand-teal-hover text-white font-bold text-sm rounded-2xl shadow-lg shadow-brand-teal/20 transition-all hover:-translate-y-0.5">
+                                                <Plus className="w-4 h-4" /> Add Your First Activity
+                                            </button>
                                         </div>
                                     ) : (
                                         filteredActivities.map(activity => (
-                                            <div key={activity.id} onClick={() => onSelectActivity(activity.id)} className="group bg-white p-3 sm:p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm border border-slate-100 hover:border-brand-teal/30 hover:shadow-md transition-all">
+                                            <div key={activity.id} onClick={() => onSelectActivity(activity.id)} className="group bg-white p-3 sm:p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm border border-slate-100 hover:border-brand-teal/30 hover:shadow-md hover:-translate-y-0.5 transition-all">
                                                 <div className="flex items-center gap-3 sm:gap-4">
                                                     <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${activity.status === ActivityStatus.FINAL ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : activity.status === ActivityStatus.REFINED ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]' : activity.status === ActivityStatus.DRAFT ? 'bg-brand-teal shadow-[0_0_8px_rgba(46,107,107,0.4)]' : 'bg-slate-300'}`} />
                                                     <div>
@@ -346,6 +363,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
             )}
             {isCompetencyModalOpen && <CompetencyAuditModal activities={filledActivities} onClose={() => setIsCompetencyModalOpen(false)} />}
 
+            {isSettingsModalOpen && (
+                <SettingsModal
+                    appType={appType}
+                    onAppTypeChange={onAppTypeChange}
+                    onClose={() => setIsSettingsModalOpen(false)}
+                />
+            )}
+
             {showResumeModal && (
                 <ResumeReviewModal
                     isOpen={showResumeModal}
@@ -368,6 +393,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                 <div onClick={() => setActiveTab('school-recommender')} className={`flex flex-col items-center gap-0.5 cursor-pointer ${activeTab === 'school-recommender' ? 'text-brand-teal' : 'text-slate-400'}`}>
                     <Building size={22} />
                     <span className="text-[9px] font-bold">Schools</span>
+                </div>
+                <div onClick={() => setIsSettingsModalOpen(true)} className="flex flex-col items-center gap-0.5 cursor-pointer text-slate-400">
+                    <Settings size={22} />
+                    <span className="text-[9px] font-bold">Settings</span>
                 </div>
                 <div onClick={signOut} className={`flex flex-col items-center gap-0.5 cursor-pointer text-rose-400`}>
                     <LogOut size={22} />

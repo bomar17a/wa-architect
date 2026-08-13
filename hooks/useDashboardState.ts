@@ -6,6 +6,7 @@ export const useDashboardState = (activities: Activity[]) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'mission-fit'>('overview');
     const [isCompetencyModalOpen, setIsCompetencyModalOpen] = useState(false);
     const [isReadinessModalOpen, setIsReadinessModalOpen] = useState(false);
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     const activitiesRef = useRef<HTMLDivElement>(null);
@@ -47,6 +48,8 @@ export const useDashboardState = (activities: Activity[]) => {
         setIsCompetencyModalOpen,
         isReadinessModalOpen,
         setIsReadinessModalOpen,
+        isSettingsModalOpen,
+        setIsSettingsModalOpen,
         searchQuery,
         setSearchQuery,
         activitiesRef,

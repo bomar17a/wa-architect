@@ -16,6 +16,7 @@ import {
 import { CharacterCounter } from './Activity/CharacterCounter.tsx';
 import { CoPilotEditor } from './Activity/CoPilotEditor.tsx';
 import { DateSelect } from './Activity/DateSelect.tsx';
+import { MMEPanel } from './Activity/MMEPanel.tsx';
 
 type SaveStatus = 'UNSAVED' | 'SAVING' | 'SAVED';
 
@@ -272,6 +273,17 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                             </div>
                         </div>
                     </div>
+
+                    {appType === ApplicationType.AMCAS && localActivity.isMostMeaningful && (
+                        <MMEPanel
+                            description={localActivity.description}
+                            descLimit={DESC_LIMITS[appType]}
+                            mmeAction={localActivity.mmeAction}
+                            mmeResult={localActivity.mmeResult}
+                            mmeEssay={localActivity.mmeEssay}
+                            onChange={handleChange}
+                        />
+                    )}
 
                     {/* Competency Map Indicator */}
                     <div className="mt-8 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden shadow-sm">

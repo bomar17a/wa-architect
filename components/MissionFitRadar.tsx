@@ -517,7 +517,7 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-800 font-serif">Mission Fit Radar</h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">Compare your profile against our 5 major medical school archetypes.</p>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Compare your profile against our 6 major medical school archetypes.</p>
         </div>
         {onNavigateToRecommender && (
           <button onClick={onNavigateToRecommender} className="px-4 py-2 sm:px-5 sm:py-2.5 bg-brand-dark text-white text-sm font-bold rounded-xl shadow-md hover:bg-slate-800 transition-colors flex items-center gap-2 self-start sm:self-auto">
@@ -590,7 +590,7 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
                   <div key={g.subject} className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-bold text-slate-700 text-sm">{g.subject} Deficit</span>
-                      <span className="text-rose-500 text-xs font-black">-{g.need} pts</span>
+                      <span className="text-rose-500 text-xs font-black">-{g.need.toFixed(1)} pts</span>
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed">To improve, {g.tip}</p>
                   </div>
