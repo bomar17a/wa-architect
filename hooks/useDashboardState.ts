@@ -14,14 +14,20 @@ export interface AmcasInfo {
     cycleYear: number | 'auto';
 }
 
+// AMCAS opens the application portal (coursework entry, personal statement upload, etc.)
+// in the first week of May each cycle — historically May 1st, ~9:30 AM ET. That's distinct
+// from the *submission* opening, which lands closer to the end of May.
+const AMCAS_OPENING_MONTH = 4; // May (0-indexed)
+const AMCAS_OPENING_DAY = 1;
+
 const computeAmcasInfo = (cycleYear: number | 'auto'): AmcasInfo => {
     const today = new Date();
     let openingDate: Date;
     if (cycleYear === 'auto') {
-        openingDate = new Date(today.getFullYear(), 4, 28); // May 28
+        openingDate = new Date(today.getFullYear(), AMCAS_OPENING_MONTH, AMCAS_OPENING_DAY);
         if (today > openingDate) openingDate.setFullYear(openingDate.getFullYear() + 1);
     } else {
-        openingDate = new Date(cycleYear, 4, 28);
+        openingDate = new Date(cycleYear, AMCAS_OPENING_MONTH, AMCAS_OPENING_DAY);
     }
     const daysToOpening = Math.ceil((openingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     const isOpen = daysToOpening <= 0;

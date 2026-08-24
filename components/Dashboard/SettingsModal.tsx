@@ -84,7 +84,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ appType, onAppType
                     {onCycleYearChange && (
                         <div className="bg-white rounded-2xl border border-slate-200 p-5">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Application Cycle</h3>
-                            <p className="text-xs text-slate-500 mb-4">Which AMCAS opening (May 28) the dashboard countdown targets. "Auto" always tracks the nearest upcoming one.</p>
+                            <p className="text-xs text-slate-500 mb-4">Which AMCAS portal opening (early May, historically the 1st at ~9:30 AM ET — when you can log in, enter coursework, and upload your personal statement) the dashboard countdown targets. "Auto" always tracks the nearest upcoming one.</p>
                             <div className="flex flex-wrap gap-2">
                                 <button
                                     onClick={() => onCycleYearChange('auto')}
