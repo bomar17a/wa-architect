@@ -12,7 +12,7 @@ import {
     PenTool, FileText, ChevronLeft, Sparkles, X, ShieldCheck, ChevronDown,
     Rocket, HelpCircle, GraduationCap, Info, Building,
     Activity as ActivityIcon, Brain, Trophy, Plus, LogOut,
-    Briefcase, AlertTriangle, Heart, Users, Target, Award, Zap
+    Briefcase, AlertTriangle, Heart, Users, Target, Award, Zap, FileDown
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useDashboardState } from '../hooks/useDashboardState.ts';
@@ -53,6 +53,7 @@ import { CompetencyAuditModal } from './Dashboard/CompetencyAuditModal.tsx';
 import { ResumeUploader } from './ResumeUploader.tsx';
 import { ResumeReviewModal } from './ResumeReviewModal.tsx';
 import { SettingsModal } from './Dashboard/SettingsModal.tsx';
+import { ExportModal } from './Dashboard/ExportModal.tsx';
 import { ScoreDial } from './Dashboard/ScoreDial.tsx';
 import { motion } from 'framer-motion';
 import { runRedFlagAudit } from '../services/redFlagService.ts';
@@ -70,6 +71,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
         setIsReadinessModalOpen,
         isSettingsModalOpen,
         setIsSettingsModalOpen,
+        isExportModalOpen,
+        setIsExportModalOpen,
         searchQuery,
         setSearchQuery,
         activitiesRef,
@@ -327,6 +330,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                         {/* The ResumeUploader was moved from here to the header */}
                                         <button onClick={() => onAppTypeChange(ApplicationType.AMCAS)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${appType === ApplicationType.AMCAS ? 'bg-brand-dark text-white shadow-md' : 'bg-white text-slate-500 border border-slate-100'}`}>AMCAS</button>
                                         <button onClick={() => onAppTypeChange(ApplicationType.AACOMAS)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${appType === ApplicationType.AACOMAS ? 'bg-brand-dark text-white shadow-md' : 'bg-white text-slate-500 border border-slate-100'}`}>AACOMAS</button>
+                                        <button
+                                            onClick={() => setIsExportModalOpen(true)}
+                                            disabled={filledActivities.length === 0}
+                                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-500 border border-slate-100 hover:border-brand-teal/30 hover:text-brand-teal transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                                        >
+                                            <FileDown className="w-3.5 h-3.5" /> Export
+                                        </button>
                                     </div>
                                 </div>
                                 <div className="space-y-3 pb-10">
@@ -423,6 +433,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                     appType={appType}
                     onAppTypeChange={onAppTypeChange}
                     onClose={() => setIsSettingsModalOpen(false)}
+                />
+            )}
+
+            {isExportModalOpen && (
+                <ExportModal
+                    activities={activities}
+                    appType={appType}
+                    onClose={() => setIsExportModalOpen(false)}
                 />
             )}
 

@@ -7,6 +7,7 @@ export const useDashboardState = (activities: Activity[]) => {
     const [isCompetencyModalOpen, setIsCompetencyModalOpen] = useState(false);
     const [isReadinessModalOpen, setIsReadinessModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     const activitiesRef = useRef<HTMLDivElement>(null);
@@ -50,6 +51,8 @@ export const useDashboardState = (activities: Activity[]) => {
         setIsReadinessModalOpen,
         isSettingsModalOpen,
         setIsSettingsModalOpen,
+        isExportModalOpen,
+        setIsExportModalOpen,
         searchQuery,
         setSearchQuery,
         activitiesRef,
