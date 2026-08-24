@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Activity, ApplicationType, ActivityStatus, ThemeAnalysis } from '../types.ts';
-import { ACTIVITY_WEIGHTS, AAMC_CORE_COMPETENCIES } from '../constants.ts';
+import { AAMC_CORE_COMPETENCIES, DESC_LIMITS } from '../constants.ts';
 import { MissionFitRadar } from './MissionFitRadar.tsx';
 import { SchoolRecommender } from './SchoolRecommender.tsx';
 import { StarIconFilled } from './icons/StarIconFilled.tsx';
@@ -29,11 +29,18 @@ interface DashboardProps {
     onImportActivities: (activities: Activity[]) => void;
 }
 
-const STATUS_CONFIG: { [key in ActivityStatus]: { color: string; icon: React.ReactNode } } = {
-    [ActivityStatus.EMPTY]: { color: 'text-slate-400 bg-slate-100', icon: <Clock className="w-3 h-3" /> },
-    [ActivityStatus.DRAFT]: { color: 'text-brand-teal bg-brand-light border-brand-teal/20', icon: <PenTool className="w-3 h-3" /> },
-    [ActivityStatus.REFINED]: { color: 'text-brand-gold bg-amber-50 border-brand-gold/20', icon: <Sparkles className="w-3 h-3" /> },
-    [ActivityStatus.FINAL]: { color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: <CheckCircle2 className="w-3 h-3" /> },
+const STATUS_CONFIG: { [key in ActivityStatus]: { badgeClass: string; barColor: string; icon: React.ReactNode; label: string } } = {
+    [ActivityStatus.EMPTY]: { badgeClass: 'text-slate-400 bg-slate-100', barColor: 'bg-slate-200', icon: <Clock className="w-2.5 h-2.5" />, label: 'Empty' },
+    [ActivityStatus.DRAFT]: { badgeClass: 'text-brand-teal bg-brand-light', barColor: 'bg-brand-teal', icon: <PenTool className="w-2.5 h-2.5" />, label: 'Draft' },
+    [ActivityStatus.REFINED]: { badgeClass: 'text-amber-700 bg-amber-50', barColor: 'bg-amber-400', icon: <Sparkles className="w-2.5 h-2.5" />, label: 'Polished' },
+    [ActivityStatus.FINAL]: { badgeClass: 'text-emerald-600 bg-emerald-50', barColor: 'bg-emerald-500', icon: <CheckCircle2 className="w-2.5 h-2.5" />, label: 'Final' },
+};
+
+const getTierBadgeClass = (score: number) => {
+    if (score >= 90) return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20';
+    if (score >= 70) return 'bg-brand-teal/20 text-teal-300 border border-brand-teal/30';
+    if (score >= 40) return 'bg-amber-500/15 text-amber-400 border border-amber-500/20';
+    return 'bg-slate-500/15 text-slate-300 border border-slate-500/20';
 };
 
 
@@ -46,6 +53,8 @@ import { CompetencyAuditModal } from './Dashboard/CompetencyAuditModal.tsx';
 import { ResumeUploader } from './ResumeUploader.tsx';
 import { ResumeReviewModal } from './ResumeReviewModal.tsx';
 import { SettingsModal } from './Dashboard/SettingsModal.tsx';
+import { ScoreDial } from './Dashboard/ScoreDial.tsx';
+import { motion } from 'framer-motion';
 
 // --- Main Dashboard Component ---
 
@@ -178,25 +187,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                         <ShieldCheck className="w-4 h-4 text-brand-teal" />
                     </div>
                     <div className="flex flex-col items-center">
-                        <div className="relative w-28 h-28 mb-4">
-                            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="44" stroke="#F1F5F9" strokeWidth="8" fill="none" />
-                                <circle
-                                    cx="50" cy="50" r="44"
-                                    stroke="#2E6B6B"
-                                    strokeWidth="8"
-                                    fill="none"
-                                    strokeDasharray="276.46"
-                                    strokeDashoffset={276.46 - (276.46 * readiness.score) / 100}
-                                    strokeLinecap="round"
-                                    className="transition-all duration-1000 ease-out"
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-bold text-brand-dark leading-none">{readiness.score}</span>
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 mt-1">{readiness.level}</span>
-                            </div>
-                        </div>
+                        <ScoreDial score={readiness.score} level={readiness.level} size={112} className="mb-4" />
                         <div className="w-full mt-2">
                             <div className="flex justify-between items-center mb-1 px-0.5">
                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Progress</span>
@@ -247,21 +238,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                 </div>
                             </header>
 
-                            {/* Actionable Gap Nudge */}
-                            {primaryGap && (
-                                <div className="mb-8 bg-white p-5 rounded-2xl shadow-[0_0_15px_rgba(56,189,248,0.1)] border border-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-sky-400"></div>
-                                    <div className="flex items-start gap-4">
-                                        <div className={`p-2.5 rounded-xl bg-sky-50 ${primaryGap.color} shrink-0`}>
-                                            {primaryGap.icon}
+                            {/* Hero: AdCom Readiness Score */}
+                            <div className="mb-8 bg-slate-900 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 relative overflow-hidden shadow-xl shadow-slate-900/10">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-teal/20 blur-[70px] rounded-full pointer-events-none"></div>
+                                <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-gold/10 blur-[70px] rounded-full pointer-events-none"></div>
+                                <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
+                                    <ScoreDial score={readiness.score} level={readiness.level} size={128} radius={42} strokeWidth={6} variant="dark" />
+                                    <div className="flex-1 text-center sm:text-left min-w-0">
+                                        <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
+                                            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md ${getTierBadgeClass(readiness.score)}`}>{readiness.level}</span>
+                                            <button
+                                                onClick={() => setIsReadinessModalOpen(true)}
+                                                className="text-slate-500 hover:text-slate-300 transition-colors"
+                                                title="What does this score mean?"
+                                            >
+                                                <HelpCircle className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-slate-800 text-sm mb-1">Clinical Insight Nudge</h3>
-                                            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-2xl">{primaryGap.text}</p>
-                                        </div>
+                                        <h2 className="text-xl sm:text-2xl font-serif font-bold text-white mb-1">AdCom Readiness Score</h2>
+                                        <p className="text-slate-400 text-sm leading-relaxed max-w-lg">
+                                            {primaryGap ? primaryGap.text : "You've met all primary volume and competency benchmarks — focus now on refining your narrative voice."}
+                                        </p>
                                     </div>
+                                    <button
+                                        onClick={() => setIsReadinessModalOpen(true)}
+                                        className="shrink-0 flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider rounded-xl border border-white/10 transition-colors"
+                                    >
+                                        View Full Audit <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
-                            )}
+                            </div>
 
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
                                 <div onClick={handleOpenCompetencyAudit} className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-blue-300 transition-all group">
@@ -309,21 +315,41 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                             </button>
                                         </div>
                                     ) : (
-                                        filteredActivities.map(activity => (
-                                            <div key={activity.id} onClick={() => onSelectActivity(activity.id)} className="group bg-white p-3 sm:p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm border border-slate-100 hover:border-brand-teal/30 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                                                <div className="flex items-center gap-3 sm:gap-4">
-                                                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${activity.status === ActivityStatus.FINAL ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : activity.status === ActivityStatus.REFINED ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]' : activity.status === ActivityStatus.DRAFT ? 'bg-brand-teal shadow-[0_0_8px_rgba(46,107,107,0.4)]' : 'bg-slate-300'}`} />
-                                                    <div>
+                                        filteredActivities.map((activity, idx) => {
+                                            const statusCfg = STATUS_CONFIG[activity.status];
+                                            const totalHours = activity.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0);
+                                            const descLen = activity.description?.length || 0;
+                                            const descLimit = DESC_LIMITS[appType];
+                                            return (
+                                                <motion.div
+                                                    key={activity.id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.3, delay: Math.min(idx * 0.04, 0.4) }}
+                                                    onClick={() => onSelectActivity(activity.id)}
+                                                    className="group relative overflow-hidden bg-white pl-5 pr-3 py-3 sm:py-3.5 sm:pr-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer shadow-sm border border-slate-100 hover:border-brand-teal/30 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                                                >
+                                                    <div className={`absolute top-0 left-0 w-1.5 h-full ${statusCfg.barColor}`} />
+                                                    <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-2">
                                                             <h4 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-brand-teal transition-colors line-clamp-1">{activity.title || "Untitled Slot"}</h4>
                                                             {activity.isMostMeaningful && <Award className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />}
                                                         </div>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{activity.experienceType || 'General Entry'}</p>
+                                                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{activity.experienceType || 'General Entry'}</span>
+                                                            <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded ${statusCfg.badgeClass}`}>
+                                                                {statusCfg.icon} {statusCfg.label}
+                                                            </span>
+                                                            {totalHours > 0 && (
+                                                                <span className="text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">{totalHours} hrs</span>
+                                                            )}
+                                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${descLen > descLimit ? 'text-rose-600 bg-rose-50' : 'text-slate-400 bg-slate-50'}`}>{descLen}/{descLimit} chars</span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <button onClick={(e) => { e.stopPropagation(); onDeleteActivity(activity.id); }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
-                                            </div>
-                                        ))
+                                                    <button onClick={(e) => { e.stopPropagation(); onDeleteActivity(activity.id); }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
+                                                </motion.div>
+                                            );
+                                        })
                                     )}
                                     <button onClick={() => onSelectActivity(activities.length + 1)} className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 font-bold text-sm hover:border-brand-teal hover:text-brand-teal hover:bg-brand-light/50 transition-all group flex items-center justify-center gap-2">
                                         <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />

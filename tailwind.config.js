@@ -11,11 +11,16 @@ export default {
                 brand: {
                     white: '#ffffff',
                     light: '#EBF5F5', // Light Mint/Cyan
+                    surface: '#F8FAFC', // Near-white background
+                    card: '#FFFFFF',    // Pure white cards
                     teal: '#2E6B6B',  // Deep Teal/Green
                     dark: '#1C1C1C',  // Dark Grey/Black
                     gold: '#FFC82C',  // Yellow/Gold
                     'teal-hover': '#245555',
                     'gold-hover': '#E5B21F',
+                    highlight: '#3B82F6', // Sky blue — AI/interactive elements
+                    danger: '#DC2626',    // Red — AdCom red flags
+                    success: '#059669',   // Emerald — completed/final status
                 }
             },
             fontFamily: {
