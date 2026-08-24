@@ -57,6 +57,7 @@ import { ExportModal } from './Dashboard/ExportModal.tsx';
 import { ScoreDial } from './Dashboard/ScoreDial.tsx';
 import { motion } from 'framer-motion';
 import { runRedFlagAudit } from '../services/redFlagService.ts';
+import { scoreNarrativeQuality, narrativeQualityTier } from '../services/narrativeQualityService.ts';
 
 // --- Main Dashboard Component ---
 
@@ -392,6 +393,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                             const totalHours = activity.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0);
                                             const descLen = activity.description?.length || 0;
                                             const descLimit = DESC_LIMITS[appType];
+                                            const nq = descLen > 0 ? scoreNarrativeQuality(activity.description) : null;
+                                            const nqTier = nq ? narrativeQualityTier(nq.total) : null;
+                                            const nqClass = nqTier === 'green' ? 'text-emerald-600 bg-emerald-50' : nqTier === 'amber' ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
                                             return (
                                                 <motion.div
                                                     key={activity.id}
@@ -416,6 +420,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                                                 <span className="text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">{totalHours} hrs</span>
                                                             )}
                                                             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${descLen > descLimit ? 'text-rose-600 bg-rose-50' : 'text-slate-400 bg-slate-50'}`}>{descLen}/{descLimit} chars</span>
+                                                            {nq && (
+                                                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${nqClass}`} title="Narrative Quality — heuristic estimate">NQ {nq.total}</span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     <button onClick={(e) => { e.stopPropagation(); onDeleteActivity(activity.id); }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>

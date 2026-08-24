@@ -18,6 +18,7 @@ import { CharacterCounter } from './Activity/CharacterCounter.tsx';
 import { CoPilotEditor } from './Activity/CoPilotEditor.tsx';
 import { DateSelect } from './Activity/DateSelect.tsx';
 import { MMEPanel } from './Activity/MMEPanel.tsx';
+import { NarrativeQualityBreakdown } from './Activity/NarrativeQualityBreakdown.tsx';
 
 type SaveStatus = 'UNSAVED' | 'SAVING' | 'SAVED';
 
@@ -243,9 +244,12 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                 </div>
 
                 <div className="space-y-6">
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-2">
                         <h3 className="text-lg font-serif font-bold text-slate-800 flex items-center gap-2"><PenLine className="w-5 h-5 text-brand-teal" /> Narrative Studio</h3>
-                        <CharacterCounter text={localActivity.description} limit={DESC_LIMITS[appType]} />
+                        <div className="flex flex-col sm:items-end gap-2">
+                            <CharacterCounter text={localActivity.description} limit={DESC_LIMITS[appType]} />
+                            <NarrativeQualityBreakdown text={localActivity.description} />
+                        </div>
                     </div>
                     <div className="relative group">
                         <div className="w-full relative bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col">
