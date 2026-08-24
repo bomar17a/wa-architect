@@ -6,15 +6,20 @@ import { ApplicationType } from '../../types';
 interface SettingsModalProps {
     appType: ApplicationType;
     onAppTypeChange: (appType: ApplicationType) => void;
+    cycleYear?: number | 'auto';
+    onCycleYearChange?: (year: number | 'auto') => void;
     onClose: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ appType, onAppTypeChange, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ appType, onAppTypeChange, cycleYear, onCycleYearChange, onClose }) => {
     const { user, signOut } = useAuth();
     const memberSince = user?.created_at
         ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         : null;
     const initial = (user?.user_metadata?.full_name || user?.email || '?').charAt(0).toUpperCase();
+
+    const currentYear = new Date().getFullYear();
+    const cycleOptions = [currentYear, currentYear + 1, currentYear + 2];
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
@@ -74,6 +79,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ appType, onAppType
                             </button>
                         </div>
                     </div>
+
+                    {/* Application Cycle */}
+                    {onCycleYearChange && (
+                        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Application Cycle</h3>
+                            <p className="text-xs text-slate-500 mb-4">Which AMCAS opening (May 28) the dashboard countdown targets. "Auto" always tracks the nearest upcoming one.</p>
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    onClick={() => onCycleYearChange('auto')}
+                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${cycleYear === 'auto' ? 'bg-brand-dark text-white shadow-md' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}`}
+                                >
+                                    Auto
+                                </button>
+                                {cycleOptions.map(year => (
+                                    <button
+                                        key={year}
+                                        onClick={() => onCycleYearChange(year)}
+                                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${cycleYear === year ? 'bg-brand-dark text-white shadow-md' : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'}`}
+                                    >
+                                        {year}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">AMCAS typically certifies applications ~4 weeks after submission.</p>
+                        </div>
+                    )}
 
                     {/* Sign out */}
                     <button

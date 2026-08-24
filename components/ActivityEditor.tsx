@@ -100,7 +100,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                             <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none ${localActivity.status === ActivityStatus.FINAL ? 'text-emerald-600' : 'text-slate-400'}`} />
                         </div>
 
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
                             {saveStatus === 'SAVING' && <span className="flex items-center gap-2 text-xs text-slate-400"><div className="w-1.5 h-1.5 bg-brand-gold rounded-full animate-pulse" />Saving...</span>}
                             {saveStatus === 'SAVED' && <span className="flex items-center gap-2 text-xs text-brand-teal font-medium"><CheckIcon className="w-3 h-3" />Saved</span>}
                         </div>

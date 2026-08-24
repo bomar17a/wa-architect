@@ -75,12 +75,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
         setIsExportModalOpen,
         searchQuery,
         setSearchQuery,
+        cycleYear,
+        setCycleYear,
+        amcasInfo,
         activitiesRef,
         scrollToActivities,
         handleOpenCompetencyAudit,
         filledActivities,
         filteredActivities,
-        readiness
+        readiness,
+        upcomingDeadlines
     } = useDashboardState(activities);
 
     const { addToast } = useToast();
@@ -119,14 +123,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
     };
 
     const userName = user?.user_metadata?.full_name?.split(' ')[0] || "Scholar";
-    
-    // Calculate days to AMCAS opening
-    const today = new Date();
-    const amcasDate = new Date(today.getFullYear(), 4, 28); // May 28th
-    if (today > amcasDate) amcasDate.setFullYear(amcasDate.getFullYear() + 1);
-    const daysToAmcas = Math.ceil((amcasDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
     const primaryGap = readiness.feedback.length > 0 ? readiness.feedback[0] : null;
+    const amcasUrgencyClass = amcasInfo.urgency === 'red' ? 'text-brand-danger' : amcasInfo.urgency === 'amber' ? 'text-amber-500' : 'text-brand-teal';
 
     const handleCloseResumeModal = () => {
         setShowResumeModal(false);
@@ -232,7 +231,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                             <header className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pt-4 gap-4">
                                 <div>
                                     <h1 className="text-3xl font-bold text-slate-800 font-serif">Welcome, Future Doctor {userName}</h1>
-                                    <p className="text-slate-500 text-sm mt-1">You are <span className="font-bold text-brand-teal">{daysToAmcas} days</span> from the AMCAS opening. Let's polish your narrative.</p>
+                                    <p className="text-slate-500 text-sm mt-1">
+                                        {amcasInfo.isOpen ? (
+                                            <>AMCAS is <span className={`font-bold ${amcasUrgencyClass}`}>open now</span> — the clock is ticking.</>
+                                        ) : (
+                                            <>You are <span className={`font-bold ${amcasUrgencyClass}`}>{amcasInfo.daysToOpening} days</span> from the AMCAS opening.</>
+                                        )}{' '}Let's polish your narrative.
+                                    </p>
                                 </div>
                                 <div className="relative hidden lg:block">
                                     <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
@@ -322,6 +327,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                     </div>
                                 </div>
                             </div>
+
+                            {upcomingDeadlines.length > 0 && (
+                                <div className="mb-8">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-3 px-1">
+                                        <Calendar className="w-3.5 h-3.5 text-brand-teal" /> Upcoming Deadlines
+                                    </h3>
+                                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                        {upcomingDeadlines.slice(0, 6).map(({ activity, daysLeft }) => {
+                                            const isOverdue = daysLeft < 0;
+                                            const isSoon = !isOverdue && daysLeft <= 7;
+                                            const borderClass = isOverdue ? 'border-rose-200 bg-rose-50/60' : isSoon ? 'border-amber-200 bg-amber-50/60' : 'border-slate-100 bg-white';
+                                            const labelClass = isOverdue ? 'text-brand-danger' : isSoon ? 'text-amber-600' : 'text-slate-400';
+                                            const label = isOverdue ? `${Math.abs(daysLeft)}d overdue` : daysLeft === 0 ? 'Due today' : `${daysLeft}d left`;
+                                            return (
+                                                <button
+                                                    key={activity.id}
+                                                    onClick={() => onSelectActivity(activity.id)}
+                                                    className={`shrink-0 w-48 text-left p-3.5 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${borderClass}`}
+                                                >
+                                                    <p className={`text-[10px] font-black uppercase tracking-wider mb-1 ${labelClass}`}>{label}</p>
+                                                    <p className="font-bold text-slate-800 text-sm line-clamp-1">{activity.title || 'Untitled Slot'}</p>
+                                                    <p className="text-[10px] text-slate-400 mt-0.5">{new Date(activity.dueDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="mb-6" ref={activitiesRef}>
                                 <div className="flex justify-between items-center mb-4">
@@ -432,6 +465,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                 <SettingsModal
                     appType={appType}
                     onAppTypeChange={onAppTypeChange}
+                    cycleYear={cycleYear}
+                    onCycleYearChange={setCycleYear}
                     onClose={() => setIsSettingsModalOpen(false)}
                 />
             )}

@@ -1,14 +1,56 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Activity, ActivityStatus } from '../types';
 import { calculateAdComScore } from '../utils/scoring';
 
+export type DashboardTab = 'overview' | 'mission-fit' | 'school-recommender';
+
+const CYCLE_STORAGE_KEY = 'wa-architect-cycleYear';
+
+export interface AmcasInfo {
+    daysToOpening: number;
+    isOpen: boolean;
+    openingDate: Date;
+    urgency: 'green' | 'amber' | 'red';
+    cycleYear: number | 'auto';
+}
+
+const computeAmcasInfo = (cycleYear: number | 'auto'): AmcasInfo => {
+    const today = new Date();
+    let openingDate: Date;
+    if (cycleYear === 'auto') {
+        openingDate = new Date(today.getFullYear(), 4, 28); // May 28
+        if (today > openingDate) openingDate.setFullYear(openingDate.getFullYear() + 1);
+    } else {
+        openingDate = new Date(cycleYear, 4, 28);
+    }
+    const daysToOpening = Math.ceil((openingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const isOpen = daysToOpening <= 0;
+    const urgency: AmcasInfo['urgency'] = isOpen ? 'green' : daysToOpening > 180 ? 'green' : daysToOpening > 90 ? 'amber' : 'red';
+    return { daysToOpening, isOpen, openingDate, urgency, cycleYear };
+};
+
 export const useDashboardState = (activities: Activity[]) => {
-    const [activeTab, setActiveTab] = useState<'overview' | 'mission-fit'>('overview');
+    const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
     const [isCompetencyModalOpen, setIsCompetencyModalOpen] = useState(false);
     const [isReadinessModalOpen, setIsReadinessModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    const [cycleYear, setCycleYear] = useState<number | 'auto'>(() => {
+        const saved = typeof window !== 'undefined' ? localStorage.getItem(CYCLE_STORAGE_KEY) : null;
+        if (saved && saved !== 'auto') {
+            const parsed = parseInt(saved, 10);
+            if (!Number.isNaN(parsed)) return parsed;
+        }
+        return 'auto';
+    });
+
+    useEffect(() => {
+        localStorage.setItem(CYCLE_STORAGE_KEY, String(cycleYear));
+    }, [cycleYear]);
+
+    const amcasInfo = useMemo(() => computeAmcasInfo(cycleYear), [cycleYear]);
 
     const activitiesRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +84,17 @@ export const useDashboardState = (activities: Activity[]) => {
 
     const readiness = useMemo(() => calculateAdComScore(activities), [activities]);
 
+    const upcomingDeadlines = useMemo(() => {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        return activities
+            .filter(a => a.dueDate && a.status !== ActivityStatus.EMPTY)
+            .map(a => {
+                const daysLeft = Math.ceil((new Date(a.dueDate!).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24));
+                return { activity: a, daysLeft };
+            })
+            .sort((a, b) => a.daysLeft - b.daysLeft);
+    }, [activities]);
+
     return {
         activeTab,
         setActiveTab,
@@ -55,12 +108,16 @@ export const useDashboardState = (activities: Activity[]) => {
         setIsExportModalOpen,
         searchQuery,
         setSearchQuery,
+        cycleYear,
+        setCycleYear,
+        amcasInfo,
         activitiesRef,
         scrollToActivities,
         scrollToTop,
         handleOpenCompetencyAudit,
         filledActivities,
         filteredActivities,
-        readiness
+        readiness,
+        upcomingDeadlines
     };
 };
