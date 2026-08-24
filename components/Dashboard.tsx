@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Activity, ApplicationType, ActivityStatus, ThemeAnalysis } from '../types.ts';
 import { AAMC_CORE_COMPETENCIES, DESC_LIMITS } from '../constants.ts';
 import { MissionFitRadar } from './MissionFitRadar.tsx';
@@ -55,6 +55,7 @@ import { ResumeReviewModal } from './ResumeReviewModal.tsx';
 import { SettingsModal } from './Dashboard/SettingsModal.tsx';
 import { ScoreDial } from './Dashboard/ScoreDial.tsx';
 import { motion } from 'framer-motion';
+import { runRedFlagAudit } from '../services/redFlagService.ts';
 
 // --- Main Dashboard Component ---
 
@@ -90,6 +91,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
     } = useResumeProcessor();
 
     const [showResumeModal, setShowResumeModal] = useState(false);
+    const [dismissedFlags, setDismissedFlags] = useState<Set<string>>(new Set());
+    const redFlags = useMemo(() => runRedFlagAudit(activities), [activities]);
+    const visibleFlags = useMemo(() => redFlags.filter(f => !dismissedFlags.has(f.id)), [redFlags, dismissedFlags]);
+    const dismissFlag = (id: string) => setDismissedFlags(prev => new Set(prev).add(id));
 
     // Effect to show modal when activities are parsed
     React.useEffect(() => {
@@ -268,6 +273,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Red Flag Audit */}
+                            {visibleFlags.length > 0 && (
+                                <div className="mb-8 space-y-2.5">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                                        <AlertTriangle className="w-3.5 h-3.5 text-brand-danger" /> Red Flag Audit ({visibleFlags.length})
+                                    </h3>
+                                    {visibleFlags.map(flag => (
+                                        <div key={flag.id} className="relative overflow-hidden bg-white pl-5 pr-3 py-3.5 rounded-2xl border border-rose-100 shadow-sm flex items-start gap-3">
+                                            <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-danger" />
+                                            <div className="p-2 rounded-lg bg-rose-50 text-brand-danger shrink-0">
+                                                <AlertTriangle className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-bold text-slate-800 text-sm mb-0.5">{flag.title}</h4>
+                                                <p className="text-slate-600 text-xs leading-relaxed">{flag.message}</p>
+                                            </div>
+                                            <button onClick={() => dismissFlag(flag.id)} className="p-1.5 text-slate-300 hover:text-slate-500 hover:bg-slate-50 rounded-lg transition-colors shrink-0" title="Dismiss">
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
                                 <div onClick={handleOpenCompetencyAudit} className="flex-1 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-blue-300 transition-all group">

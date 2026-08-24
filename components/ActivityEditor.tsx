@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Activity, ApplicationType, ActivityStatus } from '../types.ts';
 import { AMCAS_EXPERIENCE_TYPES, AACOMAS_EXPERIENCE_TYPES, DESC_LIMITS, MONTHS, getYears, AAMC_CORE_COMPETENCIES } from '../constants.ts';
 import { useActivityForm } from '../hooks/useActivityForm.ts';
 import { getDateError } from '../utils/validation.ts';
+import { runRedFlagAudit } from '../services/redFlagService.ts';
 import { FourStepWriter } from './FourStepWriter.tsx';
 import { SparklesIcon } from './icons/SparklesIcon.tsx';
 import { CheckIcon } from './icons/CheckIcon.tsx';
@@ -11,7 +12,7 @@ import { StarIconOutline } from './icons/StarIconOutline.tsx';
 import {
     Wand2, X, ArrowLeft,
     MapPin, Building, User, Clock,
-    PenLine, AlertCircle, Sparkles, Plus, Trash2, Target, ChevronDown
+    PenLine, AlertCircle, AlertTriangle, Sparkles, Plus, Trash2, Target, ChevronDown
 } from 'lucide-react';
 import { CharacterCounter } from './Activity/CharacterCounter.tsx';
 import { CoPilotEditor } from './Activity/CoPilotEditor.tsx';
@@ -54,6 +55,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
     } = useActivityForm(activity, onSave, onBack, appType);
 
     const experienceTypes = appType === ApplicationType.AMCAS ? AMCAS_EXPERIENCE_TYPES : AACOMAS_EXPERIENCE_TYPES;
+    const redFlags = useMemo(() => runRedFlagAudit([localActivity]), [localActivity]);
 
     if (isWizardMode) {
         return (
@@ -110,6 +112,22 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
             </div>
 
             <div className="max-w-4xl mx-auto w-full p-4 md:p-8 pb-16">
+                {redFlags.length > 0 && (
+                    <div className="mb-6 space-y-2.5">
+                        {redFlags.map(flag => (
+                            <div key={flag.id} className="relative overflow-hidden bg-white pl-5 pr-3 py-3.5 rounded-xl border border-rose-100 shadow-sm flex items-start gap-3">
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-danger" />
+                                <div className="p-2 rounded-lg bg-rose-50 text-brand-danger shrink-0">
+                                    <AlertTriangle className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{flag.title}</h4>
+                                    <p className="text-slate-600 text-xs leading-relaxed">{flag.message}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
                     <div className="bg-slate-50/50 p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
