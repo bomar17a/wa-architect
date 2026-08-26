@@ -5,16 +5,14 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-08-26 (session 5).
+Last updated: 2026-08-26 (session 6).
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
 > - `profiles` table **applied to production**, RLS verified (anonymous SELECT returns `[]`).
 > - Migration history **reconciled** — `supabase db push` works normally again.
 >
-> Untested: the authenticated profile round-trip (row creation, the localStorage
-> migration firing, wizard writes). There is still no test account, so that path first
-> runs when a real user logs in. A throwaway account would confirm it in a minute.
+> Authenticated paths are now covered by `scripts/db/auth-smoke.mjs` (18/18).
 
 ---
 
@@ -306,3 +304,38 @@ The **authenticated** paths have never been exercised — profile row creation, 
 localStorage→profile migration, wizard writes, target-school persistence, and every AI action
 (they all 401 without a real user JWT). There is still no test account. This is now the
 single largest verification gap; a throwaway signup would close most of it in a few minutes.
+
+---
+
+## Session 6 — authenticated paths verified
+
+`scripts/db/auth-smoke.mjs` closes the gap that every prior session flagged. It creates a
+throwaway **pre-confirmed** user via the Auth Admin API (so no confirmation email is sent to
+anyone), exercises the real endpoints as that user, and deletes it afterwards. It never prints
+tokens, passwords, or the service-role key.
+
+```
+SR=$(npx supabase projects api-keys --project-ref jitzwwxsnpylaistotgq --output json \
+  | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);process.stdout.write(j.find(k=>k.name==='service_role').api_key)})")
+SUPABASE_SERVICE_ROLE_KEY="$SR" node scripts/db/auth-smoke.mjs        # add --keep to leave the user for UI testing
+```
+
+**18/18 passing.** Covers profile creation, onboarding writes, target-school persistence,
+sort_order round-trip, all five AI actions, RLS isolation, and rejection of unauthenticated
+edge-function calls.
+
+### Two real bugs it caught
+1. **Deleting a user failed.** `activities.user_id` had no `ON DELETE CASCADE`, so removing a
+   user who owned activities threw an FK violation — account deletion / GDPR erasure would
+   have failed for any real user. `profiles` cascaded; `activities` did not. Fixed in
+   `20260826020000_activities_cascade_on_user_delete.sql`.
+2. **Gemini silently dropped response fields.** `school-alignment` returned `fit: undefined`
+   because Gemini treats `responseSchema` properties as optional unless named in `required`.
+   Added `required` to the three newer schemas and constrained `fit` to an enum. The other
+   handlers passed by luck — worth adding `required` to any future schema by default.
+
+### Note for future testing
+`example.com` is rejected by Supabase signup validation, and the public signup endpoint sends
+a real confirmation email — do not sign up against a domain you do not control. Use the Admin
+API with `email_confirm: true` as this script does. Always verify cleanup afterwards:
+production should stay at its real counts with zero `claude-qa-%` users.
