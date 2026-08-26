@@ -90,6 +90,10 @@ export const useDashboardState = (activities: Activity[]) => {
 
     const readiness = useMemo(() => calculateAdComScore(activities), [activities]);
 
+    // A deadline long past isn't a deadline any more, it's stale data — and surfacing it
+    // pushes genuinely actionable dates out of view in a panel titled "Upcoming".
+    const STALE_AFTER_DAYS = 30;
+
     const upcomingDeadlines = useMemo(() => {
         const todayStr = new Date().toISOString().slice(0, 10);
         return activities
@@ -98,6 +102,7 @@ export const useDashboardState = (activities: Activity[]) => {
                 const daysLeft = Math.ceil((new Date(a.dueDate!).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24));
                 return { activity: a, daysLeft };
             })
+            .filter(d => d.daysLeft >= -STALE_AFTER_DAYS)
             .sort((a, b) => a.daysLeft - b.daysLeft);
     }, [activities]);
 
