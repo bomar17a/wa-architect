@@ -71,3 +71,16 @@ export interface ThemeAnalysis {
   overallSummary: string;
   analysis: CompetencyAnalysis[];
 }
+
+export interface InterviewQuestion {
+  question: string;
+  whyAsked: string;
+}
+
+export interface StoryAnalysis {
+  applicationArchetype: string;
+  coreNarrative: string;
+  missingChapter: string;
+  redundancies: { activityIds: number[]; explanation: string }[];
+  strengths: { title: string; activityIds: number[]; explanation: string }[];
+}

@@ -1,6 +1,6 @@
 
 import { supabase, supabaseAnonKey } from "./supabase.ts";
-import { Activity, RewriteType, ArchitectAnalysis, ThemeAnalysis } from "../types.ts";
+import { Activity, RewriteType, ArchitectAnalysis, ThemeAnalysis, InterviewQuestion, StoryAnalysis } from "../types.ts";
 import { DESC_LIMITS, MME_LIMIT, AAMC_CORE_COMPETENCIES } from "../constants.ts";
 
 export const checkUserAuth = async () => {
@@ -144,6 +144,66 @@ export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalys
       overallSummary: "Error analyzing activities. Please check your network and try again.",
       analysis: []
     };
+  }
+};
+
+/**
+ * The deployed edge function rejects unknown actions with "Unknown action: <name>".
+ * Until `supabase functions deploy gemini-ai` is run with the newer actions, surface
+ * that as an explainable message instead of a confusing raw error string.
+ */
+const NOT_DEPLOYED_MESSAGE =
+  "This feature isn't available yet — the AI service needs to be updated to support it. Everything else still works.";
+
+const rethrowWithDeployHint = (error: any): never => {
+  if (typeof error?.message === 'string' && error.message.includes('Unknown action')) {
+    throw new Error(NOT_DEPLOYED_MESSAGE);
+  }
+  throw error;
+};
+
+export const getInterviewQuestions = async (activity: Activity): Promise<InterviewQuestion[]> => {
+  try {
+    const { data, error } = await invokeEdgeFunction({
+      action: 'interview-questions',
+      payload: {
+        title: activity.title,
+        organization: activity.organization,
+        experienceType: activity.experienceType,
+        description: activity.description,
+        isMostMeaningful: activity.isMostMeaningful,
+      }
+    });
+
+    await throwIfEdgeFunctionError(error);
+    return (data as any).questions || [];
+  } catch (error) {
+    console.error("Error generating interview questions:", error);
+    return rethrowWithDeployHint(error);
+  }
+};
+
+export const getStoryAnalysis = async (activities: Activity[]): Promise<StoryAnalysis> => {
+  try {
+    const { data, error } = await invokeEdgeFunction({
+      action: 'story-analysis',
+      payload: {
+        activities: activities.map(a => ({
+          id: a.id,
+          title: a.title,
+          experienceType: a.experienceType,
+          description: a.description,
+          isMostMeaningful: a.isMostMeaningful,
+          totalHours: a.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0),
+        }))
+      }
+    });
+
+    await throwIfEdgeFunctionError(error);
+    return data as StoryAnalysis;
+  } catch (error) {
+    console.error("Error analyzing application story:", error);
+    return rethrowWithDeployHint(error);
   }
 };
 

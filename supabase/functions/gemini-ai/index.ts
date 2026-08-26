@@ -94,6 +94,12 @@ serve(async (req) => {
             case 'theme-analysis':
                 result = await handleThemeAnalysis(payload, liteModel, generateWithRetry);
                 break;
+            case 'interview-questions':
+                result = await handleInterviewQuestions(payload, liteModel, generateWithRetry);
+                break;
+            case 'story-analysis':
+                result = await handleStoryAnalysis(payload, flashModel, generateWithRetry);
+                break;
             default:
                 throw new Error(`Unknown action: ${action} `);
         }
@@ -366,6 +372,123 @@ async function handleParseMsar(payload: any, model: any, retryFn: any) {
                                 degree_type: { type: "STRING" },
                                 application_system: { type: "STRING" },
                                 primary_category: { type: "STRING" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }));
+
+    return JSON.parse(result_raw.response.text());
+}
+
+async function handleInterviewQuestions(payload: any, model: any, retryFn: any) {
+    const { title, organization, experienceType, description, isMostMeaningful } = payload;
+
+    const prompt = `You are a medical school admissions interviewer preparing to discuss a specific entry from an applicant's Work & Activities section.
+
+    Activity: ${title || 'Untitled'}
+    Organization: ${organization || 'Not specified'}
+    Type: ${experienceType || 'Not specified'}
+    ${isMostMeaningful ? 'This is one of the applicant\'s three "Most Meaningful Experiences", so probe deeper on personal significance and growth.' : ''}
+
+    Their description:
+    ---
+    ${description}
+    ---
+
+    Generate exactly 5 interview questions an admissions committee member would realistically ask about THIS specific activity. Requirements:
+    - Ground every question in concrete details the applicant actually wrote. Do not ask generic questions that could apply to any activity.
+    - Include at least one behavioral question ("Tell me about a time...") and at least one that probes an ethical dimension, a challenge, or a moment of conflict.
+    - Include at least one question that gently pressure-tests a vague or unsupported claim in the description, if one exists.
+    - Vary the difficulty: start approachable, end with the hardest question.
+    - For each question, add a one-sentence "whyAsked" note explaining what the interviewer is really evaluating, so the applicant can prepare deliberately.
+    `;
+
+    const result_raw = await retryFn(() => model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    questions: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                question: { type: "STRING" },
+                                whyAsked: { type: "STRING" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }));
+
+    return JSON.parse(result_raw.response.text());
+}
+
+async function handleStoryAnalysis(payload: any, model: any, retryFn: any) {
+    const { activities } = payload;
+
+    const activityTexts = activities
+        .map((a: any) => `--- Activity ID ${a.id}${a.isMostMeaningful ? ' [MOST MEANINGFUL]' : ''} ---
+Title: ${a.title || 'Untitled'}
+Type: ${a.experienceType || 'Uncategorized'}
+Total Hours: ${a.totalHours ?? 'unspecified'}
+Description: ${a.description || '(empty)'}`)
+        .join('\n\n');
+
+    const prompt = `You are a seasoned medical school admissions consultant reviewing an applicant's COMPLETE Work & Activities portfolio as a single body of work. Admissions committees read all 15 entries together and form one impression — evaluate the portfolio, not the individual entries.
+
+    ${activityTexts}
+
+    Provide a strategic analysis in five parts:
+
+    1. **applicationArchetype**: A short, evocative label for who this applicant reads as (e.g. "The Physician-Scientist", "The Community Healer", "The Systems Builder"). Base it on the actual weight and hours across entries, not on a single impressive line.
+
+    2. **coreNarrative**: Exactly 2 sentences summarizing what this portfolio says about the applicant as a future physician. Be specific and honest — this is what an AdCom would say about them in committee, not flattery.
+
+    3. **missingChapter**: The single most important story this portfolio is NOT telling that strong applicants in this archetype typically demonstrate. Name the gap concretely and say why it matters. If the portfolio is genuinely well-rounded, say so plainly instead of inventing a weakness.
+
+    4. **redundancies**: Groups of activities that are too similar and dilute portfolio breadth. For each, list the activity IDs involved and explain the overlap in one sentence. Return an empty array if there is no meaningful redundancy — do not manufacture one.
+
+    5. **strengths**: The 2-3 genuinely strongest aspects of this portfolio, each with the activity IDs that support it. Be specific about WHY it is strong.
+
+    Be candid and useful rather than encouraging. A vague, positive review helps no one.
+    `;
+
+    const result_raw = await retryFn(() => model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    applicationArchetype: { type: "STRING" },
+                    coreNarrative: { type: "STRING" },
+                    missingChapter: { type: "STRING" },
+                    redundancies: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                activityIds: { type: "ARRAY", items: { type: "NUMBER" } },
+                                explanation: { type: "STRING" }
+                            }
+                        }
+                    },
+                    strengths: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                title: { type: "STRING" },
+                                activityIds: { type: "ARRAY", items: { type: "NUMBER" } },
+                                explanation: { type: "STRING" }
                             }
                         }
                     }

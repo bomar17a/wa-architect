@@ -54,6 +54,7 @@ import { ResumeUploader } from './ResumeUploader.tsx';
 import { ResumeReviewModal } from './ResumeReviewModal.tsx';
 import { SettingsModal } from './Dashboard/SettingsModal.tsx';
 import { ExportModal } from './Dashboard/ExportModal.tsx';
+import { StoryAnalysisModal } from './Dashboard/StoryAnalysisModal.tsx';
 import { ScoreDial } from './Dashboard/ScoreDial.tsx';
 import { motion } from 'framer-motion';
 import { runRedFlagAudit } from '../services/redFlagService.ts';
@@ -99,6 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
     } = useResumeProcessor();
 
     const [showResumeModal, setShowResumeModal] = useState(false);
+    const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
     const [dismissedFlags, setDismissedFlags] = useState<Set<string>>(new Set());
     const redFlags = useMemo(() => runRedFlagAudit(activities), [activities]);
     const visibleFlags = useMemo(() => redFlags.filter(f => !dismissedFlags.has(f.id)), [redFlags, dismissedFlags]);
@@ -274,12 +276,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                             {primaryGap ? primaryGap.text : "You've met all primary volume and competency benchmarks — focus now on refining your narrative voice."}
                                         </p>
                                     </div>
-                                    <button
-                                        onClick={() => setIsReadinessModalOpen(true)}
-                                        className="shrink-0 flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider rounded-xl border border-white/10 transition-colors"
-                                    >
-                                        View Full Audit <ChevronRight className="w-3.5 h-3.5" />
-                                    </button>
+                                    <div className="shrink-0 flex flex-col gap-2">
+                                        <button
+                                            onClick={() => setIsReadinessModalOpen(true)}
+                                            className="flex items-center justify-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider rounded-xl border border-white/10 transition-colors"
+                                        >
+                                            View Full Audit <ChevronRight className="w-3.5 h-3.5" />
+                                        </button>
+                                        {filledActivities.length >= 5 && (
+                                            <button
+                                                onClick={() => setIsStoryModalOpen(true)}
+                                                className="flex items-center justify-center gap-2 px-5 py-3 bg-brand-gold hover:bg-brand-gold-hover text-brand-dark text-xs font-bold uppercase tracking-wider rounded-xl transition-colors"
+                                            >
+                                                <Sparkles className="w-3.5 h-3.5" /> Analyze My Story
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
@@ -483,6 +495,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                     activities={activities}
                     appType={appType}
                     onClose={() => setIsExportModalOpen(false)}
+                />
+            )}
+
+            {isStoryModalOpen && (
+                <StoryAnalysisModal
+                    activities={filledActivities}
+                    onClose={() => setIsStoryModalOpen(false)}
                 />
             )}
 

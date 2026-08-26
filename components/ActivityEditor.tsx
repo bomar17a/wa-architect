@@ -19,6 +19,7 @@ import { CoPilotEditor } from './Activity/CoPilotEditor.tsx';
 import { DateSelect } from './Activity/DateSelect.tsx';
 import { MMEPanel } from './Activity/MMEPanel.tsx';
 import { NarrativeQualityBreakdown } from './Activity/NarrativeQualityBreakdown.tsx';
+import { InterviewPrepPanel } from './Activity/InterviewPrepPanel.tsx';
 
 type SaveStatus = 'UNSAVED' | 'SAVING' | 'SAVED';
 
@@ -306,6 +307,8 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                             onChange={handleChange}
                         />
                     )}
+
+                    <InterviewPrepPanel activity={localActivity} />
 
                     {/* Competency Map Indicator */}
                     <div className="mt-8 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden shadow-sm">
