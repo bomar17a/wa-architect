@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Supabase CLI local scratch state (link info, cached versions) — machine-specific
+supabase/.temp/
 .env
 .env.*
 
