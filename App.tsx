@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dashboard } from './components/Dashboard.tsx';
 import { ActivityEditor } from './components/ActivityEditor.tsx';
 import { LandingPage } from './components/LandingPage.tsx';
@@ -68,11 +68,26 @@ const AppContent: React.FC = () => {
   });
   const [authMode, setAuthMode] = useState<'LOGIN' | 'SIGNUP'>('LOGIN');
 
+  // Latest activities, readable from effects without making them a dependency.
+  const activitiesRef = useRef(activities);
+  useEffect(() => { activitiesRef.current = activities; }, [activities]);
+
   useEffect(() => {
     localStorage.setItem('wa-architect-appType', appType);
-    if (appType === ApplicationType.AACOMAS) {
-      setActivities(prev => prev.map(a => ({ ...a, isMostMeaningful: false })));
-    }
+    if (appType !== ApplicationType.AACOMAS) return;
+
+    // AACOMAS has no "Most Meaningful" designation, so clear the flag — and persist
+    // the clear, otherwise local state and the DB disagree and the flags reappear on
+    // the next fetch (e.g. after switching back to AMCAS or reloading).
+    const needsClearing = activitiesRef.current.filter(a => a.isMostMeaningful);
+    if (needsClearing.length === 0) return;
+
+    setActivities(prev => prev.map(a => (a.isMostMeaningful ? { ...a, isMostMeaningful: false } : a)));
+
+    needsClearing.forEach(a => {
+      activityService.saveActivity({ ...a, isMostMeaningful: false })
+        .catch(e => console.error('Failed to clear MME flag for activity', a.id, e));
+    });
   }, [appType]);
 
 
