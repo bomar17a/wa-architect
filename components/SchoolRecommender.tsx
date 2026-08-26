@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Building, Target, Award, ArrowLeft, Loader2, ChevronDown, CheckCircle2, ChevronRight, X, BarChart3, Info } from 'lucide-react';
+import { Search, Filter, Building, Target, Award, ArrowLeft, Loader2, ChevronDown, CheckCircle2, ChevronRight, X, BarChart3, Info, Star } from 'lucide-react';
 import { Activity } from '../types';
 import { supabase } from '../services/supabase';
 import { useCompetencyScores, SCHOOL_ARCHETYPES } from './MissionFitRadar';
 import { getSchoolState, US_STATES, CA_PROVINCES } from '../utils/schoolStates';
+import { useProfile } from '../contexts/ProfileContext';
+import { useToast } from '../contexts/ToastContext';
+
+export const MAX_TARGET_SCHOOLS = 5;
 
 interface SchoolRecommenderProps {
     activities: Activity[];
@@ -21,6 +25,21 @@ interface MedicalSchool {
 
 export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities }) => {
     const studentScores = useCompetencyScores(activities);
+    const { profile, updateProfile } = useProfile();
+    const { addToast } = useToast();
+    const targetIds = profile?.targetSchoolIds ?? [];
+
+    const toggleTarget = (schoolId: string, schoolName: string) => {
+        const isTargeted = targetIds.includes(schoolId);
+        if (!isTargeted && targetIds.length >= MAX_TARGET_SCHOOLS) {
+            addToast(`You can target up to ${MAX_TARGET_SCHOOLS} schools. Remove one first.`, 'info');
+            return;
+        }
+        const next = isTargeted ? targetIds.filter(id => id !== schoolId) : [...targetIds, schoolId];
+        updateProfile({ targetSchoolIds: next })
+            .then(() => addToast(isTargeted ? `Removed ${schoolName} from targets.` : `Targeting ${schoolName}.`, 'success'))
+            .catch(() => addToast('Could not save your target schools.', 'error'));
+    };
 
     const [schools, setSchools] = useState<MedicalSchool[]>([]);
     const [loading, setLoading] = useState(true);
@@ -239,6 +258,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                     const archData = SCHOOL_ARCHETYPES.find(a => a.dbCategory === school.primary_category);
                                     // Generate a very soft background color class if needed, or stick to subtle shadow
                                     const isSelected = selectedSchool?.id === school.id;
+                                    const isTargeted = targetIds.includes(school.id);
 
                                     return (
                                         <div 
@@ -248,6 +268,16 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                                 ${isSelected ? 'border-brand-teal/50 shadow-[0_10px_40px_rgb(26,115,232,0.12)] ring-2 ring-brand-teal/10 scale-[1.01]' : 'border border-slate-200/80 shadow-sm hover:border-brand-teal/30 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]'}
                                             `}
                                         >
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); toggleTarget(school.id, school.school_name); }}
+                                                title={isTargeted ? 'Remove from target schools' : 'Add to target schools'}
+                                                aria-label={isTargeted ? `Remove ${school.school_name} from target schools` : `Add ${school.school_name} to target schools`}
+                                                className={`absolute bottom-5 left-5 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors ${isTargeted ? 'bg-brand-gold/20 text-amber-700 border border-brand-gold/40' : 'bg-slate-50 text-slate-400 border border-slate-200 hover:text-brand-gold hover:border-brand-gold/40'}`}
+                                            >
+                                                <Star className={`w-3 h-3 ${isTargeted ? 'fill-current' : ''}`} />
+                                                {isTargeted ? 'Target' : 'Target'}
+                                            </button>
+
                                             {/* Match Score Indicator */}
                                             {school.matchScore !== undefined && school.matchScore >= 80 && (
                                                 <div className="absolute top-0 right-0 bg-brand-gold text-brand-dark text-[10px] font-black tracking-widest px-3 py-1.5 rounded-bl-[1.25rem] shadow-sm z-10 flex items-center gap-1.5">

@@ -1,6 +1,6 @@
 
 import { supabase, supabaseAnonKey } from "./supabase.ts";
-import { Activity, RewriteType, ArchitectAnalysis, ThemeAnalysis, InterviewQuestion, StoryAnalysis } from "../types.ts";
+import { Activity, RewriteType, ArchitectAnalysis, ThemeAnalysis, InterviewQuestion, StoryAnalysis, SchoolAlignment, AiNarrativeQuality } from "../types.ts";
 import { DESC_LIMITS, MME_LIMIT, AAMC_CORE_COMPETENCIES } from "../constants.ts";
 
 export const checkUserAuth = async () => {
@@ -203,6 +203,48 @@ export const getStoryAnalysis = async (activities: Activity[]): Promise<StoryAna
     return data as StoryAnalysis;
   } catch (error) {
     console.error("Error analyzing application story:", error);
+    return rethrowWithDeployHint(error);
+  }
+};
+
+export const getSchoolAlignment = async (
+  activity: Activity,
+  schools: { school_name: string; mission_statement: string; primary_category: string }[]
+): Promise<SchoolAlignment[]> => {
+  try {
+    const { data, error } = await invokeEdgeFunction({
+      action: 'school-alignment',
+      payload: {
+        description: activity.description,
+        experienceType: activity.experienceType,
+        schools,
+      }
+    });
+    await throwIfEdgeFunctionError(error);
+    return (data as any).alignments || [];
+  } catch (error) {
+    console.error("Error generating school alignment:", error);
+    return rethrowWithDeployHint(error);
+  }
+};
+
+export const getAiNarrativeQuality = async (
+  activity: Activity,
+  limit: number
+): Promise<AiNarrativeQuality> => {
+  try {
+    const { data, error } = await invokeEdgeFunction({
+      action: 'narrative-quality',
+      payload: {
+        description: activity.description,
+        experienceType: activity.experienceType,
+        limit,
+      }
+    });
+    await throwIfEdgeFunctionError(error);
+    return data as AiNarrativeQuality;
+  } catch (error) {
+    console.error("Error scoring narrative quality:", error);
     return rethrowWithDeployHint(error);
   }
 };

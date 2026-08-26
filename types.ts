@@ -96,3 +96,19 @@ export interface Profile {
   northStarArchetypes: string[];
   targetSchoolIds: string[];
 }
+
+export interface SchoolAlignment {
+  schoolName: string;
+  fit: 'strong' | 'moderate' | 'weak';
+  rationale: string;
+  suggestedSentence: string;
+}
+
+export interface AiNarrativeQuality {
+  specificity: number;
+  quantification: number;
+  reflection: number;
+  voiceAuthenticity: number;
+  summary: string;
+  topFix: string;
+}

@@ -100,6 +100,12 @@ serve(async (req) => {
             case 'story-analysis':
                 result = await handleStoryAnalysis(payload, flashModel, generateWithRetry);
                 break;
+            case 'school-alignment':
+                result = await handleSchoolAlignment(payload, liteModel, generateWithRetry);
+                break;
+            case 'narrative-quality':
+                result = await handleNarrativeQuality(payload, flashModel, generateWithRetry);
+                break;
             default:
                 throw new Error(`Unknown action: ${action} `);
         }
@@ -492,6 +498,102 @@ Description: ${a.description || '(empty)'}`)
                             }
                         }
                     }
+                }
+            }
+        }
+    }));
+
+    return JSON.parse(result_raw.response.text());
+}
+
+async function handleSchoolAlignment(payload: any, model: any, retryFn: any) {
+    const { description, experienceType, schools } = payload;
+
+    const schoolBlock = (schools || [])
+        .map((s: any) => `- ${s.school_name} (archetype: ${s.primary_category})\n  Mission: ${s.mission_statement}`)
+        .join('\n');
+
+    const prompt = `You are a medical school admissions advisor helping an applicant see how one Work & Activities entry reads against the specific schools they are targeting.
+
+    The activity (type: ${experienceType || 'unspecified'}):
+    ---
+    ${description}
+    ---
+
+    Their target schools:
+    ${schoolBlock}
+
+    For EACH school, return:
+    - schoolName: the school's name exactly as given.
+    - fit: one of "strong", "moderate", or "weak" — how well this activity already speaks to that school's stated mission. Be honest; do not mark everything strong.
+    - rationale: one sentence explaining that rating, referencing something concrete in BOTH the activity and the school's mission.
+    - suggestedSentence: ONE sentence the applicant could realistically add or adapt in their description to strengthen alignment with this school. It must stay truthful to what they actually wrote — never invent experiences, outcomes, hours, or credentials they did not describe. If the activity genuinely cannot be aligned honestly, return an empty string and say so in the rationale.
+
+    Keep the applicant's own voice. Do not produce marketing language.`;
+
+    const result_raw = await retryFn(() => model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    alignments: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                schoolName: { type: "STRING" },
+                                fit: { type: "STRING" },
+                                rationale: { type: "STRING" },
+                                suggestedSentence: { type: "STRING" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }));
+
+    return JSON.parse(result_raw.response.text());
+}
+
+async function handleNarrativeQuality(payload: any, model: any, retryFn: any) {
+    const { description, experienceType, limit } = payload;
+
+    const prompt = `You are a medical school admissions reader scoring ONE Work & Activities entry. Score it honestly against what AdComs actually reward — a mediocre entry should score in the 40s, not the 80s.
+
+    Experience type: ${experienceType || 'unspecified'}
+    Character limit: ${limit || 700}
+
+    Entry:
+    ---
+    ${description}
+    ---
+
+    Score each dimension 0-25:
+    - specificity: Does it name concrete people, places, roles, or moments, rather than generic duties?
+    - quantification: Are there hours, counts, percentages, or measurable outcomes?
+    - reflection: Does the applicant show growth, a shift in perspective, or a genuine link to medicine — beyond restating what they did?
+    - voiceAuthenticity: Does it read like a specific person wrote it, or like a template or an AI? Penalize cliches and stock admissions phrasing.
+
+    Also return:
+    - summary: one honest sentence on the entry's biggest weakness (or its biggest strength if it is genuinely strong).
+    - topFix: the single highest-leverage change the applicant should make next, stated concretely.`;
+
+    const result_raw = await retryFn(() => model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    specificity: { type: "NUMBER" },
+                    quantification: { type: "NUMBER" },
+                    reflection: { type: "NUMBER" },
+                    voiceAuthenticity: { type: "NUMBER" },
+                    summary: { type: "STRING" },
+                    topFix: { type: "STRING" }
                 }
             }
         }

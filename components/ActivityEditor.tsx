@@ -20,6 +20,7 @@ import { DateSelect } from './Activity/DateSelect.tsx';
 import { MMEPanel } from './Activity/MMEPanel.tsx';
 import { NarrativeQualityBreakdown } from './Activity/NarrativeQualityBreakdown.tsx';
 import { InterviewPrepPanel } from './Activity/InterviewPrepPanel.tsx';
+import { SchoolTargetingPanel } from './Activity/SchoolTargetingPanel.tsx';
 
 type SaveStatus = 'UNSAVED' | 'SAVING' | 'SAVED';
 
@@ -249,7 +250,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                         <h3 className="text-lg font-serif font-bold text-slate-800 flex items-center gap-2"><PenLine className="w-5 h-5 text-brand-teal" /> Narrative Studio</h3>
                         <div className="flex flex-col sm:items-end gap-2">
                             <CharacterCounter text={localActivity.description} limit={DESC_LIMITS[appType]} />
-                            <NarrativeQualityBreakdown text={localActivity.description} />
+                            <NarrativeQualityBreakdown activity={localActivity} limit={DESC_LIMITS[appType]} />
                         </div>
                     </div>
                     <div className="relative group">
@@ -307,6 +308,8 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                             onChange={handleChange}
                         />
                     )}
+
+                    <SchoolTargetingPanel activity={localActivity} />
 
                     <InterviewPrepPanel activity={localActivity} />
 
