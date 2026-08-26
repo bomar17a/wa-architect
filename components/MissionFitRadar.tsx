@@ -386,7 +386,21 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
     });
 
     if (!activeArchetypeId) {
-      setActiveArchetypeId(bestMatchId);
+      // Prefer the user's onboarding "North Star" pick over the auto-detected best fit,
+      // if they set one and it's still a valid archetype id.
+      let initialId = bestMatchId;
+      try {
+        const stored = localStorage.getItem('wa-architect-northstarArchetypes');
+        if (stored) {
+          const ids: string[] = JSON.parse(stored);
+          if (ids.length > 0 && SCHOOL_ARCHETYPES.some(a => a.id === ids[0])) {
+            initialId = ids[0];
+          }
+        }
+      } catch {
+        // ignore malformed localStorage value, fall back to auto-detected best fit
+      }
+      setActiveArchetypeId(initialId);
     }
   }, [studentScores, activeArchetypeId]);
 

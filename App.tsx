@@ -5,15 +5,20 @@ import { ActivityEditor } from './components/ActivityEditor.tsx';
 import { LandingPage } from './components/LandingPage.tsx';
 import { Login } from './components/Auth/Login.tsx';
 import { Signup } from './components/Auth/Signup.tsx';
+import { OnboardingWizard } from './components/Onboarding/OnboardingWizard.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import { Activity, ApplicationType, View, ActivityStatus } from './types.ts';
 import { Loader2 } from 'lucide-react';
 import { activityService } from './services/activityService.ts';
 
+const onboardingKey = (userId: string) => `wa-architect-onboarded-${userId}`;
+
 const AppContent: React.FC = () => {
   const { session, user, loading: authLoading } = useAuth();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   // --- Auth View State ---
   const [authView, setAuthView] = useState<'LANDING' | 'LOGIN' | 'SIGNUP'>('LANDING');
@@ -22,6 +27,8 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (!session) {
       setAuthView('LANDING');
+      setOnboardingChecked(false);
+      setShowOnboarding(false);
     }
   }, [session]);
 
@@ -37,6 +44,20 @@ const AppContent: React.FC = () => {
       setActivities([]);
     }
   }, [user]);
+
+  // Show the onboarding wizard once, right after first data load, for genuinely new users only.
+  useEffect(() => {
+    if (!dataLoading && user && !onboardingChecked) {
+      const onboarded = localStorage.getItem(onboardingKey(user.id)) === 'true';
+      setShowOnboarding(!onboarded && activities.length === 0);
+      setOnboardingChecked(true);
+    }
+  }, [dataLoading, user, activities, onboardingChecked]);
+
+  const handleOnboardingComplete = () => {
+    if (user) localStorage.setItem(onboardingKey(user.id), 'true');
+    setShowOnboarding(false);
+  };
 
   const [currentView, setCurrentView] = useState<View>('LANDING');
   const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
@@ -177,6 +198,23 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const handleImportActivities = (newActivities: Activity[]) => {
+    // Add imported activities to state and save them
+    const activitiesToSave = newActivities.map(a => ({
+      ...a,
+      // Ensure ID is unique if mostly temp
+      id: Date.now() + Math.floor(Math.random() * 10000),
+      status: ActivityStatus.DRAFT
+    }));
+
+    setActivities(prev => [...prev, ...activitiesToSave]);
+
+    // Persist each one
+    activitiesToSave.forEach(activity => {
+      activityService.saveActivity(activity).catch(console.error);
+    });
+  };
+
   const selectedActivity = activities.find(a => a.id === selectedActivityId);
 
   if (authLoading) {
@@ -198,6 +236,17 @@ const AppContent: React.FC = () => {
       );
     }
 
+    if (showOnboarding) {
+      return (
+        <OnboardingWizard
+          appType={appType}
+          onAppTypeChange={setAppType}
+          onImportActivities={handleImportActivities}
+          onComplete={handleOnboardingComplete}
+        />
+      );
+    }
+
     return (
       <div className="min-h-screen bg-slate-100">
         {/* Helper to show Landing Page if selected, but usually dashboard is home for auth users */}
@@ -209,22 +258,7 @@ const AppContent: React.FC = () => {
             onAppTypeChange={setAppType}
             onToggleMME={handleToggleMME}
             onDeleteActivity={handleDeleteActivity}
-            onImportActivities={(newActivities) => {
-              // Add imported activities to state and save them
-              const activitiesToSave = newActivities.map(a => ({
-                ...a,
-                // Ensure ID is unique if mostly temp
-                id: Date.now() + Math.floor(Math.random() * 10000),
-                status: ActivityStatus.DRAFT
-              }));
-
-              setActivities(prev => [...prev, ...activitiesToSave]);
-
-              // Persist each one
-              activitiesToSave.forEach(activity => {
-                activityService.saveActivity(activity).catch(console.error);
-              });
-            }}
+            onImportActivities={handleImportActivities}
           />
         ) : (
           selectedActivity && (
