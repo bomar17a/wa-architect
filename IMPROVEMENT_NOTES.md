@@ -5,14 +5,16 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-08-26 (session 3).
+Last updated: 2026-08-26 (session 4).
 
-> ## ✅ EDGE FUNCTION DEPLOYED (v33) — one DB item still blocked
-> **Interview Prep Mode** and **Application Story Analysis** are live. `gemini-ai` was
-> deployed to the WA Architect project (`jitzwwxsnpylaistotgq`) on 2026-08-26, v32 → v33.
+> ## ✅ Nothing is blocked
+> - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
+> - `profiles` table **applied to production**, RLS verified (anonymous SELECT returns `[]`).
+> - Migration history **reconciled** — `supabase db push` works normally again.
 >
-> **Still blocked:** `supabase/migrations/20260826000000_create_profiles_table.sql` has
-> not been applied. See "Supabase access — what actually works" below.
+> Untested: the authenticated profile round-trip (row creation, the localStorage
+> migration firing, wizard writes). There is still no test account, so that path first
+> runs when a real user logs in. A throwaway account would confirm it in a minute.
 
 ---
 
@@ -173,9 +175,9 @@ filter those out or just trust `npm run build`, which is what CI's
 
 Everything in the original review doc is now built **except**:
 
-1. **School Targeting Mode** (doc Priority 8) — the only wholly untouched feature. Needs a
-   persisted per-user target-school list (no user-profile table exists — same migration
-   constraint as onboarding) plus a new edge function action for the alignment suggestion. The
+1. **School Targeting Mode** (doc Priority 8) — the only wholly untouched feature. The
+   persistence blocker is now GONE: `profiles.target_school_ids` exists and is unused, and
+   edge function deploys work. What remains is UI plus a new alignment-suggestion action. The
    `medical_schools` table already has `mission_statement` and `primary_category`, and
    `SchoolRecommender.tsx` already computes per-school match scores, so the data side is largely
    there — it's the persistence and the new AI action that are missing.
@@ -256,3 +258,35 @@ number instead: `npx supabase functions list --project-ref jitzwwxsnpylaistotgq`
   a deliberate trade-off to avoid new dependencies. If a user reports formatting issues opening
   the `.doc` file in a specific Word version, that's the first place to look; the alternative is
   adding the `docx` npm package and generating a real OOXML document.
+
+---
+
+## Session 4 (Supabase access)
+
+Corrected a wrong belief carried through sessions 1–3: deploys were never actually blocked.
+`which supabase` fails but `npx supabase` works, and credentials were already in the OS
+credential store. See "Supabase access — what actually works" above.
+
+- Deployed `gemini-ai` v32 → v33, activating Interview Prep and Story Analysis.
+- Created and applied the `profiles` table. Verified RLS end-to-end: anonymous REST SELECT
+  returns `[]`, and role grants match the working `activities` table so logged-in users can
+  read their own row.
+- **Recovered the lost May 12 migration.** It was `reclassify_school_archetypes` — a DATA
+  migration applied via the dashboard and never committed, correcting
+  `medical_schools.primary_category` (16 schools Advocate→Balanced; Harvard, UChicago, WashU
+  →Investigator). Those categories drive archetype match scores, so a fix to core
+  recommendation logic existed only in production. Now committed.
+- Reconciled migration history: renamed local files to the versions that actually ran and
+  removed duplicate rows. `db push` reports "Remote database is up to date".
+- Moved onboarding state, cycle year and North Star off localStorage onto the profiles row,
+  with a migration path so already-onboarded users aren't shown the wizard again.
+
+### Running migrations from here
+`supabase db push` works now. For anything it chokes on, `scripts/db/apply-migration.mjs`
+connects directly (transaction-wrapped, reads `SUPABASE_DB_PASSWORD` from the env).
+Permission rules for that live in `.claude/settings.local.json`, which is gitignored on
+purpose — in the repo, anyone cloning would inherit auto-approval for `scripts/db/*`.
+
+**Do NOT** "fix" migration drift with `supabase migration repair --status reverted` (the
+CLI suggests it). That records live migrations as rolled back, which is false and risks
+them re-running against a database that already has those objects.
