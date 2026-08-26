@@ -426,7 +426,8 @@ async function handleInterviewQuestions(payload: any, model: any, retryFn: any) 
                             properties: {
                                 question: { type: "STRING" },
                                 whyAsked: { type: "STRING" }
-                            }
+                            },
+                            required: ["question", "whyAsked"]
                         }
                     }
                 }
@@ -544,10 +545,14 @@ async function handleSchoolAlignment(payload: any, model: any, retryFn: any) {
                             type: "OBJECT",
                             properties: {
                                 schoolName: { type: "STRING" },
-                                fit: { type: "STRING" },
+                                // enum constrains the model to the three values the UI styles.
+                                fit: { type: "STRING", enum: ["strong", "moderate", "weak"] },
                                 rationale: { type: "STRING" },
                                 suggestedSentence: { type: "STRING" }
-                            }
+                            },
+                            // Without `required`, Gemini treats every property as optional and
+                            // will silently omit fields — `fit` came back undefined without this.
+                            required: ["schoolName", "fit", "rationale", "suggestedSentence"]
                         }
                     }
                 }
@@ -594,7 +599,8 @@ async function handleNarrativeQuality(payload: any, model: any, retryFn: any) {
                     voiceAuthenticity: { type: "NUMBER" },
                     summary: { type: "STRING" },
                     topFix: { type: "STRING" }
-                }
+                },
+                required: ["specificity", "quantification", "reflection", "voiceAuthenticity", "summary", "topFix"]
             }
         }
     }));
