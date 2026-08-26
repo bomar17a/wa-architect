@@ -212,6 +212,23 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const handleReorderActivities = async (orderedIds: number[]) => {
+    // Optimistic: reorder locally so the list responds instantly, then persist.
+    const byId = new Map(activities.map(a => [a.id, a]));
+    const reordered = orderedIds.map(id => byId.get(id)).filter(Boolean) as Activity[];
+    // Anything not in orderedIds (e.g. an empty slot) keeps its relative position at the end.
+    const untouched = activities.filter(a => !orderedIds.includes(a.id));
+    const previous = activities;
+    setActivities([...reordered, ...untouched]);
+
+    try {
+      await activityService.reorderActivities(orderedIds);
+    } catch (e) {
+      console.error("Failed to save new order:", e);
+      setActivities(previous);
+    }
+  };
+
   const handleImportActivities = (newActivities: Activity[]) => {
     // Add imported activities to state and save them
     const activitiesToSave = newActivities.map(a => ({
@@ -272,6 +289,7 @@ const AppContent: React.FC = () => {
             onAppTypeChange={setAppType}
             onToggleMME={handleToggleMME}
             onDeleteActivity={handleDeleteActivity}
+            onReorderActivities={handleReorderActivities}
             onImportActivities={handleImportActivities}
           />
         ) : (

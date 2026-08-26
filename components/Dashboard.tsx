@@ -12,7 +12,7 @@ import {
     PenTool, FileText, ChevronLeft, Sparkles, X, ShieldCheck, ChevronDown,
     Rocket, HelpCircle, GraduationCap, Info, Building,
     Activity as ActivityIcon, Brain, Trophy, Plus, LogOut,
-    Briefcase, AlertTriangle, Heart, Users, Target, Award, Zap, FileDown
+    Briefcase, AlertTriangle, Heart, Users, Target, Award, Zap, FileDown, ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.tsx';
 import { useDashboardState } from '../hooks/useDashboardState.ts';
@@ -26,6 +26,7 @@ interface DashboardProps {
     onAppTypeChange: (appType: ApplicationType) => void;
     onToggleMME: (activityId: number) => void;
     onDeleteActivity: (activityId: number) => void;
+    onReorderActivities: (orderedIds: number[]) => void;
     onImportActivities: (activities: Activity[]) => void;
 }
 
@@ -62,7 +63,7 @@ import { scoreNarrativeQuality, narrativeQualityTier } from '../services/narrati
 
 // --- Main Dashboard Component ---
 
-export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onDeleteActivity, onImportActivities }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onDeleteActivity, onImportActivities, onReorderActivities }) => {
     const { user, signOut } = useAuth();
     const {
         activeTab,
@@ -105,6 +106,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
     const redFlags = useMemo(() => runRedFlagAudit(activities), [activities]);
     const visibleFlags = useMemo(() => redFlags.filter(f => !dismissedFlags.has(f.id)), [redFlags, dismissedFlags]);
     const dismissFlag = (id: string) => setDismissedFlags(prev => new Set(prev).add(id));
+
+    const [dragIndex, setDragIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    // Reordering acts on the full filled list, not the filtered view — otherwise
+    // dropping while a search is active would silently reshuffle hidden entries.
+    const isReorderable = !searchQuery;
+
+    const moveActivity = (from: number, to: number) => {
+        if (from === to || from < 0 || to < 0 || to >= filledActivities.length) return;
+        const next = [...filledActivities];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        onReorderActivities(next.map(a => a.id));
+    };
 
     // Effect to show modal when activities are parsed
     React.useEffect(() => {
@@ -415,7 +431,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ duration: 0.3, delay: Math.min(idx * 0.04, 0.4) }}
                                                     onClick={() => onSelectActivity(activity.id)}
-                                                    className="group relative overflow-hidden bg-white pl-5 pr-3 py-3 sm:py-3.5 sm:pr-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer shadow-sm border border-slate-100 hover:border-brand-teal/30 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                                                    draggable={isReorderable}
+                                                    onDragStart={() => isReorderable && setDragIndex(idx)}
+                                                    onDragOver={(e) => { if (isReorderable && dragIndex !== null) { e.preventDefault(); setDragOverIndex(idx); } }}
+                                                    onDragEnd={() => { setDragIndex(null); setDragOverIndex(null); }}
+                                                    onDrop={(e) => {
+                                                        e.preventDefault();
+                                                        if (isReorderable && dragIndex !== null) moveActivity(dragIndex, idx);
+                                                        setDragIndex(null);
+                                                        setDragOverIndex(null);
+                                                    }}
+                                                    className={`group relative overflow-hidden bg-white pl-5 pr-3 py-3 sm:py-3.5 sm:pr-4 rounded-2xl flex items-center justify-between gap-3 cursor-pointer shadow-sm border transition-all hover:border-brand-teal/30 hover:shadow-md ${dragIndex === idx ? 'opacity-40' : 'hover:-translate-y-0.5'} ${dragOverIndex === idx && dragIndex !== idx ? 'border-brand-teal ring-2 ring-brand-teal/20' : 'border-slate-100'}`}
                                                 >
                                                     <div className={`absolute top-0 left-0 w-1.5 h-full ${statusCfg.barColor}`} />
                                                     <div className="min-w-0 flex-1">
@@ -437,7 +463,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <button onClick={(e) => { e.stopPropagation(); onDeleteActivity(activity.id); }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"><TrashIcon className="w-4 h-4" /></button>
+                                                    <div className="flex items-center flex-shrink-0">
+                                                        {isReorderable && (
+                                                            <div className="flex flex-col mr-1">
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); moveActivity(idx, idx - 1); }}
+                                                                    disabled={idx === 0}
+                                                                    aria-label={`Move ${activity.title || 'activity'} up`}
+                                                                    className="p-0.5 text-slate-300 hover:text-brand-teal disabled:opacity-25 disabled:hover:text-slate-300 transition-colors"
+                                                                ><ChevronUp className="w-3.5 h-3.5" /></button>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); moveActivity(idx, idx + 1); }}
+                                                                    disabled={idx === filteredActivities.length - 1}
+                                                                    aria-label={`Move ${activity.title || 'activity'} down`}
+                                                                    className="p-0.5 text-slate-300 hover:text-brand-teal disabled:opacity-25 disabled:hover:text-slate-300 transition-colors"
+                                                                ><ChevronDown className="w-3.5 h-3.5" /></button>
+                                                            </div>
+                                                        )}
+                                                        <button onClick={(e) => { e.stopPropagation(); onDeleteActivity(activity.id); }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><TrashIcon className="w-4 h-4" /></button>
+                                                    </div>
                                                 </motion.div>
                                             );
                                         })

@@ -25,6 +25,7 @@ const toDb = (activity: Activity, userId: string) => {
         mme_essay: activity.mmeEssay,
         competencies: activity.competencies,
         due_date: activity.dueDate || null,
+        sort_order: activity.sortOrder ?? null,
     };
 };
 
@@ -50,6 +51,7 @@ const fromDb = (row: any): Activity => {
         mmeEssay: row.mme_essay || '',
         competencies: row.competencies || [],
         dueDate: row.due_date || undefined,
+        sortOrder: row.sort_order ?? null,
     };
 };
 
@@ -58,7 +60,10 @@ export const activityService = {
         const { data, error } = await supabase
             .from('activities')
             .select('*')
-            .order('created_at', { ascending: false }); // Sort by newest first? Or maybe we want a specific order.
+            // Explicit user-chosen order first; created_at only breaks ties for rows
+            // that predate sort_order or were created in the same instant.
+            .order('sort_order', { ascending: true, nullsFirst: false })
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
         return (data || []).map(fromDb);
@@ -80,6 +85,26 @@ export const activityService = {
 
         if (error) throw error;
         return fromDb(data);
+    },
+
+    /**
+     * Persists a new display order. Writes only the rows whose position actually
+     * changed, so dragging one card doesn't rewrite the whole list.
+     */
+    async reorderActivities(orderedIds: number[]) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("User not authenticated");
+
+        const updates = orderedIds.map((id, index) => ({ id, sort_order: index }));
+        const results = await Promise.all(
+            updates.map(u =>
+                supabase.from('activities')
+                    .update({ sort_order: u.sort_order })
+                    .eq('id', u.id)
+            )
+        );
+        const failed = results.find(r => r.error);
+        if (failed?.error) throw failed.error;
     },
 
     async deleteActivity(id: number) {

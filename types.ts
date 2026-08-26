@@ -43,6 +43,7 @@ export interface Activity {
   dueDate?: string; // ISO Date string YYYY-MM-DD
   tags?: string[];
   notes?: string;
+  sortOrder?: number | null;
 }
 
 export type View = 'LANDING' | 'DASHBOARD' | 'EDITOR';
