@@ -5,7 +5,19 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-08-24 (session 2).
+Last updated: 2026-08-26 (session 3).
+
+> ## ⚠️ ACTION REQUIRED BEFORE TWO FEATURES WORK
+> **Interview Prep Mode** and **Application Story Analysis** are built and merged, but
+> call new Gemini edge function actions that are **not deployed yet**. Someone with
+> Supabase project access must run:
+> ```
+> supabase functions deploy gemini-ai
+> ```
+> Until then both features show a clean "this feature isn't available yet" message
+> instead of failing loudly — nothing is broken, they're just inert. Both actions
+> (`interview-questions`, `story-analysis`) went into the same edge function change,
+> so **one deploy activates both**.
 
 ---
 
@@ -138,26 +150,52 @@ filter those out or just trust `npm run build`, which is what CI's
 
 ---
 
-## Remaining backlog (priority order, adjusted for what's achievable without backend deploy access)
+## Session 3 additions
 
-1. **Narrative Quality Score** — doc wants AI-scored (Gemini) 0–100 per activity across 4
-   sub-scores (Specificity, Quantification, Reflection, Voice Authenticity). Ship a client-side
-   heuristic version first (reuse/extend `services/staticAnalysisService.ts` signals: length vs.
-   limit, presence of numbers/%, weak-verb density already detected there, reflection-keyword
-   presence e.g. "learned"/"realized"/"taught me"). The full AI-scored version needs a new edge
-   function action — see deployment constraint below.
+- **Narrative Quality Score** (`services/narrativeQualityService.ts`): 0–100 across four 0–25
+  sub-scores (Specificity, Quantification, Reflection, Voice Authenticity). Voice reuses the
+  existing weak-verb/cliché/passive detector as a penalty signal rather than duplicating it.
+  This is the **client-side heuristic** version, labeled as such in the UI tooltip. NQ pill on
+  Dashboard cards, live sub-score bars in the editor.
+- **Onboarding wizard** (`components/Onboarding/OnboardingWizard.tsx`): 3 steps, shown once to
+  users with no onboarding flag *and* zero activities. Step 2 reuses the already-deployed
+  `parse-resume` action, so it works today. Step 3's North Star pick feeds `MissionFitRadar`'s
+  initial archetype selection.
+- **Interview Prep Mode** + **Application Story Analysis** — built and merged, **awaiting the
+  deploy called out at the top of this file.**
+- Fixed the AACOMAS MME-persistence bug previously listed under "small things".
+- Fixed a stale-deadline bug found by running the app: the panel sorted ascending, so the most
+  stale item got top billing and buried actionable dates. Now excludes anything >30 days past.
 
-2. **Onboarding wizard** — 3-step, first-login only (cycle/app-type/school-tier, quick activity
-   inventory via paste-resume reusing the *existing* `parse-resume` action almost as-is, "north
-   star" archetype pick). Needs a "has the user onboarded" flag. There's no user-profile table
-   yet (only `activities` and `medical_schools` — see `supabase/migrations/`), so the simplest
-   correct approach is localStorage for now, with a note that it won't survive a device switch;
-   a real fix needs a small migration (new profile table or a column) which can't be deployed
-   from this environment (see below).
+### Key files added in session 3
+- `services/narrativeQualityService.ts`, `components/Activity/NarrativeQualityBreakdown.tsx`
+- `components/Onboarding/OnboardingWizard.tsx`
+- `components/Activity/InterviewPrepPanel.tsx`, `components/Dashboard/StoryAnalysisModal.tsx`
 
-3. **Interview Prep Mode**, **Narrative Thread / Story Analysis**, **School Targeting Mode** —
-   all need new Gemini edge function actions (`interview-questions`, `narrative-quality`,
-   `story-analysis`, school-alignment suggestion). Not started.
+---
+
+## Remaining backlog
+
+Everything in the original review doc is now built **except**:
+
+1. **School Targeting Mode** (doc Priority 8) — the only wholly untouched feature. Needs a
+   persisted per-user target-school list (no user-profile table exists — same migration
+   constraint as onboarding) plus a new edge function action for the alignment suggestion. The
+   `medical_schools` table already has `mission_statement` and `primary_category`, and
+   `SchoolRecommender.tsx` already computes per-school match scores, so the data side is largely
+   there — it's the persistence and the new AI action that are missing.
+
+2. **AI-scored Narrative Quality** — upgrade the heuristic to the doc's Gemini-graded version
+   via a `narrative-quality` action. If doing this, debounce it (~3s per the doc); the current
+   heuristic recomputes per keystroke, which is only fine because it's pure string ops.
+
+3. **Drag-to-reorder activity cards** (facelift spec) — deferred; needs a DnD library
+   (`@dnd-kit` is the obvious pick, not installed) or a hand-rolled solution.
+
+4. **Landing page overhaul** — animated score-dial demo, before/after example, social proof,
+   pricing. `LandingPage.tsx` was left alone across all three sessions. Note the doc's social-proof
+   idea names real schools ("accepted to Johns Hopkins, Mayo, UCSF") — don't ship fabricated
+   testimonials or acceptance claims; use only real, permissioned ones.
 
 ---
 
@@ -178,11 +216,7 @@ in an environment that *does* have the CLI authenticated, check again with
 
 - `useDashboardState.ts` exports a `scrollToTop` function that's never called from
   `Dashboard.tsx` — dead code, harmless, low priority to remove.
-- `App.tsx`: switching `appType` to AACOMAS clears `isMostMeaningful` on all activities in
-  local state but never persists that clear back to Supabase via `activityService.saveActivity`.
-  Switching AMCAS → AACOMAS → AMCAS again could leave local state and DB briefly disagreeing
-  about MME flags. Minor, but worth a real fix (persist the clear, or don't silently mutate and
-  instead warn) before it bites someone.
+- ~~`App.tsx` AACOMAS MME-persistence bug~~ — **fixed in session 3.**
 - `stats.html` at repo root is a tracked bundle-analyzer artifact (from
   `rollup-plugin-visualizer`) that's *not* in `.gitignore` even though `dist/` is. It churns on
   every build (visible as a stray modified file in `git status` after any `npm run build`) — not
