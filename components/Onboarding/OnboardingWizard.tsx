@@ -4,6 +4,7 @@ import { Activity, ApplicationType } from '../../types';
 import { SCHOOL_ARCHETYPES } from '../MissionFitRadar';
 import { useResumeProcessor } from '../../hooks/useResumeProcessor';
 import { useToast } from '../../contexts/ToastContext';
+import { useProfile } from '../../contexts/ProfileContext';
 
 interface OnboardingWizardProps {
     appType: ApplicationType;
@@ -13,11 +14,6 @@ interface OnboardingWizardProps {
 }
 
 const SCHOOL_TIERS = ['Community/Regional', 'MD Mid-tier', 'MD Top 50', 'Research-focused'];
-const CYCLE_STORAGE_KEY = 'wa-architect-cycleYear';
-const TIER_STORAGE_KEY = 'wa-architect-schoolTier';
-const GPA_STORAGE_KEY = 'wa-architect-gpaRange';
-const MCAT_STORAGE_KEY = 'wa-architect-mcatRange';
-const NORTHSTAR_STORAGE_KEY = 'wa-architect-northstarArchetypes';
 
 const currentYear = new Date().getFullYear();
 const GPA_RANGES = ['< 3.0', '3.0 - 3.4', '3.5 - 3.7', '3.8 - 4.0'];
@@ -42,16 +38,30 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
     const [selectedArchetypes, setSelectedArchetypes] = useState<string[]>([]);
 
     const { addToast } = useToast();
+    const { updateProfile } = useProfile();
+    const [isSaving, setIsSaving] = useState(false);
     const { isProcessing, parsedActivities, processResumeText, error } = useResumeProcessor();
     const [importedCount, setImportedCount] = useState<number | null>(null);
 
-    const finish = () => {
-        localStorage.setItem(CYCLE_STORAGE_KEY, String(cycleYear));
-        if (schoolTier) localStorage.setItem(TIER_STORAGE_KEY, schoolTier);
-        if (gpaRange) localStorage.setItem(GPA_STORAGE_KEY, gpaRange);
-        if (mcatRange) localStorage.setItem(MCAT_STORAGE_KEY, mcatRange);
-        if (selectedArchetypes.length > 0) localStorage.setItem(NORTHSTAR_STORAGE_KEY, JSON.stringify(selectedArchetypes));
-        onComplete();
+    const finish = async () => {
+        setIsSaving(true);
+        try {
+            await updateProfile({
+                applicationType: appType,
+                cycleYear,
+                schoolTier: schoolTier || null,
+                gpaRange: gpaRange || null,
+                mcatRange: mcatRange || null,
+                northStarArchetypes: selectedArchetypes,
+            });
+        } catch {
+            // Saving preferences failed, but they're all recoverable from Settings —
+            // don't trap the user in the wizard over it.
+            addToast("Couldn't save your preferences. You can set them later in Settings.", 'error');
+        } finally {
+            setIsSaving(false);
+            onComplete();
+        }
     };
 
     const handleParseResume = async () => {
@@ -229,9 +239,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
                     ) : (
                         <button
                             onClick={finish}
-                            className="flex items-center gap-2 px-6 py-3 bg-brand-dark hover:bg-black text-white text-sm font-bold rounded-xl shadow-md transition-all"
+                            disabled={isSaving}
+                            className="flex items-center gap-2 px-6 py-3 bg-brand-dark hover:bg-black text-white text-sm font-bold rounded-xl shadow-md transition-all disabled:opacity-60"
                         >
-                            <Target className="w-4 h-4" /> Finish Setup
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4" />}
+                            {isSaving ? 'Saving...' : 'Finish Setup'}
                         </button>
                     )}
                 </div>

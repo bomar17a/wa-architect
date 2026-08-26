@@ -84,3 +84,15 @@ export interface StoryAnalysis {
   redundancies: { activityIds: number[]; explanation: string }[];
   strengths: { title: string; activityIds: number[]; explanation: string }[];
 }
+
+export interface Profile {
+  id: string;
+  onboarded: boolean;
+  applicationType: ApplicationType | null;
+  cycleYear: number | null;      // null = "auto" (track nearest upcoming AMCAS opening)
+  schoolTier: string | null;
+  gpaRange: string | null;
+  mcatRange: string | null;
+  northStarArchetypes: string[];
+  targetSchoolIds: string[];
+}

@@ -12,6 +12,7 @@ import {
 import { Info, Building, ArrowRight, Search, Zap } from 'lucide-react';
 import { Activity } from '../types';
 import { supabase } from '../services/supabase';
+import { useProfile } from '../contexts/ProfileContext';
 
 interface MissionFitRadarProps {
   activities: Activity[];
@@ -358,6 +359,7 @@ const HERO_TARGET = {
 
 // --- 3. The Component ---
 export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, variant = 'default', onNavigateToRecommender }) => {
+  const { profile } = useProfile();
   const studentScores = useCompetencyScores(activities);
 
   const [activeArchetypeId, setActiveArchetypeId] = useState<string>('');
@@ -386,23 +388,15 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
     });
 
     if (!activeArchetypeId) {
-      // Prefer the user's onboarding "North Star" pick over the auto-detected best fit,
-      // if they set one and it's still a valid archetype id.
-      let initialId = bestMatchId;
-      try {
-        const stored = localStorage.getItem('wa-architect-northstarArchetypes');
-        if (stored) {
-          const ids: string[] = JSON.parse(stored);
-          if (ids.length > 0 && SCHOOL_ARCHETYPES.some(a => a.id === ids[0])) {
-            initialId = ids[0];
-          }
-        }
-      } catch {
-        // ignore malformed localStorage value, fall back to auto-detected best fit
-      }
+      // Prefer the user's onboarding "North Star" pick over the auto-detected best
+      // fit, if they set one and it's still a valid archetype id.
+      const northStar = profile?.northStarArchetypes?.[0];
+      const initialId = northStar && SCHOOL_ARCHETYPES.some(a => a.id === northStar)
+        ? northStar
+        : bestMatchId;
       setActiveArchetypeId(initialId);
     }
-  }, [studentScores, activeArchetypeId]);
+  }, [studentScores, activeArchetypeId, profile]);
 
   const activeArchetype = useMemo(() => {
     return SCHOOL_ARCHETYPES.find(a => a.id === activeArchetypeId) || SCHOOL_ARCHETYPES[0];

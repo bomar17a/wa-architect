@@ -1,10 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Activity, ActivityStatus } from '../types';
 import { calculateAdComScore } from '../utils/scoring';
+import { useProfile } from '../contexts/ProfileContext';
 
 export type DashboardTab = 'overview' | 'mission-fit' | 'school-recommender';
-
-const CYCLE_STORAGE_KEY = 'wa-architect-cycleYear';
 
 export interface AmcasInfo {
     daysToOpening: number;
@@ -43,18 +42,14 @@ export const useDashboardState = (activities: Activity[]) => {
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const [cycleYear, setCycleYear] = useState<number | 'auto'>(() => {
-        const saved = typeof window !== 'undefined' ? localStorage.getItem(CYCLE_STORAGE_KEY) : null;
-        if (saved && saved !== 'auto') {
-            const parsed = parseInt(saved, 10);
-            if (!Number.isNaN(parsed)) return parsed;
-        }
-        return 'auto';
-    });
-
-    useEffect(() => {
-        localStorage.setItem(CYCLE_STORAGE_KEY, String(cycleYear));
-    }, [cycleYear]);
+    // Persisted on the user's profile row so the countdown follows them across devices.
+    // profile.cycleYear === null means "auto" (track the nearest upcoming opening).
+    const { profile, updateProfile } = useProfile();
+    const cycleYear: number | 'auto' = profile?.cycleYear ?? 'auto';
+    const setCycleYear = (year: number | 'auto') => {
+        updateProfile({ cycleYear: year === 'auto' ? null : year })
+            .catch(() => { /* already surfaced by ProfileContext */ });
+    };
 
     const amcasInfo = useMemo(() => computeAmcasInfo(cycleYear), [cycleYear]);
 

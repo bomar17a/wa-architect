@@ -7,18 +7,17 @@ import { Login } from './components/Auth/Login.tsx';
 import { Signup } from './components/Auth/Signup.tsx';
 import { OnboardingWizard } from './components/Onboarding/OnboardingWizard.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
+import { ProfileProvider, useProfile } from './contexts/ProfileContext.tsx';
 import { Activity, ApplicationType, View, ActivityStatus } from './types.ts';
 import { Loader2 } from 'lucide-react';
 import { activityService } from './services/activityService.ts';
-
-const onboardingKey = (userId: string) => `wa-architect-onboarded-${userId}`;
 
 const AppContent: React.FC = () => {
   const { session, user, loading: authLoading } = useAuth();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
   // --- Auth View State ---
   const [authView, setAuthView] = useState<'LANDING' | 'LOGIN' | 'SIGNUP'>('LANDING');
@@ -27,8 +26,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (!session) {
       setAuthView('LANDING');
-      setOnboardingChecked(false);
-      setShowOnboarding(false);
+      setOnboardingDismissed(false);
     }
   }, [session]);
 
@@ -45,18 +43,19 @@ const AppContent: React.FC = () => {
     }
   }, [user]);
 
-  // Show the onboarding wizard once, right after first data load, for genuinely new users only.
-  useEffect(() => {
-    if (!dataLoading && user && !onboardingChecked) {
-      const onboarded = localStorage.getItem(onboardingKey(user.id)) === 'true';
-      setShowOnboarding(!onboarded && activities.length === 0);
-      setOnboardingChecked(true);
-    }
-  }, [dataLoading, user, activities, onboardingChecked]);
+  // Show the wizard only to genuinely new users: no profile row marking them
+  // onboarded, and no existing activities. Waits for BOTH loads so it can't flash
+  // on screen for a returning user whose profile hasn't arrived yet.
+  const showOnboarding = !dataLoading && !profileLoading && !!user
+    && !onboardingDismissed && !profile?.onboarded && activities.length === 0;
 
-  const handleOnboardingComplete = () => {
-    if (user) localStorage.setItem(onboardingKey(user.id), 'true');
-    setShowOnboarding(false);
+  const handleOnboardingComplete = async () => {
+    setOnboardingDismissed(true);
+    try {
+      await updateProfile({ onboarded: true });
+    } catch {
+      // Already logged by ProfileContext; dismissing locally keeps the user unblocked.
+    }
   };
 
   const [currentView, setCurrentView] = useState<View>('LANDING');
@@ -322,7 +321,9 @@ const App: React.FC = () => {
   return (
     <ToastProvider>
       <AuthProvider>
-        <AppContent />
+        <ProfileProvider>
+          <AppContent />
+        </ProfileProvider>
       </AuthProvider>
     </ToastProvider>
   );
