@@ -7,17 +7,12 @@ file first, then re-open the todo list in the same conversation (or recreate it 
 
 Last updated: 2026-08-26 (session 3).
 
-> ## ⚠️ ACTION REQUIRED BEFORE TWO FEATURES WORK
-> **Interview Prep Mode** and **Application Story Analysis** are built and merged, but
-> call new Gemini edge function actions that are **not deployed yet**. Someone with
-> Supabase project access must run:
-> ```
-> supabase functions deploy gemini-ai
-> ```
-> Until then both features show a clean "this feature isn't available yet" message
-> instead of failing loudly — nothing is broken, they're just inert. Both actions
-> (`interview-questions`, `story-analysis`) went into the same edge function change,
-> so **one deploy activates both**.
+> ## ✅ EDGE FUNCTION DEPLOYED (v33) — one DB item still blocked
+> **Interview Prep Mode** and **Application Story Analysis** are live. `gemini-ai` was
+> deployed to the WA Architect project (`jitzwwxsnpylaistotgq`) on 2026-08-26, v32 → v33.
+>
+> **Still blocked:** `supabase/migrations/20260826000000_create_profiles_table.sql` has
+> not been applied. See "Supabase access — what actually works" below.
 
 ---
 
@@ -199,18 +194,50 @@ Everything in the original review doc is now built **except**:
 
 ---
 
-## Deployment constraint (read before adding new AI-backed features)
+## Supabase access — what actually works (corrected 2026-08-26)
 
-This dev environment has **no Supabase CLI installed and no linked project/access token**
-(`which supabase` → not found, confirmed again this session). The existing edge function
-(`supabase/functions/gemini-ai/index.ts`) already supports `draft-analysis`, `rewrite`,
-`mme-synthesis`, `parse-resume`, `parse-msar`, `theme-analysis` — safe to build against from the
-client since they're presumably already live (several are actively used by already-working
-features). **Any new action added to that file will NOT go live on its own** — someone with
-Supabase project access needs to run `supabase functions deploy gemini-ai` (and
-`supabase db push` for any new migration) after such a change. If picking this backlog back up
-in an environment that *does* have the CLI authenticated, check again with
-`supabase projects list` before assuming it's still blocked — this constraint may not apply.
+**Sessions 1–3 recorded this wrongly.** They checked `which supabase`, got nothing, and
+concluded deploys were impossible. That was an incomplete check. The real situation:
+
+- ✅ **`npx supabase` works.** No global install needed. `which supabase` fails but that
+  proves nothing — always test `npx --yes supabase@latest --version` instead.
+- ✅ **Already authenticated.** Credentials live in the OS credential store (Windows
+  Credential Manager), not a dotfile, which is why `ls ~/.supabase` looked empty.
+  `npx supabase projects list` returns the org's projects.
+- ✅ **Edge function deploys work.**
+  `npx supabase functions deploy gemini-ai --project-ref jitzwwxsnpylaistotgq`
+- ✅ **Project is linked** (state in `supabase/.temp/`, now gitignored).
+- ❌ **`supabase db push` fails.** The account lacks `CREATEROLE`/`ADMIN` on
+  `cli_login_postgres`, which the CLI's migration flow needs to bootstrap a login role:
+  `LegacyDbConfigLoginRoleStatusError ... permission denied to alter role`.
+
+### Applying migrations despite that
+
+Don't fix this by granting `CREATEROLE` on production — that's far more standing privilege
+than a migration needs. Two lower-privilege options:
+
+1. **Dashboard SQL editor** — paste the migration file's contents and run. Zero credential
+   handling, works immediately. Best for one-off migrations.
+2. **Set the DB password as an env var**, then push — bypasses the login-role bootstrap:
+   ```
+   export SUPABASE_DB_PASSWORD='...'      # set it yourself; never paste it into chat
+   npx --yes supabase@latest db push
+   ```
+   Get/reset it at Dashboard → Project Settings → Database → Database password.
+
+Either way, **verify RLS is enabled** on any new table afterward — `profiles` holds
+per-user application data and its policies are the only thing preventing cross-user reads.
+
+### Edge function actions currently supported
+
+`supabase/functions/gemini-ai/index.ts` (deployed v33): `draft-analysis`, `rewrite`,
+`mme-synthesis`, `parse-resume`, `parse-msar`, `theme-analysis`, `interview-questions`,
+`story-analysis`.
+
+A new action added to that file does not go live until it is deployed. The auth guard runs
+*before* action routing, so an unauthenticated probe returns 401 for every action name — you
+cannot confirm a new action is routed by curling it without a real user JWT. Check the version
+number instead: `npx supabase functions list --project-ref jitzwwxsnpylaistotgq`.
 
 ## Small things noticed but not yet acted on (low priority / judgment calls)
 
