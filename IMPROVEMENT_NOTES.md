@@ -5,7 +5,7 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-08-26 (session 4).
+Last updated: 2026-08-26 (session 5).
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
@@ -173,26 +173,14 @@ filter those out or just trust `npm run build`, which is what CI's
 
 ## Remaining backlog
 
-Everything in the original review doc is now built **except**:
+**Only one item from the original review doc is left**, and it was deliberately deferred:
 
-1. **School Targeting Mode** (doc Priority 8) — the only wholly untouched feature. The
-   persistence blocker is now GONE: `profiles.target_school_ids` exists and is unused, and
-   edge function deploys work. What remains is UI plus a new alignment-suggestion action. The
-   `medical_schools` table already has `mission_statement` and `primary_category`, and
-   `SchoolRecommender.tsx` already computes per-school match scores, so the data side is largely
-   there — it's the persistence and the new AI action that are missing.
-
-2. **AI-scored Narrative Quality** — upgrade the heuristic to the doc's Gemini-graded version
-   via a `narrative-quality` action. If doing this, debounce it (~3s per the doc); the current
-   heuristic recomputes per keystroke, which is only fine because it's pure string ops.
-
-3. **Drag-to-reorder activity cards** (facelift spec) — deferred; needs a DnD library
-   (`@dnd-kit` is the obvious pick, not installed) or a hand-rolled solution.
-
-4. **Landing page overhaul** — animated score-dial demo, before/after example, social proof,
-   pricing. `LandingPage.tsx` was left alone across all three sessions. Note the doc's social-proof
-   idea names real schools ("accepted to Johns Hopkins, Mayo, UCSF") — don't ship fabricated
-   testimonials or acceptance claims; use only real, permissioned ones.
+1. **Landing page overhaul** — animated score-dial demo, before/after writing example,
+   social proof, pricing. `LandingPage.tsx` has not been touched in any session.
+   **Caution when building it:** the doc suggests social proof naming real schools
+   ("accepted to Johns Hopkins, Mayo, UCSF"). Do not ship fabricated testimonials or
+   acceptance claims — this product is sold to applicants, so invented outcomes are a
+   real problem, not just marketing puffery. Use only real, permissioned claims.
 
 ---
 
@@ -290,3 +278,31 @@ purpose — in the repo, anyone cloning would inherit auto-approval for `scripts
 **Do NOT** "fix" migration drift with `supabase migration repair --status reverted` (the
 CLI suggests it). That records live migrations as rolled back, which is false and risks
 them re-running against a database that already has those objects.
+
+---
+
+## Session 5 — backlog closed except the landing page
+
+All three remaining buildable items shipped. Edge function is at **v35**, migrations report
+"Remote database is up to date", and `main` is in sync.
+
+- **School Targeting Mode** (the last untouched doc feature). Star up to 5 schools in the
+  Recommender → `profiles.target_school_ids`; the editor's `SchoolTargetingPanel` rates the
+  entry against each school's real mission statement and suggests one alignment sentence.
+  The prompt requires suggestions stay truthful to what the applicant actually wrote and to
+  return nothing rather than invent experience — AdComs interview on these entries.
+- **AI-scored Narrative Quality.** "AI Score" grades the four dimensions via Gemini plus a
+  weakness summary and top fix. The badge is labeled `est` vs `AI` so a heuristic guess is
+  never mistaken for a real read, and the AI score clears on edit rather than describing text
+  that no longer exists. Sub-scores are clamped 0–25 client-side against malformed responses.
+- **Drag-to-reorder** with a new `sort_order` column (backfilled from the existing
+  created_at order so no list visibly reshuffled). Native HTML5 drag **plus** up/down
+  buttons — HTML5 drag does not work on touch and this app has a mobile nav, so drag alone
+  would have been desktop-only. Buttons also give keyboard/screen-reader users a real path.
+  Reordering is disabled during search so a drop can't reshuffle hidden entries.
+
+### Still untested anywhere
+The **authenticated** paths have never been exercised — profile row creation, the
+localStorage→profile migration, wizard writes, target-school persistence, and every AI action
+(they all 401 without a real user JWT). There is still no test account. This is now the
+single largest verification gap; a throwaway signup would close most of it in a few minutes.
