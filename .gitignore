@@ -28,3 +28,6 @@ supabase/.temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Personal Claude Code settings (grants local DB-migration permissions)
+.claude/settings.local.json
