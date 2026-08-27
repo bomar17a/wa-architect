@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../../services/supabase';
-import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 interface LoginProps {
     onSwitchToSignup: () => void;
+    onBack?: () => void;
 }
 
-export const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
+export const Login: React.FC<LoginProps> = ({ onSwitchToSignup, onBack }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -35,6 +36,16 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
     return (
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in">
             <div className="p-8">
+                {onBack && (
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-brand-teal transition-colors mb-6"
+                    >
+                        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                        Back
+                    </button>
+                )}
                 <div className="text-center mb-8">
                     <h2 className="text-2xl font-serif font-bold text-slate-800">Welcome Back</h2>
                     <p className="text-slate-500 text-sm mt-2">Sign in to access your W&A Architect workspace.</p>

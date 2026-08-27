@@ -444,7 +444,7 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
               <PolarRadiusAxis angle={30} domain={[0, 10]} tick={false} axisLine={false} />
 
               <Radar
-                name="Admitted Student Avg."
+                name="Archetype Target"
                 dataKey="target"
                 stroke="#cbd5e1"
                 strokeWidth={1}

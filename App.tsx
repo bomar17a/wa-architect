@@ -310,8 +310,10 @@ const AppContent: React.FC = () => {
   if (authView === 'LOGIN') {
     return (
       <div className="min-h-screen bg-brand-light flex items-center justify-center p-4">
-        <Login onSwitchToSignup={() => setAuthView('SIGNUP')} />
-        {/* Optional: Add a back button mechanism here if desired */}
+        <Login
+          onSwitchToSignup={() => setAuthView('SIGNUP')}
+          onBack={() => setAuthView('LANDING')}
+        />
       </div>
     );
   }
@@ -319,7 +321,10 @@ const AppContent: React.FC = () => {
   if (authView === 'SIGNUP') {
     return (
       <div className="min-h-screen bg-brand-light flex items-center justify-center p-4">
-        <Signup onSwitchToLogin={() => setAuthView('LOGIN')} />
+        <Signup
+          onSwitchToLogin={() => setAuthView('LOGIN')}
+          onBack={() => setAuthView('LANDING')}
+        />
       </div>
     );
   }
