@@ -5,7 +5,7 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-08-26 (session 6).
+Last updated: 2026-08-26 (session 7). **The backlog is now empty.**
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
@@ -171,14 +171,9 @@ filter those out or just trust `npm run build`, which is what CI's
 
 ## Remaining backlog
 
-**Only one item from the original review doc is left**, and it was deliberately deferred:
-
-1. **Landing page overhaul** — animated score-dial demo, before/after writing example,
-   social proof, pricing. `LandingPage.tsx` has not been touched in any session.
-   **Caution when building it:** the doc suggests social proof naming real schools
-   ("accepted to Johns Hopkins, Mayo, UCSF"). Do not ship fabricated testimonials or
-   acceptance claims — this product is sold to applicants, so invented outcomes are a
-   real problem, not just marketing puffery. Use only real, permissioned claims.
+**Empty.** The landing page overhaul — the last item from the original review doc — shipped in
+session 7. See that section below for what was built and, more importantly, for the unsupported
+claims that were already live on the page.
 
 ---
 
@@ -339,3 +334,68 @@ edge-function calls.
 a real confirmation email — do not sign up against a domain you do not control. Use the Admin
 API with `email_confirm: true` as this script does. Always verify cleanup afterwards:
 production should stay at its real counts with zero `claude-qa-%` users.
+
+---
+
+## Session 7 — landing page rebuilt; the backlog is closed
+
+`components/LandingPage.tsx` was the last untouched item. It is now a slim composition root over
+`components/Landing/*`, with **every user-facing string in `components/Landing/landingData.ts`** so
+claims can be audited in one file instead of hunted through JSX.
+
+### The part that matters more than the redesign
+
+The page was already shipping claims the code does not support. These were live, not proposed:
+
+| Claim | Reality |
+|---|---|
+| "Methodology aligned with core competencies from: AAMC · Harvard Medical · Stanford · Johns Hopkins" | Only the AAMC list is real. Those three schools appear in the repo solely as rows in the 175-school mission table. It read as institutional endorsement. |
+| "Dataset Sample / +10k Verified Profiles" | No such dataset exists anywhere. |
+| `index.html` meta: "10,000+ AMCAS work and activities section examples" | Same. |
+| `MissionFitRadar`'s **"Admitted Student Avg."** series | The hardcoded `HERO_TARGET` constant `{Inquiry:7, Service:8, Teamwork:7, Clinical:8}`. No admissions outcome data exists in this repo. **This one was shipping inside the app**, not only on marketing. Renamed to "Archetype Target". |
+
+All removed. Added in their place: a footer line stating no affiliation with the AAMC, AMCAS, or
+any medical school, and an on-panel disclosure that the hour thresholds are our heuristics rather
+than published admissions data.
+
+**If anyone proposes adding testimonials, acceptance rates, or school logos to this page, the
+answer is still no** unless the claim is real and permissioned. The product is sold to applicants.
+
+### What the page argues
+
+GPA and MCAT are filters that clear the screen; Work & Activities is what the interview decision
+is made from. And since the 15 entries are the raw evidence, writing them *first* surfaces the
+themes a personal statement should start from. The page never claims a personal-statement
+feature — none exists. `theme-analysis` in the edge function is still dead code; the live
+portfolio-level feature is `story-analysis` ("Analyze My Story"), and that is what the Themes tab
+demonstrates.
+
+### Structure
+Four-tab product frame (Score & gaps / Rewrite / Themes / Mission fit) with real `tablist`
+semantics and arrow-key navigation. The before/after comparison is a toggle now — the old
+`ComparisonSlider` was a mouse/touch drag with no keyboard path at all.
+
+### Two decisions worth not re-litigating
+
+1. **The mission-fit panel deliberately does not reuse `<MissionFitRadar>`.** That component reads
+   profile context and fetches schools from Supabase on mount, which has no business firing on a
+   logged-out marketing page. The panel uses recharts directly with static sample data, same four
+   pillars and same visual language.
+2. **No scroll-triggered reveals.** An earlier pass used framer-motion `whileInView`, and three
+   sections rendered completely blank — content starts at `opacity: 0` and depends on an
+   IntersectionObserver that a full-page screenshot (and any crawler) never fires. Marketing copy
+   has to be in the DOM and visible without waiting on JS. The hero's mount animation stays.
+
+### Verification
+`tsc --noEmit` and `npm run build` clean. Playwright at 390 / 768 / 1440: no horizontal overflow,
+no console errors, tab arrow-keys work, the rewrite toggle works, and CTA → signup → back returns
+to the landing page. That last path is new — `App.tsx` had a literal "add a back button mechanism
+here if desired" comment and visitors who clicked Log in were stranded.
+
+### Still open (small, deliberate)
+- `index.html` has **no `canonical` or `og:url`** — the production domain was not in the repo, so
+  they were left as a TODO rather than guessed. Fill them in; the rest of the OG/Twitter tags are
+  there.
+- Favicon is still Vite's default `/vite.svg`.
+- The old FAQ claimed "successful matriculants average 12-13 high-quality entries." No source for
+  that exists in the repo, so it was cut. Restore it only with a citation.
