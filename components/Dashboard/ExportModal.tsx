@@ -5,8 +5,8 @@ import {
     formatActivityForExport,
     formatAllActivitiesForExport,
     downloadTextFile,
-    downloadAsCsv,
-    downloadAsWordDoc,
+    downloadAsXlsx,
+    downloadAsDocx,
     copyToClipboard,
     printActivitiesAsPdf,
 } from '../../services/exportService';
@@ -46,8 +46,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ activities, appType, o
     };
 
     const handlePrint = () => printActivitiesAsPdf(activities, appType);
-    const handleCsv = () => downloadAsCsv(activities, appType);
-    const handleWordDoc = () => downloadAsWordDoc(activities, appType);
+    const handleXlsx = () => { void downloadAsXlsx(activities, appType); };
+    const handleDocx = () => { void downloadAsDocx(activities, appType); };
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
@@ -90,16 +90,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({ activities, appType, o
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">For sharing with advisors</p>
                         <div className="flex flex-wrap gap-2">
                             <button
-                                onClick={handleCsv}
+                                onClick={handleXlsx}
                                 className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors"
                             >
-                                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Excel / Sheets (.csv)
+                                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Excel / Sheets (.xlsx)
                             </button>
                             <button
-                                onClick={handleWordDoc}
+                                onClick={handleDocx}
                                 className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors"
                             >
-                                <FileText className="w-3.5 h-3.5 text-blue-600" /> Word / Docs (.doc)
+                                <FileText className="w-3.5 h-3.5 text-blue-600" /> Word / Docs (.docx)
                             </button>
                             <button
                                 onClick={handlePrint}

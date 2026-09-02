@@ -11,12 +11,18 @@ export function sanitizeForAmcas(text: string): string {
     return text
         .replace(/\*\*(.*?)\*\*/g, '$1')       // **bold**
         .replace(/\*(.*?)\*/g, '$1')           // *italic*
-        .replace(/^[ \t]*[•●▪‣◦][ \t]*/gm, '') // bullet glyphs at line start
+        .replace(/^[ \t]*[\u2022\u25CF\u25AA\u2023\u25E6][ \t]*/gm, '') // bullet glyphs at line start
         .replace(/^[ \t]*[-*][ \t]+/gm, '')    // markdown "- " / "* " list markers
         .replace(/^[ \t]*\d+\.[ \t]+/gm, '')   // "1. " numbered list markers
-        .replace(/[""]/g, '"')
-        .replace(/['']/g, "'")
-        .replace(/[–—]/g, '-')
+        // Written as \u escapes on purpose. These two lines previously held literal
+        // curly quotes, which were flattened to ASCII at some point, leaving
+        // /["]/g replacing a straight quote with a straight quote. Silent no-ops,
+        // so smart quotes have been reaching AMCAS exports this whole time.
+        .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')  // curly + prime doubles
+        .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")  // curly + prime singles
+        .replace(/\u2026/g, '...')                          // ellipsis
+        .replace(/[\u2013\u2014\u2212]/g, '-')              // en dash, em dash, minus
+        .replace(/[\u00A0\u2007\u202F]/g, ' ')              // non-breaking spaces
         .replace(/\r\n/g, '\n')
         .trim();
 }
@@ -83,40 +89,67 @@ export function downloadTextFile(filename: string, content: string) {
     downloadBlob(new Blob([content], { type: 'text/plain;charset=utf-8' }), filename);
 }
 
-const csvEscape = (value: string): string => {
-    const v = (value ?? '').replace(/\r\n/g, '\n');
-    return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
-};
+const EXPORT_COLUMNS = [
+    'Title', 'Organization', 'Type', 'Location', 'Date Ranges',
+    'Total Hours', 'Most Meaningful', 'Description', 'MME Essay',
+] as const;
 
-/**
- * .csv opens natively in both Excel and Google Sheets — no charting/xlsx
- * library needed for a flat activity table. One row per activity.
- */
-export function downloadAsCsv(activities: Activity[], appType: ApplicationType) {
-    const filled = activities.filter(a => a.experienceType);
-    const headers = ['Title', 'Organization', 'Type', 'Location', 'Date Ranges', 'Total Hours', 'Most Meaningful', 'Description', 'MME Essay'];
-
-    const rows = filled.map(a => {
+/** One flat row per filled activity. Shared by the spreadsheet export. */
+function buildExportRows(activities: Activity[], appType: ApplicationType): string[][] {
+    return activities.filter(a => a.experienceType).map(a => {
         const totalHours = a.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0);
-        const dateRangesStr = a.dateRanges.map(formatDateRange).join('; ');
-        const location = [a.city, a.country].filter(Boolean).join(', ');
         const isMme = appType === ApplicationType.AMCAS && a.isMostMeaningful;
         return [
             a.title || '',
             a.organization || '',
             a.experienceType || '',
-            location,
-            dateRangesStr,
+            [a.city, a.country].filter(Boolean).join(', '),
+            a.dateRanges.map(formatDateRange).join('; '),
             String(totalHours),
             isMme ? 'Yes' : 'No',
             sanitizeForAmcas(a.description),
             isMme ? sanitizeForAmcas(a.mmeEssay) : '',
         ];
     });
+}
 
-    // Leading BOM so Excel reliably detects UTF-8 instead of guessing Latin-1.
-    const csv = '﻿' + [headers, ...rows].map(row => row.map(csvEscape).join(',')).join('\r\n');
-    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `wa-architect-${appType.toLowerCase()}-export.csv`);
+/**
+ * Real .xlsx (OOXML), not a renamed .csv. `write-excel-file` is imported
+ * dynamically so it stays out of the main bundle and only loads when
+ * someone actually exports.
+ */
+export async function downloadAsXlsx(activities: Activity[], appType: ApplicationType) {
+    const { default: writeXlsxFile } = await import('write-excel-file/browser');
+    const rows = buildExportRows(activities, appType);
+
+    const sheet = [
+        EXPORT_COLUMNS.map(value => ({
+            value,
+            fontWeight: 'bold' as const,
+            backgroundColor: '#EBF5F5',
+            borderBottomColor: '#2E6B6B',
+            borderBottomStyle: 'thin' as const,
+        })),
+        ...rows.map(row => row.map((value, i) => ({
+            value,
+            type: String,
+            // Description and MME essay are long prose - wrap instead of overflowing.
+            wrap: i >= 7,
+            alignVertical: 'top' as const,
+        }))),
+    ];
+
+    // v4 returns { toBlob, toFile } rather than a Blob; use our own downloader
+    // so the filename matches the other exports.
+    const { toBlob } = await writeXlsxFile(sheet, {
+        columns: [
+            { width: 30 }, { width: 26 }, { width: 34 }, { width: 20 }, { width: 30 },
+            { width: 12 }, { width: 16 }, { width: 70 }, { width: 70 },
+        ],
+        sheet: 'Work & Activities',
+    });
+
+    downloadBlob(await toBlob(), `wa-architect-${appType.toLowerCase()}-export.xlsx`);
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {
@@ -131,10 +164,9 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 const escapeHtml = (s: string) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
- * Shared formatted-document HTML, reused by both the print-to-PDF view and
- * the Word/Google-Docs export (a plain HTML document saved with a .doc
- * extension opens directly in Word and imports cleanly into Google Docs —
- * no docx-generation dependency needed).
+ * Formatted document HTML for the print-to-PDF view. This used to double as the
+ * Word export (HTML saved with a .doc extension); that path is now a real .docx,
+ * so this serves printing only.
  */
 function buildActivitiesHtmlDocument(activities: Activity[], appType: ApplicationType): string {
     const filled = activities.filter(a => a.experienceType);
@@ -204,15 +236,85 @@ export function printActivitiesAsPdf(activities: Activity[], appType: Applicatio
 }
 
 /**
- * Downloads the same formatted document as a .doc file. Word (and Google
- * Docs' file-upload importer) both open HTML content saved with a .doc
- * extension and application/msword type directly — a well-established
- * trick that avoids pulling in a full docx-generation library.
+ * Real .docx (OOXML), not HTML with a .doc extension. Opens natively in Word,
+ * Pages, LibreOffice and Google Docs. `docx` is imported dynamically so it
+ * stays out of the main bundle.
  */
-export function downloadAsWordDoc(activities: Activity[], appType: ApplicationType) {
-    const html = buildActivitiesHtmlDocument(activities, appType);
+export async function downloadAsDocx(activities: Activity[], appType: ApplicationType) {
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
+    const filled = activities.filter(a => a.experienceType);
+
+    const label = (text: string) => new Paragraph({
+        spacing: { before: 160, after: 40 },
+        children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 18, color: '555555' })],
+    });
+    const body = (text: string) => new Paragraph({
+        spacing: { after: 80 },
+        children: [new TextRun({ text, size: 22 })],
+    });
+
+    const children: InstanceType<typeof Paragraph>[] = [
+        new Paragraph({
+            heading: HeadingLevel.HEADING_1,
+            children: [new TextRun({ text: `${appType} Work & Activities Export`, bold: true, size: 36 })],
+        }),
+        new Paragraph({
+            spacing: { after: 320 },
+            children: [new TextRun({
+                text: `Generated ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} - ${filled.length} activities`,
+                size: 18,
+                color: '777777',
+            })],
+        }),
+    ];
+
+    filled.forEach((a, i) => {
+        const totalHours = a.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0);
+        const isMme = appType === ApplicationType.AMCAS && a.isMostMeaningful;
+
+        if (i > 0) children.push(new Paragraph({ text: '', border: { top: { style: 'single', size: 6, color: 'CCCCCC' } }, spacing: { before: 280, after: 200 } }));
+
+        children.push(new Paragraph({
+            heading: HeadingLevel.HEADING_2,
+            spacing: { after: 80 },
+            children: [new TextRun({ text: `${a.title || 'Untitled Activity'}${isMme ? ' *' : ''}`, bold: true, size: 26 })],
+        }));
+
+        const meta = [
+            `Organization: ${a.organization || '-'}`,
+            `Type: ${a.experienceType || '-'}`,
+            [a.city, a.country].filter(Boolean).join(', ') && `Location: ${[a.city, a.country].filter(Boolean).join(', ')}`,
+            `Total Hours: ${totalHours}`,
+            isMme && 'Most Meaningful Experience: Yes',
+        ].filter(Boolean) as string[];
+
+        meta.forEach(line => children.push(new Paragraph({
+            spacing: { after: 20 },
+            children: [new TextRun({ text: line, size: 20, color: '444444' })],
+        })));
+
+        a.dateRanges.forEach(r => children.push(new Paragraph({
+            spacing: { after: 20 },
+            children: [new TextRun({ text: formatDateRange(r), size: 20, color: '444444' })],
+        })));
+
+        children.push(label('Description'));
+        children.push(body(sanitizeForAmcas(a.description) || '[No description written yet]'));
+
+        if (isMme && a.mmeEssay) {
+            children.push(label('Most Meaningful Experience Essay'));
+            children.push(body(sanitizeForAmcas(a.mmeEssay)));
+        }
+    });
+
+    const doc = new Document({
+        creator: 'W&A Architect',
+        title: `${appType} Work & Activities Export`,
+        sections: [{ properties: {}, children }],
+    });
+
     downloadBlob(
-        new Blob(['﻿', html], { type: 'application/msword;charset=utf-8' }),
-        `wa-architect-${appType.toLowerCase()}-export.doc`
+        await Packer.toBlob(doc),
+        `wa-architect-${appType.toLowerCase()}-export.docx`
     );
 }
