@@ -5,7 +5,7 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-08-26 (session 7). **The backlog is now empty.**
+Last updated: 2026-09-02 (session 8). **The original backlog is empty**; session 8 covers post-backlog polish.
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
