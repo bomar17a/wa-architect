@@ -31,3 +31,6 @@ supabase/.temp/
 
 # Personal Claude Code settings (grants local DB-migration permissions)
 .claude/settings.local.json
+
+# Bundle-analyzer output from rollup-plugin-visualizer (regenerated on every build)
+stats.html

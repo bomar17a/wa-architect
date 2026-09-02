@@ -62,10 +62,6 @@ export const useDashboardState = (activities: Activity[]) => {
         }, 100);
     };
 
-    const scrollToTop = () => {
-        setActiveTab('overview');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
 
     const handleOpenCompetencyAudit = () => {
         setIsCompetencyModalOpen(true);
@@ -119,7 +115,6 @@ export const useDashboardState = (activities: Activity[]) => {
         amcasInfo,
         activitiesRef,
         scrollToActivities,
-        scrollToTop,
         handleOpenCompetencyAudit,
         filledActivities,
         filteredActivities,
