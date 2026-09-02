@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="W&A Architect">
+  <rect width="64" height="64" rx="14" fill="#2E6B6B"/>
+  <!-- Layered-stack mark, solid rather than stroked so it survives 16px. -->
+  <path d="M32 12 L54 23 L32 34 L10 23 Z" fill="#ffffff"/>
+  <path d="M32 40.5 L50.5 31.25 L54 33 L32 44 L10 33 L13.5 31.25 Z" fill="#ffffff" opacity="0.72"/>
+  <path d="M32 50 L50.5 40.75 L54 42.5 L32 53.5 L10 42.5 L13.5 40.75 Z" fill="#FFC82C"/>
+</svg>
