@@ -399,3 +399,66 @@ here if desired" comment and visitors who clicked Log in were stranded.
 - Favicon is still Vite's default `/vite.svg`.
 - The old FAQ claimed "successful matriculants average 12-13 high-quality entries." No source for
   that exists in the repo, so it was cut. Restore it only with a citation.
+
+---
+
+## Session 8 — export formats, assets, and a sanitizer bug worth knowing about
+
+### The bug: `sanitizeForAmcas` never stripped smart quotes
+
+Found while verifying the new .docx actually contained sanitized text. The source held:
+
+```
+.replace(/[""]/g, '"')
+.replace(/['']/g, "'")
+```
+
+Both character classes contained **plain ASCII** `0x22` / `0x27`, not curly quotes — flattened by
+an editor or encoding pass at some point. So each line read "replace a straight quote with a
+straight quote": a silent no-op. The adjacent dash rule still had real U+2013/U+2014, which is
+why em dashes converted correctly and quotes didn't — and why this went unnoticed across seven
+sessions.
+
+It affected **every export path**: .txt, clipboard copy, spreadsheet, document, print. AMCAS
+strips formatting and curly quotes can land as mojibake in its text box, so this was the one job
+the function existed to do.
+
+Now written as `\u` escapes (`/[\u201C\u201D\u201E\u201F\u2033]/g`) so an editor cannot flatten
+them again, extended to prime marks, ellipsis, minus sign and non-breaking spaces. The
+bullet-glyph class was hardened the same way.
+
+**Lesson for this repo: do not put literal non-ASCII glyphs inside regex character classes.**
+If you see one, treat it as suspect and check the bytes with `od -c`, not your eyes — a flattened
+curly quote and a straight quote are visually identical in most editors.
+
+### Real .docx / .xlsx
+
+"Word / Docs" was an HTML document renamed `.doc`; "Excel / Sheets" was a `.csv`. Both opened, but
+neither was the real format. Now generated with `docx` and `write-excel-file`.
+
+- Both are **dynamically imported**, so they code-split into their own chunks. Main bundle grew
+  2.8kB rather than ~350kB. Keep it that way — do not hoist these to top-level imports.
+- `write-excel-file` v4 has **no root export**; use `write-excel-file/browser`. It returns
+  `{ toBlob, toFile }`, not a Blob, so we call `toBlob()` and use our own `downloadBlob`.
+- Print-to-PDF still uses `buildActivitiesHtmlDocument`; that path is unchanged.
+- Neither package introduced a vulnerability (`@xmldom/xmldom` in the audit predates this and
+  comes from `mammoth`).
+
+### Assets
+Real favicon (`public/favicon.svg`, solid-fill so it survives 16px — the nav's stroked mark does
+not), a PNG `apple-touch-icon` (iOS ignores SVG for that rel), and a 1200x630 `og-image.png`.
+`twitter:card` is back to `summary_large_image` now that there is an image behind it.
+
+### Cleanup
+`stats.html` is gitignored and untracked (build output from rollup-plugin-visualizer). Dead
+`scrollToTop` removed from `useDashboardState`.
+
+### How the exports were verified
+No auth needed. A throwaway harness mounted `<ExportModal>` directly with `DEMO_ACTIVITIES`, and
+Playwright clicked the real buttons and intercepted the downloads. The files were then unzipped
+and inspected: valid OOXML (PK magic, `xl/workbook.xml` and `word/document.xml` present), content
+populated, and a `**markdown**` + curly-quote + em-dash test string came out as plain ASCII.
+Delete `_modal_test.*`, `_export_test.*` and `_dl*/` before committing — never commit them.
+
+### Still open
+- The deep-teal re-skin remains deliberately not done (see session 1 reasoning in git history).
