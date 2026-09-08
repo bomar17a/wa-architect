@@ -2,7 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Building, Target, Award, ArrowLeft, Loader2, ChevronDown, CheckCircle2, ChevronRight, X, BarChart3, Info, Star } from 'lucide-react';
 import { Activity } from '../types';
 import { supabase } from '../services/supabase';
-import { useCompetencyScores, SCHOOL_ARCHETYPES } from './MissionFitRadar';
+import {
+    computeCompetency,
+    computeCompleteness,
+    computeMatch,
+    SCHOOL_ARCHETYPES,
+    type MatchResult,
+} from '../utils/missionFit';
 import { getSchoolState, US_STATES, CA_PROVINCES } from '../utils/schoolStates';
 import { useProfile } from '../contexts/ProfileContext';
 import { useToast } from '../contexts/ToastContext';
@@ -21,10 +27,12 @@ interface MedicalSchool {
     mission_statement: string;
     primary_category: string;
     matchScore?: number;
+    matchDetail?: MatchResult;
 }
 
 export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities }) => {
-    const studentScores = useCompetencyScores(activities);
+    const { scores: studentScores, hours: pillarHours } = useMemo(() => computeCompetency(activities), [activities]);
+    const completeness = useMemo(() => computeCompleteness(activities), [activities]);
     const { profile, updateProfile } = useProfile();
     const { addToast } = useToast();
     const targetIds = profile?.targetSchoolIds ?? [];
@@ -69,22 +77,15 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
             }
 
             if (data) {
-                // Calculate match scores post-fetch
+                // One shared formula with the Mission Fit Radar — the same profile
+                // showing two different match numbers across two tabs was its own bug.
                 const processedSchools = data.map((school: MedicalSchool) => {
                     const arch = SCHOOL_ARCHETYPES.find(a => a.dbCategory === school.primary_category);
-                    let matchPercentage = 0;
-                    if (arch) {
-                        const maxPossibleScore = arch.targets.Inquiry + arch.targets.Service + arch.targets.Teamwork + arch.targets.Clinical;
-                        const actualScore = Math.min(studentScores.Inquiry, arch.targets.Inquiry) +
-                            Math.min(studentScores.Service, arch.targets.Service) +
-                            Math.min(studentScores.Teamwork, arch.targets.Teamwork) +
-                            Math.min(studentScores.Clinical, arch.targets.Clinical);
-                        matchPercentage = Math.round((actualScore / maxPossibleScore) * 100);
-                    }
-                    return { ...school, matchScore: matchPercentage };
+                    if (!arch) return { ...school, matchScore: 0 };
+                    const result = computeMatch(studentScores, arch.targets, completeness.factor);
+                    return { ...school, matchScore: result.match, matchDetail: result };
                 });
 
-                // Sort by match score descending
                 processedSchools.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
                 setSchools(processedSchools);
             }
@@ -92,7 +93,7 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
         };
 
         fetchSchools();
-    }, [studentScores]);
+    }, [studentScores, completeness.factor]);
 
     // Derived state for filtering
     const filteredSchools = useMemo(() => {
@@ -112,21 +113,25 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
     // Helper for personalized string
     const generateInsightLine = () => {
         if (!topMatch || !hasData) return null;
-        
-        const highestCategory = Object.entries(studentScores).reduce((a, b) => a[1] > b[1] ? a : b);
-        const catName = highestCategory[0];
-        const hours = highestCategory[1];
+
+        const [catName, score] = Object.entries(studentScores).reduce((a, b) => a[1] > b[1] ? a : b);
+        // The hours the applicant actually logged, not the 0-10 pillar score. Printing
+        // the score here read as "(10 hours)" for a 500-hour research role.
+        const hours = Math.round(pillarHours[catName as keyof typeof pillarHours]);
 
         const descriptions: Record<string, string> = {
-            Inquiry: "focus on research and structured inquiry",
-            Service: "dedication to community engagement and service",
-            Teamwork: "strong collaborative leadership",
+            Inquiry: "work in research and structured inquiry",
+            Service: "commitment to community engagement and service",
+            Teamwork: "collaborative and leadership experience",
             Clinical: "patient-centered clinical experience"
         };
 
+        // Earn the adjective. This used to read "exceptional" at any score at all.
+        const strength = score >= 8.5 ? 'exceptional' : score >= 6.5 ? 'strong' : score >= 4 ? 'developing' : 'early';
+
         return (
             <span>
-                Your exceptional {descriptions[catName]} <strong className="text-brand-dark">({hours} hours)</strong> naturally aligns you with <strong className="text-brand-teal">{topMatch.primary_category}</strong> programs.
+                Your {strength} {descriptions[catName]} <strong className="text-brand-dark">({hours.toLocaleString()} hours)</strong> points you toward <strong className="text-brand-teal">{topMatch.primary_category}</strong> programs.
             </span>
         );
     };
@@ -173,6 +178,16 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                             <p className="text-sm font-semibold text-slate-500 mt-2">
                                 Your <span className="text-brand-dark">#{schools.indexOf(topMatch) + 1} best fit</span> is <span className="underline decoration-slate-200 underline-offset-4">{topMatch.school_name}</span> at a {topMatch.matchScore}% potential match.
                             </p>
+                            {!completeness.isComplete && (
+                                <div className="mt-3 inline-flex flex-wrap items-center gap-2 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                    <Info className="w-3.5 h-3.5 shrink-0" />
+                                    <span>
+                                        Provisional: {completeness.activityCount} of 15 activities
+                                        {completeness.mmeCount < 3 && `, ${completeness.mmeCount} of 3 Most Meaningful`}.
+                                        Match scores are held back until your list fills out.
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -268,16 +283,6 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                                 ${isSelected ? 'border-brand-teal/50 shadow-[0_10px_40px_rgb(26,115,232,0.12)] ring-2 ring-brand-teal/10 scale-[1.01]' : 'border border-slate-200/80 shadow-sm hover:border-brand-teal/30 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]'}
                                             `}
                                         >
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); toggleTarget(school.id, school.school_name); }}
-                                                title={isTargeted ? 'Remove from target schools' : 'Add to target schools'}
-                                                aria-label={isTargeted ? `Remove ${school.school_name} from target schools` : `Add ${school.school_name} to target schools`}
-                                                className={`absolute bottom-5 left-5 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors ${isTargeted ? 'bg-brand-gold/20 text-amber-700 border border-brand-gold/40' : 'bg-slate-50 text-slate-400 border border-slate-200 hover:text-brand-gold hover:border-brand-gold/40'}`}
-                                            >
-                                                <Star className={`w-3 h-3 ${isTargeted ? 'fill-current' : ''}`} />
-                                                {isTargeted ? 'Target' : 'Target'}
-                                            </button>
-
                                             {/* Match Score Indicator */}
                                             {school.matchScore !== undefined && school.matchScore >= 80 && (
                                                 <div className="absolute top-0 right-0 bg-brand-gold text-brand-dark text-[10px] font-black tracking-widest px-3 py-1.5 rounded-bl-[1.25rem] shadow-sm z-10 flex items-center gap-1.5">
@@ -307,34 +312,46 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                             </div>
 
                                             <div className="mt-auto relative z-10 border-t border-slate-100/80 pt-4">
-                                                <div className="flex items-end justify-between">
-                                                    <div>
+                                                <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+                                                    <div className="min-w-0">
                                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Archetype Expectation</span>
                                                         <div className="font-bold text-brand-dark flex items-center gap-1.5 text-sm">
-                                                            <div className={`w-2 h-2 rounded-full ${archData?.color.replace('border-', 'bg-').replace('text-', 'bg-') || 'bg-slate-300'}`}></div>
+                                                            <div className={`w-2 h-2 rounded-full shrink-0 ${archData?.color.replace('border-', 'bg-').replace('text-', 'bg-') || 'bg-slate-300'}`}></div>
                                                             {school.primary_category}
                                                         </div>
                                                     </div>
-                                                    
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Match Potential</span>
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                                                <div
-                                                                    className="h-full bg-gradient-to-r from-brand-teal to-[#1A61C2] rounded-full relative"
-                                                                    style={{ width: `${school.matchScore}%` }}
-                                                                >
-                                                                    <div className="absolute top-0 right-0 bottom-0 left-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
+
+                                                    <div className="flex items-end gap-3 shrink-0">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); toggleTarget(school.id, school.school_name); }}
+                                                            title={isTargeted ? 'Remove from target schools' : 'Add to target schools'}
+                                                            aria-label={isTargeted ? `Remove ${school.school_name} from target schools` : `Add ${school.school_name} to target schools`}
+                                                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors ${isTargeted ? 'bg-brand-gold/20 text-amber-700 border border-brand-gold/40' : 'bg-slate-50 text-slate-400 border border-slate-200 hover:text-brand-gold hover:border-brand-gold/40'}`}
+                                                        >
+                                                            <Star className={`w-3 h-3 ${isTargeted ? 'fill-current' : ''}`} />
+                                                            {isTargeted ? 'Targeted' : 'Target'}
+                                                        </button>
+
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Match Potential</span>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-20 sm:w-24 h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                                                    <div
+                                                                        className="h-full bg-gradient-to-r from-brand-teal to-[#1A61C2] rounded-full relative"
+                                                                        style={{ width: `${school.matchScore}%` }}
+                                                                    >
+                                                                        <div className="absolute top-0 right-0 bottom-0 left-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
+                                                                    </div>
                                                                 </div>
+                                                                <span className="text-base font-black text-slate-800 w-10 text-right">{school.matchScore}%</span>
                                                             </div>
-                                                            <span className="text-base font-black text-slate-800 w-10 text-right">{school.matchScore}%</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            
-                                            {/* Expand Icon Hint */}
-                                            <div className={`absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 ${isSelected ? 'opacity-100 translate-x-0 bg-brand-teal/10 text-brand-teal' : 'bg-slate-50 text-slate-400'}`}>
+
+                                            {/* Expand hint. Sits in the header gutter, not over the match figure. */}
+                                            <div className={`absolute top-6 right-6 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 ${school.matchScore !== undefined && school.matchScore >= 80 ? 'hidden' : ''} ${isSelected ? 'opacity-100 translate-x-0 bg-brand-teal/10 text-brand-teal' : 'bg-slate-50 text-slate-400'}`}>
                                                 <ChevronRight className="w-4 h-4" />
                                             </div>
                                         </div>
@@ -392,9 +409,42 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                              <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                                 <BarChart3 className="w-4 h-4 text-brand-teal" /> Competency Breakdown 
                              </h3>
-                             <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+                             <p className="text-xs text-slate-500 mb-4 leading-relaxed">
                                 This program operates as a <strong className="text-brand-dark">{selectedSchool.primary_category}</strong> archetype. Below is how your pillar scores (0–10) compare to this school's expected baseline targets.
                              </p>
+
+                             {selectedSchool.matchDetail && (
+                                <div className="mb-6 bg-slate-50 rounded-2xl border border-slate-200/60 p-4">
+                                    <div className="flex items-baseline justify-between mb-3">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Where {selectedSchool.matchScore}% comes from</span>
+                                    </div>
+                                    <dl className="space-y-2 text-xs">
+                                        <div className="flex justify-between gap-3">
+                                            <dt className="text-slate-500">Targets you cover</dt>
+                                            <dd className="font-bold text-slate-700">{selectedSchool.matchDetail.coverage}%</dd>
+                                        </div>
+                                        <div className="flex justify-between gap-3">
+                                            <dt className="text-slate-500">Emphasis alignment</dt>
+                                            <dd className="font-bold text-slate-700">{selectedSchool.matchDetail.shape}%</dd>
+                                        </div>
+                                        <div className="flex justify-between gap-3">
+                                            <dt className="text-slate-500">Weakest pillar drag</dt>
+                                            <dd className="font-bold text-slate-700">{selectedSchool.matchDetail.balance}% <span className="font-medium text-slate-400">({selectedSchool.matchDetail.limitingPillar})</span></dd>
+                                        </div>
+                                        {!completeness.isComplete && (
+                                            <div className="flex justify-between gap-3">
+                                                <dt className="text-amber-700">Profile completeness</dt>
+                                                <dd className="font-bold text-amber-700">{selectedSchool.matchDetail.completeness}%</dd>
+                                            </div>
+                                        )}
+                                    </dl>
+                                    <p className="text-[11px] text-slate-500 leading-relaxed mt-3 pt-3 border-t border-slate-200/70">
+                                        {!completeness.isComplete
+                                            ? `With ${completeness.activityCount} activities logged, this is a provisional read. Filling out your list will move it more than any single entry will.`
+                                            : `${selectedSchool.matchDetail.limitingPillar} is the pillar holding this score back.`}
+                                    </p>
+                                </div>
+                             )}
 
                              <div className="space-y-5">
                                  {['Inquiry', 'Service', 'Teamwork', 'Clinical'].map((category) => {

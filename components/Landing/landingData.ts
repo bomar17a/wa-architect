@@ -116,10 +116,10 @@ export const FIT_PANEL = {
         'Social-justice focused schools valuing distance traveled, community service, and health equity.',
     body: '175 MD programs, each with the mission statement the school publishes. Star up to five and every entry you write gets rated against those five.',
     radarNote: 'The dashed line is the archetype target, not an admitted-student average.',
-    /** Matches SCHOOL_ARCHETYPES['The Advocate'] targets in MissionFitRadar.tsx. */
+    /** Matches SCHOOL_ARCHETYPES['The Advocate'] targets in utils/missionFit.ts. */
     radar: [
-        { subject: 'Inquiry', student: 8.2, target: 4 },
-        { subject: 'Service', student: 7.4, target: 10 },
+        { subject: 'Inquiry', student: 6.1, target: 4.5 },
+        { subject: 'Service', student: 7.4, target: 9 },
         { subject: 'Teamwork', student: 5.1, target: 7 },
         { subject: 'Clinical', student: 6.0, target: 7 },
     ],

@@ -9,10 +9,36 @@ import {
   Tooltip as RechartsTooltip,
   Legend
 } from 'recharts';
-import { Info, Building, ArrowRight, Search, Zap } from 'lucide-react';
+import { Building, ArrowRight, Search, Zap } from 'lucide-react';
 import { Activity } from '../types';
 import { supabase } from '../services/supabase';
 import { useProfile } from '../contexts/ProfileContext';
+import {
+  computeCompetency,
+  computeCompleteness,
+  computeMatch,
+  bestFitArchetype,
+  hoursToReach,
+  SCHOOL_ARCHETYPES,
+  type Pillar,
+} from '../utils/missionFit';
+
+// The scoring engine lives in utils/missionFit.ts so the recommender, the readiness
+// score, and the calibration harness all read from one source. Re-exported here
+// because several components already import it from this path.
+export {
+  milestone,
+  calcDurationMonths,
+  computeCompetency,
+  computeCompetencyScores,
+  computeCompleteness,
+  computeMatch,
+  bestFitArchetype,
+  hoursToReach,
+  SCHOOL_ARCHETYPES,
+  PILLARS,
+} from '../utils/missionFit';
+export type { PillarScores, Pillar, CompetencyResult, MatchResult, Completeness } from '../utils/missionFit';
 
 interface MissionFitRadarProps {
   activities: Activity[];
@@ -20,382 +46,43 @@ interface MissionFitRadarProps {
   onNavigateToRecommender?: () => void;
 }
 
-// --- 1. The Mission Math Engine (v2) ---
-//
-// Each pillar is scored 0–10 against AAMC-researched hour milestones
-// for a competitive applicant cycle. Bonus signals layer on top.
-//
-// Milestones (hours → points):
-//   Clinical:  50→2  100→4  200→6  300→8  500+→10  (shadowing at 0.25× weight)
-//   Research:  50→2  100→4  200→6  350→8  500+→10
-//   Service:   30→2   75→4  150→6  250→8  400+→10  (med volunteering at 0.5× weight)
-//   Teamwork:  50→2  100→4  200→6  300→8  400+→10  (non-med employment at 0.5×)
-//
-// Bonuses (capped at 2pts per pillar):
-//   - Per-type bonuses fire ONCE per pillar (Set-guarded)
-//   - Per-activity bonuses (MME, competency tags) fire per activity
-//   - Longitudinal bonus: +0.25 for activities spanning 12+ months
-//   - Narrative quality: +0.1 per "Final" status activity
-
-export function milestone(hours: number, breaks: [number, number][]): number {
-  for (let i = breaks.length - 1; i >= 0; i--) {
-    if (hours >= breaks[i][0]) {
-      if (i === breaks.length - 1) return breaks[i][1];
-      const lo = breaks[i], hi = breaks[i + 1];
-      const frac = (hours - lo[0]) / (hi[0] - lo[0]);
-      return lo[1] + frac * (hi[1] - lo[1]);
-    }
-  }
-  return 0;
-}
-
-// Helper: calculate duration in months from date ranges
-export function calcDurationMonths(dateRanges: Activity['dateRanges']): number {
-  const MONTH_MAP: Record<string, number> = {
-    January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
-    July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
-  };
-  let earliest = Infinity;
-  let latest = -Infinity;
-  dateRanges.forEach(r => {
-    const startM = MONTH_MAP[r.startDateMonth] ?? 0;
-    const startY = parseInt(r.startDateYear) || 0;
-    let endM = MONTH_MAP[r.endDateMonth] ?? 0;
-    let endY = parseInt(r.endDateYear) || 0;
-    
-    // For ongoing activities, default to current month/year
-    if (endY === 0) {
-      const now = new Date();
-      endY = now.getFullYear();
-      endM = now.getMonth();
-    }
-
-    if (startY > 0) earliest = Math.min(earliest, startY * 12 + startM);
-    if (endY > 0) latest = Math.max(latest, endY * 12 + endM);
-  });
-  if (earliest === Infinity || latest === -Infinity) return 0;
-  return Math.max(0, latest - earliest);
-}
-
-export interface PillarScores {
-  Inquiry: number;
-  Service: number;
-  Teamwork: number;
-  Clinical: number;
-}
-
-// ── Extracted pure function: usable by both hooks and plain functions ──
-export function computeCompetencyScores(activities: Activity[]): PillarScores {
-  let clinicalHours = 0;
-  let researchHours = 0;
-  let serviceHours = 0;
-  let teamworkHours = 0;
-  let clinicalBonus = 0;
-  let researchBonus = 0;
-  let serviceBonus = 0;
-  let teamworkBonus = 0;
-  let mmeProcessed = 0; // MME Spam Guard
-
-  // Set-based guards for per-type bonuses (fire once per pillar)
-  const researchTypeBonuses = new Set<string>();
-  const teamworkTypeBonuses = new Set<string>();
-
-  const filledActivities = activities.filter(a => a.status !== 'Empty' && a.experienceType);
-
-  filledActivities.forEach((act) => {
-    let hours = act.dateRanges.reduce((sum, r) => {
-      let rHours = Math.max(parseInt(r.hours) || 0, 0);
-      if (r.isAnticipated) {
-        rHours *= 0.25; // Apply 0.25x discount to future anticipated hours
-      }
-      return sum + rHours;
-    }, 0);
-    const durationMonths = calcDurationMonths(act.dateRanges);
-
-    // Impossible Hours Guard: Max 80 hours/week (approx 340 hours/month)
-    hours = Math.min(hours, Math.max(1, durationMonths) * 340);
-
-    const type = act.experienceType;
-    const desc = [act.description, act.mmeEssay, act.mmeAction, act.mmeResult].filter(Boolean).join(' ').toLowerCase();
-    const comps = act.competencies || [];
-
-    // MME Spam Guard: Enforce AMCAS limit of 3 MMEs for bonuses
-    let isActMME = false;
-    if (act.isMostMeaningful) {
-      if (mmeProcessed < 3) {
-        isActMME = true;
-        mmeProcessed++;
-      }
-    }
-
-    // ── SHADOWING (separate from hands-on clinical) ──────────────
-    const isShadowing = type === 'Physician Shadowing/Clinical Observation';
-
-    // ── CLINICAL pillar ──────────────────────────────────────────
-    const isHandsOnClinical =
-      type === 'Paid Employment - Medical/Clinical' ||
-      type === 'Healthcare Experience';              // AACOMAS
-
-    // Medical volunteering: full hours → Clinical, 0.5× → Service (fixes double-count)
-    const isMedicalVolunteer = type === 'Community Service/Volunteer - Medical/Clinical';
-
-    if (isHandsOnClinical) {
-      clinicalHours += hours;
-      if (type === 'Paid Employment - Medical/Clinical') clinicalBonus += 0.5;
-      if (isActMME) clinicalBonus += 0.5;
-      if (comps.some(c => c.includes('Reliability') || c.includes('Service'))) clinicalBonus += 0.25;
-      if (durationMonths >= 12) clinicalBonus += 0.25; // longitudinal signal
-    }
-
-    if (isMedicalVolunteer) {
-      clinicalHours += hours;          // full credit to Clinical
-      serviceHours += hours * 0.5;     // half credit to Service (volunteering component)
-      if (isActMME) { clinicalBonus += 0.5; serviceBonus += 0.5; }
-      if (comps.some(c => c.includes('Reliability') || c.includes('Service'))) clinicalBonus += 0.25;
-      if (comps.some(c => c.includes('Cultural') || c.includes('Service'))) serviceBonus += 0.25;
-      if (durationMonths >= 12) { clinicalBonus += 0.25; serviceBonus += 0.25; }
-    }
-
-    if (isShadowing) {
-      // Shadowing Diminishing Returns: Cap raw hours at 150 per activity
-      const cappedShadowing = Math.min(hours, 150);
-      clinicalHours += cappedShadowing * 0.25;   // shadowing at 0.25× weight
-      clinicalBonus += 0.5;            // flat bonus: having shadowing at all matters
-      if (isActMME) clinicalBonus += 0.25;
-    }
-
-    // Depth signal from description keywords
-    if ((isHandsOnClinical || isMedicalVolunteer) &&
-        (desc.includes('patient') || desc.includes('clinic') || desc.includes('hospital'))) {
-      clinicalBonus += 0.25;
-    }
-
-    // Narrative quality: Final status activities boost their pillar
-    const isFinal = act.status === 'Final';
-
-    if ((isHandsOnClinical || isMedicalVolunteer || isShadowing) && isFinal) clinicalBonus += 0.1;
-
-    // ── RESEARCH pillar ──────────────────────────────────────────
-    const isResearch = type === 'Research/Lab' || type === 'Research';
-
-    if (isResearch) {
-      researchHours += hours;
-      if (isActMME) researchBonus += 0.5;
-      if (comps.some(c => c.includes('Scientific') || c.includes('Critical'))) researchBonus += 0.25;
-      if (durationMonths >= 12) researchBonus += 0.25;
-      if (isFinal) researchBonus += 0.1;
-    }
-
-    // Publications / Posters / Presentations: SET-GUARDED (fire once per type)
-    if (type === 'Publications' && !researchTypeBonuses.has('publication')) {
-      researchBonus += 1.0; researchTypeBonuses.add('publication');
-    }
-    if (type === 'Presentations/Posters' && !researchTypeBonuses.has('poster')) {
-      researchBonus += 1.0; researchTypeBonuses.add('poster');
-    }
-    // Description-based publication signal (once)
-    if (!researchTypeBonuses.has('desc_pub') &&
-        (desc.includes('publication') || desc.includes('published') ||
-         desc.includes('first author') || desc.includes('co-author'))) {
-      researchBonus += 0.75; researchTypeBonuses.add('desc_pub');
-    }
-    if (!researchTypeBonuses.has('desc_poster') && desc.includes('poster') && type !== 'Presentations/Posters') {
-      researchBonus += 0.5; researchTypeBonuses.add('desc_poster');
-    }
-    if (type === 'Conferences Attended' && !researchTypeBonuses.has('conference')) {
-      researchBonus += 0.25; researchTypeBonuses.add('conference');
-    }
-
-    // ── SERVICE pillar ───────────────────────────────────────────
-    // Non-medical volunteering (medical volunteering handled above with split)
-    const isNonMedService =
-      type === 'Community Service/Volunteer - Not Medical/Clinical' ||
-      type === 'Non-Healthcare Volunteer';
-
-    if (isNonMedService) {
-      serviceHours += hours;
-      if (isActMME) serviceBonus += 0.75;
-      if (comps.some(c => c.includes('Cultural') || c.includes('Service'))) serviceBonus += 0.25;
-      if (desc.includes('director') || desc.includes('led') || desc.includes('founded') || desc.includes('president')) serviceBonus += 0.5;
-      if (durationMonths >= 12) serviceBonus += 0.25;
-      if (isFinal) serviceBonus += 0.1;
-    }
-
-    // ── TEAMWORK pillar ──────────────────────────────────────────
-    const isTeamwork =
-      type === 'Leadership - Not Listed Elsewhere' ||
-      type === 'Leadership Experience' ||
-      type === 'Military Service' ||
-      type === 'Intercollegiate Athletics' ||
-      type === 'Extracurricular Activities' ||
-      type === 'Teaching/Tutoring/Teaching Assistant' ||
-      type === 'Teaching Experience';
-
-    if (isTeamwork) {
-      teamworkHours += hours;
-      // Per-type bonuses: SET-GUARDED (fire once)
-      if ((type === 'Leadership - Not Listed Elsewhere' || type === 'Leadership Experience') && !teamworkTypeBonuses.has('leadership')) {
-        teamworkBonus += 1.0; teamworkTypeBonuses.add('leadership');
-      }
-      if (type === 'Military Service' && !teamworkTypeBonuses.has('military')) {
-        teamworkBonus += 1.0; teamworkTypeBonuses.add('military');
-      }
-      if (type === 'Intercollegiate Athletics' && !teamworkTypeBonuses.has('athletics')) {
-        teamworkBonus += 0.75; teamworkTypeBonuses.add('athletics');
-      }
-      // Per-activity bonuses (these CAN fire per activity)
-      if (isActMME) teamworkBonus += 0.5;
-      if (comps.some(c => c.includes('Teamwork') || c.includes('Oral') || c.includes('Social'))) teamworkBonus += 0.25;
-      if (desc.includes('captain') || desc.includes('president') || desc.includes('chair') || desc.includes('founded') || desc.includes('managed')) teamworkBonus += 0.25;
-      if (durationMonths >= 12) teamworkBonus += 0.25;
-      if (isFinal) teamworkBonus += 0.1;
-    }
-
-    // ── NON-MEDICAL EMPLOYMENT → partial Teamwork credit ─────────
-    const isNonMedEmployment =
-      type === 'Paid Employment - Not Medical/Clinical' ||
-      type === 'Non-Healthcare Employment';
-
-    if (isNonMedEmployment) {
-      teamworkHours += hours;    // Equity fix: Full 1.0x weight for non-healthcare employment
-      if (durationMonths >= 12) teamworkBonus += 0.25;
-      if (isFinal) teamworkBonus += 0.1;
-    }
-
-    // ── HOBBIES & ARTISTIC ENDEAVORS → small Teamwork credit ─────
-    const isHobbyArt = type === 'Hobbies' || type === 'Artistic Endeavors';
-    if (isHobbyArt) {
-      teamworkHours += hours * 0.25;   // 0.25× weight
-      if (!teamworkTypeBonuses.has('hobby_art')) {
-        teamworkBonus += 0.25;         // flat bonus for having humanistic interests
-        teamworkTypeBonuses.add('hobby_art');
-      }
-    }
-  });
-
-  // ── Convert hours → 0–10 via milestone curves ─────────────────
-  const clinicalBase  = milestone(clinicalHours,  [[0,0],[50,2],[100,4],[200,6],[300,8],[500,10]]);
-  const researchBase  = milestone(researchHours,  [[0,0],[50,2],[100,4],[200,6],[350,8],[500,10]]);
-  const serviceBase   = milestone(serviceHours,   [[0,0],[30,2],[75,4],[150,6],[250,8],[400,10]]);
-  const teamworkBase  = milestone(teamworkHours,  [[0,0],[50,2],[100,4],[200,6],[300,8],[400,10]]);
-
-  const clampB = (b: number) => Math.min(b, 2);
-
-  return {
-    Inquiry:  Math.min(Math.round((researchBase  + clampB(researchBonus))  * 10) / 10, 10),
-    Service:  Math.min(Math.round((serviceBase   + clampB(serviceBonus))   * 10) / 10, 10),
-    Teamwork: Math.min(Math.round((teamworkBase  + clampB(teamworkBonus))  * 10) / 10, 10),
-    Clinical: Math.min(Math.round((clinicalBase  + clampB(clinicalBonus))  * 10) / 10, 10),
-  };
-}
-
-// Hook wrapper for React components
 export const useCompetencyScores = (activities: Activity[]) => {
-  return useMemo(() => computeCompetencyScores(activities), [activities]);
+  return useMemo(() => computeCompetency(activities).scores, [activities]);
 };
-
-// --- 2. The Archetype Data ---
-export const SCHOOL_ARCHETYPES = [
-  {
-    id: 'Investigator',
-    name: 'The Investigator',
-    dbCategory: 'The Investigator',
-    description: 'Top-tier academic centers valuing innovation, publications, and basic science.',
-    color: 'bg-indigo-50 border-indigo-100 text-indigo-700',
-    activeColor: 'bg-indigo-600 text-white',
-    targets: { Inquiry: 10, Service: 5, Teamwork: 6, Clinical: 7 },
-  },
-  {
-    id: 'Advocate',
-    name: 'The Advocate',
-    dbCategory: 'The Advocate',
-    description: 'Social-justice focused schools valuing distance traveled, community service, and health equity.',
-    color: 'bg-emerald-50 border-emerald-100 text-emerald-700',
-    activeColor: 'bg-emerald-600 text-white',
-    targets: { Inquiry: 4, Service: 10, Teamwork: 7, Clinical: 7 },
-  },
-  {
-    id: 'Practitioner',
-    name: 'The Practitioner',
-    dbCategory: 'The Practitioner',
-    description: 'Primary care & regional focused; values hands-on clinical reliability.',
-    color: 'bg-amber-50 border-amber-100 text-amber-700',
-    activeColor: 'bg-amber-500 text-white',
-    targets: { Inquiry: 3, Service: 8, Teamwork: 10, Clinical: 10 },
-  },
-  {
-    id: 'Innovator',
-    name: 'The Innovator',
-    dbCategory: 'The Innovator',
-    description: 'Focuses on systems-level changes, tech, healthcare administration, and entrepreneurship.',
-    color: 'bg-sky-50 border-sky-100 text-sky-700',
-    activeColor: 'bg-sky-500 text-white',
-    targets: { Inquiry: 7, Service: 6, Teamwork: 9, Clinical: 7 },
-  },
-  {
-    id: 'Leader',
-    name: 'The Leader',
-    dbCategory: 'The Leader',
-    description: 'Focuses on public policy, advocacy at the structural level, and organized medicine.',
-    color: 'bg-rose-50 border-rose-100 text-rose-700',
-    activeColor: 'bg-rose-500 text-white',
-    targets: { Inquiry: 5, Service: 8, Teamwork: 10, Clinical: 8 },
-  },
-  {
-    id: 'Balanced',
-    name: 'The Balanced',
-    dbCategory: 'The Balanced',
-    description: 'Well-rounded programs valuing equal depth across all four pillars with no single dominant emphasis.',
-    color: 'bg-slate-50 border-slate-200 text-slate-700',
-    activeColor: 'bg-slate-700 text-white',
-    targets: { Inquiry: 7, Service: 7, Teamwork: 7, Clinical: 7 },
-  }
-];
 
 const HERO_TARGET = {
   name: 'Competitive Benchmark',
-  targets: { Inquiry: 7, Service: 8, Teamwork: 7, Clinical: 8 }
+  targets: { Inquiry: 6.5, Service: 6.5, Teamwork: 6.5, Clinical: 7 },
+};
+
+const GAP_TIPS: Record<Pillar, string> = {
+  Inquiry: 'research or lab hours',
+  Service: 'community service hours',
+  Teamwork: 'leadership, teaching, or team hours',
+  Clinical: 'hands-on clinical hours',
 };
 
 // --- 3. The Component ---
 export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, variant = 'default', onNavigateToRecommender }) => {
   const { profile } = useProfile();
-  const studentScores = useCompetencyScores(activities);
+  const { scores: studentScores, hours: pillarHours } = useMemo(() => computeCompetency(activities), [activities]);
+  const completeness = useMemo(() => computeCompleteness(activities), [activities]);
 
   const [activeArchetypeId, setActiveArchetypeId] = useState<string>('');
   const [schools, setSchools] = useState<any[]>([]);
   const [loadingSchools, setLoadingSchools] = useState(false);
 
-  // Auto-detect best fit on mount or when scores change
+  // Pick the starting archetype once, from the onboarding "North Star" if the user
+  // set one. Deliberately not re-run when scores change: the toggles are the user's
+  // to drive, and yanking the selected archetype out from under them mid-edit would
+  // be worse than leaving a stale pick they can change themselves.
   useEffect(() => {
-    let bestMatchId = SCHOOL_ARCHETYPES[0].id;
-    let highestScore = -Infinity;
-
-    SCHOOL_ARCHETYPES.forEach(arch => {
-      const pillars = ['Inquiry', 'Service', 'Teamwork', 'Clinical'] as const;
-      const dot = pillars.reduce((sum, p) => sum + (studentScores[p] * arch.targets[p]), 0);
-      const sMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(studentScores[p], 2), 0));
-      const aMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(arch.targets[p], 2), 0));
-      
-      const cos = (sMag > 0 && aMag > 0) ? dot / (sMag * aMag) : 0;
-      const magRatio = aMag > 0 ? Math.min(sMag / aMag, 1.0) : 1.0;
-      const score = cos * magRatio;
-
-      if (score > highestScore) {
-        highestScore = score;
-        bestMatchId = arch.id;
-      }
-    });
-
-    if (!activeArchetypeId) {
-      // Prefer the user's onboarding "North Star" pick over the auto-detected best
-      // fit, if they set one and it's still a valid archetype id.
-      const northStar = profile?.northStarArchetypes?.[0];
-      const initialId = northStar && SCHOOL_ARCHETYPES.some(a => a.id === northStar)
-        ? northStar
-        : bestMatchId;
-      setActiveArchetypeId(initialId);
-    }
+    if (activeArchetypeId) return;
+    const northStar = profile?.northStarArchetypes?.[0];
+    const initialId = northStar && SCHOOL_ARCHETYPES.some(a => a.id === northStar)
+      ? northStar
+      : bestFitArchetype(studentScores).id;
+    setActiveArchetypeId(initialId);
   }, [studentScores, activeArchetypeId, profile]);
 
   const activeArchetype = useMemo(() => {
@@ -492,32 +179,18 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
     { subject: 'Clinical', student: studentScores.Clinical, school: activeArchetype.targets.Clinical, fullMark: 10 },
   ];
 
-  const gaps = [
-    { subject: 'Inquiry', need: activeArchetype.targets.Inquiry - studentScores.Inquiry, tip: 'log more research entries, lab hours, or aim for a publication.' },
-    { subject: 'Service', need: activeArchetype.targets.Service - studentScores.Service, tip: 'increase your community service and volunteering hours.' },
-    { subject: 'Teamwork', need: activeArchetype.targets.Teamwork - studentScores.Teamwork, tip: 'take on leadership roles, sports, or military experiences.' },
-    { subject: 'Clinical', need: activeArchetype.targets.Clinical - studentScores.Clinical, tip: 'seek more shadowing, scribing, or direct patient care exposure.' }
-  ].filter(g => g.need > 0);
+  // Deficits are reported in hours rather than points, because "you are 7.0 points
+  // short on Clinical" is not something anyone can act on.
+  const gaps = (['Inquiry', 'Service', 'Teamwork', 'Clinical'] as Pillar[])
+    .map(p => {
+      const need = activeArchetype.targets[p] - studentScores[p];
+      const hoursNeeded = Math.max(0, hoursToReach(p, activeArchetype.targets[p]) - Math.round(pillarHours[p]));
+      return { subject: p, need, hoursNeeded, tip: GAP_TIPS[p] };
+    })
+    .filter(g => g.need > 0)
+    .sort((a, b) => b.need - a.need);
 
-  const maxPossibleScore = activeArchetype.targets.Inquiry + activeArchetype.targets.Service + activeArchetype.targets.Teamwork + activeArchetype.targets.Clinical;
-
-  // Cosine Similarity + Magnitude Ratio Match
-  // 1. Calculate how well the "shape" of the student matches the "shape" of the school (Cosine Similarity)
-  // 2. Calculate if the student has "enough" volume for the school (Magnitude Ratio, capped at 1.0)
-  const pillars = ['Inquiry','Service','Teamwork','Clinical'] as const;
-  
-  const dotProduct = pillars.reduce((sum, p) => sum + (studentScores[p] * activeArchetype.targets[p]), 0);
-  const studentMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(studentScores[p], 2), 0));
-  const archetypeMag = Math.sqrt(pillars.reduce((sum, p) => sum + Math.pow(activeArchetype.targets[p], 2), 0));
-  
-  let cosineSimilarity = 0;
-  if (studentMag > 0 && archetypeMag > 0) {
-    cosineSimilarity = dotProduct / (studentMag * archetypeMag);
-  }
-  
-  const magnitudeRatio = archetypeMag > 0 ? Math.min(studentMag / archetypeMag, 1.0) : 1.0;
-  
-  const matchPercentage = Math.round((cosineSimilarity * magnitudeRatio) * 100);
+  const match = computeMatch(studentScores, activeArchetype.targets, completeness.factor);
 
   return (
     <div className="w-full space-y-6 animate-fade-in">
@@ -560,8 +233,15 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
               <h3 className="font-bold text-slate-800 text-base sm:text-lg">{activeArchetype.name}</h3>
               <p className="text-xs sm:text-sm text-slate-500 max-w-md">{activeArchetype.description}</p>
             </div>
-            <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-black tracking-tight border border-emerald-100 self-start sm:self-auto shrink-0">
-              {matchPercentage}% Match
+            <div className="flex flex-col items-start sm:items-end gap-1 self-start sm:self-auto shrink-0">
+              <div className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-black tracking-tight border border-emerald-100">
+                {match.match}% Match
+              </div>
+              {!completeness.isComplete && (
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                  {completeness.activityCount} of 15 activities — provisional
+                </span>
+              )}
             </div>
           </div>
 
@@ -597,10 +277,16 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
                 {gaps.map(g => (
                   <div key={g.subject} className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-slate-700 text-sm">{g.subject} Deficit</span>
-                      <span className="text-rose-500 text-xs font-black">-{g.need.toFixed(1)} pts</span>
+                      <span className="font-bold text-slate-700 text-sm">{g.subject}</span>
+                      <span className="text-rose-500 text-xs font-black">
+                        {g.hoursNeeded > 0 ? `~${g.hoursNeeded.toLocaleString()}h short` : `-${g.need.toFixed(1)} pts`}
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">To improve, {g.tip}</p>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      {g.hoursNeeded > 0
+                        ? `About ${g.hoursNeeded.toLocaleString()} more ${g.tip} would reach this archetype's target.`
+                        : `Add depth here: ${g.tip}.`}
+                    </p>
                   </div>
                 ))}
               </div>
