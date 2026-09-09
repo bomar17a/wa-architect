@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, ApplicationType, ActivityStatus, ThemeAnalysis } from '../types.ts';
+import { Activity, ApplicationType, ActivityStatus } from '../types.ts';
 import { AAMC_CORE_COMPETENCIES, DESC_LIMITS } from '../constants.ts';
 import { MissionFitRadar } from './MissionFitRadar.tsx';
 import { SchoolRecommender } from './SchoolRecommender.tsx';

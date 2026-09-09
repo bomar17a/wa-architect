@@ -91,9 +91,6 @@ serve(async (req) => {
             case 'parse-msar':
                 result = await handleParseMsar(payload, flashModel, generateWithRetry);
                 break;
-            case 'theme-analysis':
-                result = await handleThemeAnalysis(payload, liteModel, generateWithRetry);
-                break;
             case 'interview-questions':
                 result = await handleInterviewQuestions(payload, liteModel, generateWithRetry);
                 break;
@@ -103,8 +100,11 @@ serve(async (req) => {
             case 'school-alignment':
                 result = await handleSchoolAlignment(payload, liteModel, generateWithRetry);
                 break;
+            // Scores one entry against a fixed rubric into a constrained JSON schema.
+            // That is exactly the shaped-extraction job flash-lite is for, and the
+            // response schema does the structural work the bigger model was paying for.
             case 'narrative-quality':
-                result = await handleNarrativeQuality(payload, flashModel, generateWithRetry);
+                result = await handleNarrativeQuality(payload, liteModel, generateWithRetry);
                 break;
             default:
                 throw new Error(`Unknown action: ${action} `);
@@ -605,42 +605,5 @@ async function handleNarrativeQuality(payload: any, model: any, retryFn: any) {
         }
     }));
 
-    return JSON.parse(result_raw.response.text());
-}
-
-async function handleThemeAnalysis(payload: any, model: any, retryFn: any) {
-    const { activities } = payload;
-    const activityTexts = activities
-        .map((a: any) => `Activity ID ${a.id}: ${a.description} `)
-        .join('\n\n');
-
-    const prompt = `Analyze these medical school activities for AAMC Core Competencies.
-Descriptions: ${activityTexts}
-      Return top 5 - 7 competencies in JSON.
-      `;
-
-    const result_raw = await retryFn(() => model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: "OBJECT",
-                properties: {
-                    overallSummary: { type: "STRING" },
-                    analysis: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                competency: { type: "STRING" },
-                                relatedActivityIds: { type: "ARRAY", items: { type: "NUMBER" } },
-                                summary: { type: "STRING" }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }));
     return JSON.parse(result_raw.response.text());
 }

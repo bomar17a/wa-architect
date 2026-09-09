@@ -62,17 +62,6 @@ export interface ArchitectAnalysis {
   };
 }
 
-export interface CompetencyAnalysis {
-  competency: string;
-  relatedActivityIds: number[];
-  summary: string;
-}
-
-export interface ThemeAnalysis {
-  overallSummary: string;
-  analysis: CompetencyAnalysis[];
-}
-
 export interface InterviewQuestion {
   question: string;
   whyAsked: string;

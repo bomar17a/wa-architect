@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
+import { clearAiCache } from '../services/aiCache';
 
 interface AuthContextType {
     session: Session | null;
@@ -64,6 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [session]);
 
     const signOut = async () => {
+        // Cached AI results are per-user, but don't leave them on a shared browser.
+        clearAiCache();
         await supabase.auth.signOut();
     };
 

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, BookOpen, Loader2, AlertTriangle, Sparkles, Copy as CopyIcon, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { X, BookOpen, Loader2, AlertTriangle, Sparkles, Copy as CopyIcon, TrendingUp, RefreshCw } from 'lucide-react';
 import { Activity, StoryAnalysis } from '../../types';
 import * as geminiService from '../../services/geminiService';
 
@@ -11,27 +11,44 @@ interface StoryAnalysisModalProps {
 export const StoryAnalysisModal: React.FC<StoryAnalysisModalProps> = ({ activities, onClose }) => {
     const [analysis, setAnalysis] = useState<StoryAnalysis | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isStale, setIsStale] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const cancelledRef = useRef(false);
 
-    useEffect(() => {
-        let cancelled = false;
-        const run = async () => {
-            try {
-                const result = await geminiService.getStoryAnalysis(activities);
-                if (!cancelled) setAnalysis(result);
-            } catch (e: any) {
-                if (!cancelled) {
-                    setError(e.message === 'AUTH_REQUIRED'
-                        ? 'You must be logged in to use AI features.'
-                        : (e.message || 'Failed to analyze your application story.'));
-                }
-            } finally {
-                if (!cancelled) setIsLoading(false);
+    const run = useCallback(async (force: boolean) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const result = await geminiService.getStoryAnalysis(activitiesRef.current, force);
+            if (!cancelledRef.current) { setAnalysis(result); setIsStale(false); }
+        } catch (e: any) {
+            if (!cancelledRef.current) {
+                setError(e.message === 'AUTH_REQUIRED'
+                    ? 'You must be logged in to use AI features.'
+                    : (e.message || 'Failed to analyze your application story.'));
             }
-        };
-        run();
-        return () => { cancelled = true; };
+        } finally {
+            if (!cancelledRef.current) setIsLoading(false);
+        }
+    }, []);
+
+    // Read activities through a ref so editing an entry while the modal is open
+    // does not re-fire the analysis. The previous effect depended on the
+    // `activities` array itself, so any new array identity from the parent
+    // triggered another paid call the user never asked for.
+    const activitiesRef = useRef(activities);
+    useEffect(() => {
+        if (activitiesRef.current !== activities) setIsStale(true);
+        activitiesRef.current = activities;
     }, [activities]);
+
+    // Opening the modal is the user asking for this, so it runs once. Repeat
+    // opens on unchanged entries are served from cache and cost nothing.
+    useEffect(() => {
+        cancelledRef.current = false;
+        run(false);
+        return () => { cancelledRef.current = true; };
+    }, [run]);
 
     const titleFor = (id: number) => activities.find(a => a.id === id)?.title || `Activity ${id}`;
 
@@ -137,10 +154,22 @@ export const StoryAnalysisModal: React.FC<StoryAnalysisModalProps> = ({ activiti
                     )}
                 </div>
 
-                <div className="px-6 py-3 border-t border-slate-100 bg-white">
+                <div className="px-6 py-3 border-t border-slate-100 bg-white flex items-center justify-between gap-4">
                     <p className="text-[10px] text-slate-400 leading-relaxed">
                         AI-generated strategic feedback. Treat it as one advisor's read, not a verdict — you know your story best.
                     </p>
+                    {analysis && !isLoading && (
+                        <button
+                            onClick={() => run(true)}
+                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors border ${isStale
+                                ? 'bg-brand-gold/15 text-amber-700 border-brand-gold/40 hover:bg-brand-gold/25'
+                                : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-brand-teal hover:border-brand-teal/40'}`}
+                            title={isStale ? 'Your entries changed since this analysis' : 'Run a fresh analysis'}
+                        >
+                            <RefreshCw className="w-3 h-3" />
+                            {isStale ? 'Entries changed — re-analyze' : 'Re-analyze'}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

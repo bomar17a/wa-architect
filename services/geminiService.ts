@@ -1,6 +1,7 @@
 
 import { supabase, supabaseAnonKey } from "./supabase.ts";
-import { Activity, RewriteType, ArchitectAnalysis, ThemeAnalysis, InterviewQuestion, StoryAnalysis, SchoolAlignment, AiNarrativeQuality } from "../types.ts";
+import { readCache, writeCache, invalidate } from "./aiCache.ts";
+import { Activity, RewriteType, ArchitectAnalysis, InterviewQuestion, StoryAnalysis, SchoolAlignment, AiNarrativeQuality } from "../types.ts";
 import { DESC_LIMITS, MME_LIMIT, AAMC_CORE_COMPETENCIES } from "../constants.ts";
 
 export const checkUserAuth = async () => {
@@ -46,12 +47,25 @@ const throwIfEdgeFunctionError = async (error: any) => {
  *   2. x-user-token: <access_token>     — verified inside the edge function via
  *      JWT_SECRET, proving the caller is a real, non-expired logged-in user.
  */
-const invokeEdgeFunction = async (body: object): Promise<{ data: any; error: any }> => {
+const invokeEdgeFunction = async (
+  body: { action: string; payload: any },
+  opts: { force?: boolean } = {},
+): Promise<{ data: any; error: any }> => {
   const EDGE_FUNCTION_URL =
     'https://jitzwwxsnpylaistotgq.supabase.co/functions/v1/gemini-ai';
 
   // Get the live session — throws AUTH_REQUIRED if logged out
   const session = await checkUserAuth();
+  const userId = session.user?.id ?? 'anon';
+
+  // Identical input has already been paid for. Cached per user, so results are
+  // never served across accounts on a shared browser.
+  if (opts.force) {
+    invalidate(body.action, body.payload, userId);
+  } else {
+    const cached = readCache<any>(body.action, body.payload, userId);
+    if (cached !== null) return { data: cached, error: null };
+  }
 
   let response: Response;
   try {
@@ -81,6 +95,7 @@ const invokeEdgeFunction = async (body: object): Promise<{ data: any; error: any
   }
 
   const data = await response.json();
+  writeCache(body.action, body.payload, userId, data);
   return { data, error: null };
 };
 
@@ -129,24 +144,6 @@ export const synthesizeMmeEssay = async (baseDescription: string, action: string
   }
 };
 
-export const analyzeThemes = async (activities: Activity[]): Promise<ThemeAnalysis> => {
-  try {
-    const { data, error } = await invokeEdgeFunction({
-      action: 'theme-analysis',
-      payload: { activities }
-    });
-
-    await throwIfEdgeFunctionError(error);
-    return data as ThemeAnalysis;
-  } catch (error) {
-    console.error("Error analyzing themes:", error);
-    return {
-      overallSummary: "Error analyzing activities. Please check your network and try again.",
-      analysis: []
-    };
-  }
-};
-
 /**
  * The deployed edge function rejects unknown actions with "Unknown action: <name>".
  * Until `supabase functions deploy gemini-ai` is run with the newer actions, surface
@@ -183,7 +180,7 @@ export const getInterviewQuestions = async (activity: Activity): Promise<Intervi
   }
 };
 
-export const getStoryAnalysis = async (activities: Activity[]): Promise<StoryAnalysis> => {
+export const getStoryAnalysis = async (activities: Activity[], force = false): Promise<StoryAnalysis> => {
   try {
     const { data, error } = await invokeEdgeFunction({
       action: 'story-analysis',
@@ -197,7 +194,7 @@ export const getStoryAnalysis = async (activities: Activity[]): Promise<StoryAna
           totalHours: a.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0),
         }))
       }
-    });
+    }, { force });
 
     await throwIfEdgeFunctionError(error);
     return data as StoryAnalysis;
