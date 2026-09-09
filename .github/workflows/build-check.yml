@@ -18,7 +18,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 24, not 20: the harnesses below are .ts files run directly, which
+          # relies on Node's native type stripping.
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -26,3 +28,21 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Each of these guards a number the app shows a user, and each one is here
+      # because the failure it catches is silent. None of them need network or
+      # database access.
+      - name: Scoring calibration
+        run: node scripts/calibrate-scoring.ts
+
+      - name: AI cache correctness
+        run: node scripts/verify-ai-cache.ts
+
+      - name: Exemplar corpus audit
+        run: node --experimental-transform-types scripts/audit-exemplars.ts
+
+      # Catches a corpus field that reaches neither the table nor an explicit
+      # audit-only declaration — the way anchor_set went missing, which cost the
+      # narrative-quality holdout its meaning without anything failing.
+      - name: Exemplar schema drift
+        run: node scripts/db/seed-exemplars.mjs --dry-run
