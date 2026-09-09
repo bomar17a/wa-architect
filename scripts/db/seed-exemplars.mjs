@@ -31,9 +31,10 @@ const UPSERT = `
     total_hours, hours_as_published, is_most_meaningful,
     description, mme_remarks, quality_band,
     pillars, competencies, techniques, defects, curator_note,
-    anchor_specificity, anchor_quantification, anchor_reflection, anchor_voice
+    anchor_specificity, anchor_quantification, anchor_reflection, anchor_voice,
+    anchor_set
   ) VALUES (
-    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22
+    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
   )
   ON CONFLICT (slug) DO UPDATE SET
     source = EXCLUDED.source,
@@ -57,6 +58,7 @@ const UPSERT = `
     anchor_quantification = EXCLUDED.anchor_quantification,
     anchor_reflection = EXCLUDED.anchor_reflection,
     anchor_voice = EXCLUDED.anchor_voice,
+    anchor_set = EXCLUDED.anchor_set,
     updated_at = NOW()
 `;
 
@@ -70,6 +72,10 @@ const params = (e) => [
   e.anchor_scores?.quantification ?? null,
   e.anchor_scores?.reflection ?? null,
   e.anchor_scores?.voiceAuthenticity ?? null,
+  // Carries the tune/holdout split through. Without it the retrieval cannot keep
+  // holdout entries out of prompts, and reporting the two sets against each other
+  // stops measuring what _meta.anchor_sets says it measures.
+  e.anchor_set ?? null,
 ];
 
 if (dryRun) {

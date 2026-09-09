@@ -166,12 +166,16 @@ const EXEMPLAR_COLUMNS =
  */
 async function fetchExemplars(
     supabaseAdmin: any,
-    opts: { experienceType?: string; bands?: string[]; anchorsOnly?: boolean; limit: number },
+    opts: { experienceType?: string; bands?: string[]; anchorsOnly?: boolean; anchorSets?: string[]; limit: number },
 ): Promise<Exemplar[]> {
     try {
         const base = () => {
             let q = supabaseAdmin.from('wa_exemplars').select(EXEMPLAR_COLUMNS);
             if (opts.anchorsOnly) q = q.not('anchor_specificity', 'is', null);
+            // Holdout entries are scored but reserved for evaluation. Showing one to
+            // the model turns a measurement of calibration into a measurement of
+            // recall, so callers that build prompts must name the sets they want.
+            if (opts.anchorSets?.length) q = q.in('anchor_set', opts.anchorSets);
             if (opts.bands?.length) q = q.in('quality_band', opts.bands);
             return q;
         };
@@ -722,6 +726,7 @@ async function handleNarrativeQuality(payload: any, model: any, retryFn: any, su
         ? renderAnchorBlock(await fetchExemplars(supabaseAdmin, {
             experienceType,
             anchorsOnly: true,
+            anchorSets: ['tune'],
             limit: 4,
         }))
         : '';
