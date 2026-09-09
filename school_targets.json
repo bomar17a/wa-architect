@@ -1,0 +1,5321 @@
+{
+  "generated": "2026-09-08",
+  "method": "keyword lexicon over published mission statements; see scripts/derive-school-targets.ts",
+  "note": "Review before applying. Targets shift each archetype baseline by at most 1.5 points. \"matched\" records the terms that caused each shift.",
+  "count": 175,
+  "schools": [
+    {
+      "school_name": "Albany Medical College",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 5,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 8.5
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 273
+    },
+    {
+      "school_name": "Albert Einstein College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.4,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.6
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "scientific",
+          "investigator",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient-centered",
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 321
+    },
+    {
+      "school_name": "Alice L. Walton School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4,
+        "Service": 9.5,
+        "Teamwork": 7.3,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities",
+        "entrepreneurship",
+        "whole-person care"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "underserved",
+          "medically underserved",
+          "rural",
+          "community",
+          "humanism"
+        ],
+        "Teamwork": [
+          "entrepreneurial",
+          "entrepreneurialism",
+          "partnership",
+          "transform"
+        ],
+        "Clinical": [
+          "whole health"
+        ]
+      },
+      "mission_chars": 665
+    },
+    {
+      "school_name": "Anne Burnett Marion School of Medicine at TCU",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7,
+        "Service": 6,
+        "Teamwork": 9,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "scholarship"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "transform",
+          "collaboration"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 300
+    },
+    {
+      "school_name": "Arizona State University School of Medicine and Advanced Medical Engineering (SOMME)",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7.3,
+        "Service": 5.5,
+        "Teamwork": 8.3,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "entrepreneurship",
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "discovery",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "entrepreneurial"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinical practice",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 672
+    },
+    {
+      "school_name": "Baylor College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.1,
+        "Service": 5.5,
+        "Teamwork": 5.8,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "scientific",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "patient-centered",
+          "practice"
+        ]
+      },
+      "mission_chars": 411
+    },
+    {
+      "school_name": "Boston University Aram V. Chobanian & Edward Avedisian School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.5,
+        "Service": 7.1,
+        "Teamwork": 6.2,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "social justice",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research"
+        ],
+        "Service": [
+          "social justice",
+          "vulnerable populations",
+          "disparities",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "collaboration"
+        ],
+        "Clinical": [
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 2873
+    },
+    {
+      "school_name": "Brody School of Medicine at East Carolina University",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 10
+      },
+      "emphasis_tags": [
+        "primary care"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "primary care"
+        ]
+      },
+      "mission_chars": 263
+    },
+    {
+      "school_name": "California Northstate University College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.7,
+        "Service": 5.8,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "scholarship"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 120
+    },
+    {
+      "school_name": "California University of Science and Medicine-School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 10,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 234
+    },
+    {
+      "school_name": "Carle Illinois College of Medicine",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 6.8,
+        "Service": 5.8,
+        "Teamwork": 8.6,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "community",
+          "diversity"
+        ],
+        "Teamwork": [
+          "partnership",
+          "transform",
+          "collaboration"
+        ],
+        "Clinical": [
+          "clinical care",
+          "compassionate care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 1715
+    },
+    {
+      "school_name": "Case Western Reserve University School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.1,
+        "Service": 5.8,
+        "Teamwork": 5.9,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "community health",
+        "translational research",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "scholarship"
+        ],
+        "Service": [
+          "underserved",
+          "community health",
+          "community"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 455
+    },
+    {
+      "school_name": "Central Michigan University College of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.2,
+        "Service": 7.4,
+        "Teamwork": 7.2,
+        "Clinical": 9.2
+      },
+      "emphasis_tags": [
+        "primary care",
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "medically underserved",
+          "service"
+        ],
+        "Teamwork": [
+          "collaboration"
+        ],
+        "Clinical": [
+          "primary care",
+          "patient care"
+        ]
+      },
+      "mission_chars": 655
+    },
+    {
+      "school_name": "Charles E. Schmidt College of Medicine at Florida Atlantic University",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.5,
+        "Service": 5.5,
+        "Teamwork": 5.7,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "discovery",
+          "scientific"
+        ],
+        "Service": [
+          "access to care",
+          "community"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "clinicians"
+        ]
+      },
+      "mission_chars": 489
+    },
+    {
+      "school_name": "Charles R. Drew University of Medicine and Science College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.2,
+        "Service": 9.8,
+        "Teamwork": 6.9,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "health disparities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "health disparities",
+          "disparities",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "transform",
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 427
+    },
+    {
+      "school_name": "Chicago Medical School at Rosalind Franklin University of Medicine & Science",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.1,
+        "Service": 5.3,
+        "Teamwork": 6.2,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "interprofessional care",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "scientific discovery",
+          "discovery",
+          "scientific"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "interprofessional",
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical excellence",
+          "clinical"
+        ]
+      },
+      "mission_chars": 353
+    },
+    {
+      "school_name": "Columbia University Vagelos College of Physicians and Surgeons",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.5,
+        "Service": 7.6,
+        "Teamwork": 9,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery"
+        ],
+        "Service": [
+          "underserved",
+          "inclusion"
+        ],
+        "Teamwork": [
+          "transform",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 466
+    },
+    {
+      "school_name": "Cooper Medical School of Rowan University",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7.4,
+        "Service": 6.1,
+        "Teamwork": 8.2,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research",
+          "scientific"
+        ],
+        "Service": [
+          "community",
+          "service",
+          "advocacy"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 657
+    },
+    {
+      "school_name": "Creighton University School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.1,
+        "Service": 7.1,
+        "Teamwork": 6.2,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "primary care",
+        "underserved communities",
+        "health disparities",
+        "social justice",
+        "public health"
+      ],
+      "matched": {
+        "Inquiry": [
+          "scientific",
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "health disparities",
+          "social justice",
+          "public health",
+          "access to care",
+          "disparities",
+          "community",
+          "diversity",
+          "service",
+          "advocacy"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "primary care",
+          "patient-centered",
+          "compassionate care",
+          "clinicians",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 3014
+    },
+    {
+      "school_name": "CUNY School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4,
+        "Service": 9.6,
+        "Teamwork": 6.5,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "primary care",
+        "underserved communities"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "underserved",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "primary care"
+        ]
+      },
+      "mission_chars": 374
+    },
+    {
+      "school_name": "Dalhousie University Faculty of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 6.6,
+        "Service": 7,
+        "Teamwork": 8.5,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 448
+    },
+    {
+      "school_name": "Donald and Barbara Zucker School of Medicine at Hofstra/Northwell",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 6.5,
+        "Service": 5.5,
+        "Teamwork": 10,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [],
+        "Service": [],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 344
+    },
+    {
+      "school_name": "Drexel University College of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.3,
+        "Service": 6.3,
+        "Teamwork": 6.5,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "inquiry"
+        ],
+        "Service": [
+          "diversity"
+        ],
+        "Teamwork": [
+          "collaboration"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 272
+    },
+    {
+      "school_name": "Duke University School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9,
+        "Service": 5.5,
+        "Teamwork": 5.5,
+        "Clinical": 7.6
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 414
+    },
+    {
+      "school_name": "East Tennessee State University James H. Quillen College of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.7,
+        "Service": 7.3,
+        "Teamwork": 7,
+        "Clinical": 9
+      },
+      "emphasis_tags": [
+        "primary care",
+        "rural health",
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "rural"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "primary care"
+        ]
+      },
+      "mission_chars": 525
+    },
+    {
+      "school_name": "Eastern Virginia Medical School",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.5,
+        "Service": 7.5,
+        "Teamwork": 8.5,
+        "Clinical": 8.1
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 739
+    },
+    {
+      "school_name": "Emory University School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.1,
+        "Service": 5.3,
+        "Teamwork": 5.9,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "public health",
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "public health"
+        ],
+        "Teamwork": [
+          "collaborative",
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical care",
+          "compassionate care",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 984
+    },
+    {
+      "school_name": "Florida International University Herbert Wertheim College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.6,
+        "Service": 5.3,
+        "Teamwork": 5.8,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "innovation",
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 323
+    },
+    {
+      "school_name": "Florida State University College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.1,
+        "Service": 9.9,
+        "Teamwork": 6.5,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities"
+      ],
+      "matched": {
+        "Inquiry": [
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "rural",
+          "community",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient-centered",
+          "practice"
+        ]
+      },
+      "mission_chars": 291
+    },
+    {
+      "school_name": "Frank H. Netter MD School of Medicine at Quinnipiac University",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.4,
+        "Service": 8.9,
+        "Teamwork": 7.1,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "scholarship"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "collaborative"
+        ],
+        "Clinical": [
+          "compassionate care"
+        ]
+      },
+      "mission_chars": 357
+    },
+    {
+      "school_name": "Frederick P. Whiddon College of Medicine at the University of South Alabama",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.4,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.6
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "scholarship"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient-centered",
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 248
+    },
+    {
+      "school_name": "Geisel School of Medicine at Dartmouth",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.6,
+        "Service": 7.3,
+        "Teamwork": 9.3,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "innovation",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "innovation"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "healing"
+        ]
+      },
+      "mission_chars": 850
+    },
+    {
+      "school_name": "Geisinger Commonwealth School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9,
+        "Teamwork": 7.1,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "interprofessional care"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery"
+        ],
+        "Service": [
+          "community",
+          "inclusion"
+        ],
+        "Teamwork": [
+          "interprofessional"
+        ],
+        "Clinical": [
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 284
+    },
+    {
+      "school_name": "George Washington University School of Medicine & Health Sciences",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.4,
+        "Service": 9.3,
+        "Teamwork": 7,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "health disparities",
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research"
+        ],
+        "Service": [
+          "health disparities",
+          "disparities",
+          "inclusion",
+          "service",
+          "advocacy"
+        ],
+        "Teamwork": [
+          "transform",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "compassionate care",
+          "healing"
+        ]
+      },
+      "mission_chars": 699
+    },
+    {
+      "school_name": "Georgetown University School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.1,
+        "Service": 7.5,
+        "Teamwork": 6.1,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "health equity",
+        "social justice"
+      ],
+      "matched": {
+        "Inquiry": [
+          "inquiry",
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "health equity",
+          "social justice",
+          "equity",
+          "community",
+          "diversity",
+          "inclusion",
+          "service"
+        ],
+        "Teamwork": [
+          "organizations"
+        ],
+        "Clinical": [
+          "healing",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 3566
+    },
+    {
+      "school_name": "Hackensack Meridian School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 5.1,
+        "Service": 9.2,
+        "Teamwork": 6.5,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "inquiry"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 695
+    },
+    {
+      "school_name": "Harvard Medical School",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.2,
+        "Service": 5.6,
+        "Teamwork": 6.3,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "scholarship"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 220
+    },
+    {
+      "school_name": "Howard University College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.5,
+        "Service": 10,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "disparities"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 408
+    },
+    {
+      "school_name": "Icahn School of Medicine at Mount Sinai",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.8,
+        "Service": 5.8,
+        "Teamwork": 5.9,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "health equity",
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "diversity"
+        ],
+        "Teamwork": [
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "compassionate care",
+          "clinicians"
+        ]
+      },
+      "mission_chars": 387
+    },
+    {
+      "school_name": "Indiana University School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.4,
+        "Service": 6.6,
+        "Teamwork": 6.2,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "scientific",
+          "knowledge"
+        ],
+        "Service": [
+          "equity",
+          "community",
+          "diversity",
+          "inclusion"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinical practice",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 1717
+    },
+    {
+      "school_name": "Jacobs School of Medicine and Biomedical Sciences at the University at Buffalo",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.5,
+        "Service": 7,
+        "Teamwork": 9,
+        "Clinical": 8.1
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 289
+    },
+    {
+      "school_name": "Johns Hopkins University School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.8,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "basic science"
+      ],
+      "matched": {
+        "Inquiry": [
+          "basic science"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 299
+    },
+    {
+      "school_name": "Kaiser Permanente Bernard J. Tyson School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.5,
+        "Service": 9,
+        "Teamwork": 7,
+        "Clinical": 7
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 193
+    },
+    {
+      "school_name": "Keck School of Medicine of the University of Southern California",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.6,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 148
+    },
+    {
+      "school_name": "Kirk Kerkorian School of Medicine at UNLV",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.4,
+        "Service": 9.9,
+        "Teamwork": 6.5,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "medically underserved"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 339
+    },
+    {
+      "school_name": "Lewis Katz School of Medicine at Temple University",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.4,
+        "Service": 7.3,
+        "Teamwork": 6,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "health equity",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "diversity"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinicians"
+        ]
+      },
+      "mission_chars": 350
+    },
+    {
+      "school_name": "Loma Linda University School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.8,
+        "Service": 7,
+        "Teamwork": 7,
+        "Clinical": 9.3
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "healing"
+        ]
+      },
+      "mission_chars": 372
+    },
+    {
+      "school_name": "Louisiana State University School of Medicine in New Orleans",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.5,
+        "Service": 9,
+        "Teamwork": 7,
+        "Clinical": 7
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 414
+    },
+    {
+      "school_name": "Louisiana State University School of Medicine in Shreveport",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.3,
+        "Service": 5.2,
+        "Teamwork": 5.8,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "basic science",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "basic science",
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [
+          "partnership"
+        ],
+        "Clinical": [
+          "clinical care",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 939
+    },
+    {
+      "school_name": "Loyola University Chicago Stritch School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.9,
+        "Service": 5.6,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "scholarship",
+          "innovation"
+        ],
+        "Service": [
+          "diversity"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 465
+    },
+    {
+      "school_name": "Marshall University Joan C. Edwards School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.3,
+        "Service": 7.3,
+        "Teamwork": 7,
+        "Clinical": 9.4
+      },
+      "emphasis_tags": [
+        "primary care",
+        "rural health",
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "scholarship"
+        ],
+        "Service": [
+          "underserved",
+          "rural",
+          "community",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "primary care",
+          "clinical care",
+          "physician workforce",
+          "clinical"
+        ]
+      },
+      "mission_chars": 855
+    },
+    {
+      "school_name": "Max Rady College of Medicine, Rady Faculty of Health Sciences, University of Manitoba",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.2,
+        "Service": 6.1,
+        "Teamwork": 5.5,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 593
+    },
+    {
+      "school_name": "Mayo Clinic Alix School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.8,
+        "Service": 7.4,
+        "Teamwork": 9,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "health equity",
+        "innovation",
+        "translational research",
+        "basic science",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "scientific discovery",
+          "basic science",
+          "research",
+          "discovery",
+          "scholarship",
+          "scientific",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "collaborative",
+          "transform",
+          "team",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "patient-centered",
+          "clinical care",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 2472
+    },
+    {
+      "school_name": "McGovern Medical School at the University of Texas Health Science Center at Houston",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.3,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.8
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 311
+    },
+    {
+      "school_name": "McMaster University Michael G. DeGroote School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 10,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "discovery"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 60
+    },
+    {
+      "school_name": "Medical College of Georgia at Augusta University",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9.4,
+        "Teamwork": 6.8,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "community"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 337
+    },
+    {
+      "school_name": "Medical College of Wisconsin",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.1,
+        "Service": 7,
+        "Teamwork": 8.5,
+        "Clinical": 8.9
+      },
+      "emphasis_tags": [
+        "primary care"
+      ],
+      "matched": {
+        "Inquiry": [
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "primary care",
+          "clinical care",
+          "clinicians",
+          "clinical"
+        ]
+      },
+      "mission_chars": 1509
+    },
+    {
+      "school_name": "Medical University of South Carolina College of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.7,
+        "Service": 6.8,
+        "Teamwork": 7.7,
+        "Clinical": 8.8
+      },
+      "emphasis_tags": [
+        "interprofessional care"
+      ],
+      "matched": {
+        "Inquiry": [
+          "scientific discovery",
+          "discovery",
+          "scientific"
+        ],
+        "Service": [
+          "diversity",
+          "inclusion"
+        ],
+        "Teamwork": [
+          "interprofessional",
+          "team",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 374
+    },
+    {
+      "school_name": "Meharry Medical College",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.2,
+        "Service": 9.5,
+        "Teamwork": 7.2,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "health equity",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "inclusion",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "transform",
+          "leaders"
+        ],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 519
+    },
+    {
+      "school_name": "Memorial University of Newfoundland Faculty of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 6,
+        "Service": 8.5,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "scholarship"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 521
+    },
+    {
+      "school_name": "Mercer University School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3,
+        "Service": 8,
+        "Teamwork": 7,
+        "Clinical": 9
+      },
+      "emphasis_tags": [
+        "primary care",
+        "rural health",
+        "underserved communities"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "underserved",
+          "medically underserved",
+          "rural"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "primary care"
+        ]
+      },
+      "mission_chars": 205
+    },
+    {
+      "school_name": "Methodist University Cape Fear Valley Health School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4,
+        "Service": 10,
+        "Teamwork": 6.8,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "health disparities"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "health disparities",
+          "equity",
+          "disparities",
+          "community"
+        ],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 354
+    },
+    {
+      "school_name": "Michigan State University College of Human Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.1,
+        "Service": 10,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "underserved communities"
+      ],
+      "matched": {
+        "Inquiry": [
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "medically underserved",
+          "inclusion",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 395
+    },
+    {
+      "school_name": "Morehouse School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.6,
+        "Service": 9.9,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "scientific"
+        ],
+        "Service": [
+          "underserved",
+          "rural",
+          "diversity",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 393
+    },
+    {
+      "school_name": "New York Medical College",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.4,
+        "Service": 7.6,
+        "Teamwork": 6,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "public health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "public health",
+          "community",
+          "diversity",
+          "inclusion",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 345
+    },
+    {
+      "school_name": "Northeast Ohio Medical University",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.4,
+        "Service": 7.5,
+        "Teamwork": 7,
+        "Clinical": 9.1
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 314
+    },
+    {
+      "school_name": "Northern Ontario School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.4,
+        "Service": 10,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "rural health",
+        "health equity",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "health equity",
+          "rural",
+          "equity",
+          "diversity",
+          "advocacy"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 1511
+    },
+    {
+      "school_name": "Northwestern University The Feinberg School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.9,
+        "Service": 5.2,
+        "Teamwork": 6.5,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "innovation",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "leadership",
+          "teamwork",
+          "team",
+          "leaders"
+        ],
+        "Clinical": [
+          "compassionate care",
+          "practice"
+        ]
+      },
+      "mission_chars": 611
+    },
+    {
+      "school_name": "Nova Southeastern University Dr. Kiran C. Patel College of Allopathic Medicine",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7.3,
+        "Service": 6,
+        "Teamwork": 8,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 112
+    },
+    {
+      "school_name": "NYU Grossman Long Island School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.3,
+        "Service": 6.8,
+        "Teamwork": 7.3,
+        "Clinical": 9.6
+      },
+      "emphasis_tags": [
+        "primary care"
+      ],
+      "matched": {
+        "Inquiry": [
+          "scholarship"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "primary care",
+          "physician workforce"
+        ]
+      },
+      "mission_chars": 532
+    },
+    {
+      "school_name": "NYU Grossman School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.4,
+        "Service": 7.4,
+        "Teamwork": 8.9,
+        "Clinical": 7.9
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 366
+    },
+    {
+      "school_name": "Oakland University William Beaumont School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.4,
+        "Service": 7.3,
+        "Teamwork": 6.4,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "equity",
+          "community",
+          "diversity",
+          "inclusion"
+        ],
+        "Teamwork": [
+          "collaboration"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 445
+    },
+    {
+      "school_name": "Ohio State University College of Medicine",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7.2,
+        "Service": 6.2,
+        "Teamwork": 8,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 321
+    },
+    {
+      "school_name": "Oregon Health & Science University School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.3,
+        "Service": 7.1,
+        "Teamwork": 6,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "service",
+          "humanism"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 378
+    },
+    {
+      "school_name": "Pennsylvania State University College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 10,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 365
+    },
+    {
+      "school_name": "Perelman School of Medicine at the University of Pennsylvania",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.4,
+        "Service": 5.4,
+        "Teamwork": 5.5,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 285
+    },
+    {
+      "school_name": "Ponce Health Sciences University School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.5,
+        "Service": 10,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "health disparities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "health disparities",
+          "disparities"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 324
+    },
+    {
+      "school_name": "Queen's University Faculty of Health Sciences",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5,
+        "Service": 7.8,
+        "Teamwork": 9.6,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "health equity",
+        "interprofessional care"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "health equity",
+          "equity"
+        ],
+        "Teamwork": [
+          "interprofessional",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 439
+    },
+    {
+      "school_name": "Renaissance School of Medicine at Stony Brook University",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.6,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "physician-scientist training",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "physician-scientist",
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "compassionate care",
+          "clinicians"
+        ]
+      },
+      "mission_chars": 405
+    },
+    {
+      "school_name": "Robert Larner, M.D., College of Medicine at the University of Vermont",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.6,
+        "Service": 9.4,
+        "Teamwork": 6.6,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "physician-scientist training",
+        "rural health",
+        "social justice",
+        "public health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "physician-scientist",
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "social justice",
+          "public health",
+          "rural",
+          "community"
+        ],
+        "Teamwork": [
+          "team"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 3262
+    },
+    {
+      "school_name": "Roseman University College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4,
+        "Service": 9.8,
+        "Teamwork": 6.5,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "health disparities"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "health disparities",
+          "disparities",
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical excellence",
+          "clinical"
+        ]
+      },
+      "mission_chars": 483
+    },
+    {
+      "school_name": "Rush Medical College of Rush University Medical Center",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 8.9,
+        "Teamwork": 7.2,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "equity",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "partnership",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinical practice",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 1138
+    },
+    {
+      "school_name": "Rutgers New Jersey Medical School",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 6.8,
+        "Service": 6,
+        "Teamwork": 8.6,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "diversity",
+          "service"
+        ],
+        "Teamwork": [
+          "collaborative",
+          "partnership"
+        ],
+        "Clinical": [
+          "patient-centered",
+          "clinical"
+        ]
+      },
+      "mission_chars": 798
+    },
+    {
+      "school_name": "Rutgers, Robert Wood Johnson Medical School",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 6.9,
+        "Service": 6.2,
+        "Teamwork": 8.4,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "primary care",
+        "health equity",
+        "entrepreneurship",
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "scientific",
+          "innovation"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "community",
+          "diversity",
+          "inclusion",
+          "service",
+          "humanism"
+        ],
+        "Teamwork": [
+          "leadership",
+          "transform",
+          "leaders"
+        ],
+        "Clinical": [
+          "primary care",
+          "patient-centered",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 3736
+    },
+    {
+      "school_name": "Saint Louis University School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.6,
+        "Service": 6.8,
+        "Teamwork": 6.4,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "health equity",
+        "social justice",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "scholarship",
+          "scientific",
+          "inquiry",
+          "knowledge"
+        ],
+        "Service": [
+          "health equity",
+          "social justice",
+          "equity",
+          "community",
+          "diversity",
+          "service"
+        ],
+        "Teamwork": [
+          "partnership",
+          "transform",
+          "collaboration"
+        ],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 1768
+    },
+    {
+      "school_name": "San Juan Bautista School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.6,
+        "Service": 9.8,
+        "Teamwork": 6.5,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "community health",
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "vulnerable populations",
+          "community health",
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 372
+    },
+    {
+      "school_name": "Sidney Kimmel Medical College at Thomas Jefferson University",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.4,
+        "Service": 5.5,
+        "Teamwork": 5.7,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "laboratory",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "inclusion"
+        ],
+        "Teamwork": [
+          "team"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 446
+    },
+    {
+      "school_name": "Southern Illinois University School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.5,
+        "Service": 9.3,
+        "Teamwork": 6.5,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 226
+    },
+    {
+      "school_name": "Spencer Fox Eccles School of Medicine at the University of Utah",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9.8,
+        "Teamwork": 6.5,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities",
+        "health disparities",
+        "community health",
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "health disparities",
+          "community health",
+          "rural",
+          "disparities",
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care",
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 834
+    },
+    {
+      "school_name": "Stanford University School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.5,
+        "Service": 5,
+        "Teamwork": 6,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "physician scientist",
+          "research",
+          "discovery"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "transform",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 258
+    },
+    {
+      "school_name": "State University of New York Upstate Medical University Alan and Marlene Norton College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.6,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 360
+    },
+    {
+      "school_name": "SUNY Downstate Health Sciences University College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.8,
+        "Service": 5.7,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "diversity"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 350
+    },
+    {
+      "school_name": "Texas A&M School of Medicine",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 6.9,
+        "Service": 6.7,
+        "Teamwork": 8.3,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "rural health",
+        "health disparities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "health disparities",
+          "rural",
+          "disparities"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 2110
+    },
+    {
+      "school_name": "Texas A&M University School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9.6,
+        "Teamwork": 7.1,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "rural"
+        ],
+        "Teamwork": [
+          "transform",
+          "leaders"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 351
+    },
+    {
+      "school_name": "Texas Tech University Health Sciences Center Paul L. Foster School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.8,
+        "Service": 5.7,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 260
+    },
+    {
+      "school_name": "Texas Tech University Health Sciences Center School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.5,
+        "Service": 9.2,
+        "Teamwork": 6.5,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "rural health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "rural"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 959
+    },
+    {
+      "school_name": "The University of Texas at Tyler School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.6,
+        "Service": 9.4,
+        "Teamwork": 6.8,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "health disparities",
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research"
+        ],
+        "Service": [
+          "health disparities",
+          "disparities",
+          "community"
+        ],
+        "Teamwork": [
+          "partnership"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 822
+    },
+    {
+      "school_name": "The University of Texas Health Science Center at San Antonio Joe R. and Teresa Lozano Long School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 4.8,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 8.7
+      },
+      "emphasis_tags": [
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 667
+    },
+    {
+      "school_name": "The University of Toledo College of Medicine and Life Sciences",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.5,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 10
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient-centered",
+          "clinicians"
+        ]
+      },
+      "mission_chars": 278
+    },
+    {
+      "school_name": "The University of Western Ontario - Schulich School of Medicine & Dentistry",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 6,
+        "Service": 7,
+        "Teamwork": 9.5,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 253
+    },
+    {
+      "school_name": "The Warren Alpert Medical School of Brown University",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7,
+        "Service": 5.8,
+        "Teamwork": 8,
+        "Clinical": 7.7
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical excellence",
+          "clinical"
+        ]
+      },
+      "mission_chars": 282
+    },
+    {
+      "school_name": "Thomas F. Frist, Jr. College of Medicine at Belmont University",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3,
+        "Service": 7.2,
+        "Teamwork": 7.9,
+        "Clinical": 8.9
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "transform",
+          "leaders"
+        ],
+        "Clinical": [
+          "healing"
+        ]
+      },
+      "mission_chars": 322
+    },
+    {
+      "school_name": "Toronto Metropolitan University School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.2,
+        "Service": 9.7,
+        "Teamwork": 6.7,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "primary care",
+        "underserved communities"
+      ],
+      "matched": {
+        "Inquiry": [
+          "scholarship"
+        ],
+        "Service": [
+          "underserved",
+          "medically underserved",
+          "equity",
+          "community",
+          "inclusion",
+          "service"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "primary care",
+          "clinicians"
+        ]
+      },
+      "mission_chars": 636
+    },
+    {
+      "school_name": "Tufts University School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.4,
+        "Service": 7.1,
+        "Teamwork": 6.4,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "health equity",
+        "social justice",
+        "public health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "scholarship",
+          "inquiry",
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "health equity",
+          "social justice",
+          "public health",
+          "equity",
+          "diversity",
+          "humanism"
+        ],
+        "Teamwork": [
+          "collaborative",
+          "teamwork",
+          "team"
+        ],
+        "Clinical": [
+          "clinicians"
+        ]
+      },
+      "mission_chars": 2151
+    },
+    {
+      "school_name": "Tulane University School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.6,
+        "Service": 7,
+        "Teamwork": 8.8,
+        "Clinical": 8.1
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "scientific"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinical practice",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 272
+    },
+    {
+      "school_name": "Uniformed Services University of the Health Sciences F. Edward Hebert School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.3,
+        "Service": 7.7,
+        "Teamwork": 9.3,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "public health",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "public health",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 501
+    },
+    {
+      "school_name": "Universidad Central del Caribe School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4,
+        "Service": 10,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 321
+    },
+    {
+      "school_name": "Universite de Montreal Faculty of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 9.2
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 349
+    },
+    {
+      "school_name": "Universite de Sherbrooke Faculty of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 4,
+        "Service": 7,
+        "Teamwork": 7,
+        "Clinical": 9
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 127
+    },
+    {
+      "school_name": "University of Alabama at Birmingham Marnix E. Heersink School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.9,
+        "Service": 5.4,
+        "Teamwork": 6.1,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "physician-scientist training",
+        "primary care",
+        "rural health",
+        "underserved communities",
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "physician-scientist",
+          "research",
+          "discovery",
+          "innovation"
+        ],
+        "Service": [
+          "underserved",
+          "rural",
+          "disparities"
+        ],
+        "Teamwork": [
+          "leadership",
+          "collaborative",
+          "teamwork",
+          "transform",
+          "team",
+          "leaders"
+        ],
+        "Clinical": [
+          "primary care",
+          "patient care",
+          "healing",
+          "clinicians"
+        ]
+      },
+      "mission_chars": 1066
+    },
+    {
+      "school_name": "University of Arizona College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.5,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 8.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "compassionate care"
+        ]
+      },
+      "mission_chars": 279
+    },
+    {
+      "school_name": "University of Arizona College of Medicine - Phoenix",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.2,
+        "Service": 7.5,
+        "Teamwork": 9.6,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "innovation",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "innovation"
+        ],
+        "Service": [
+          "community",
+          "diversity"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 469
+    },
+    {
+      "school_name": "University of Arkansas for Medical Sciences College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.9,
+        "Service": 6,
+        "Teamwork": 6,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "health equity",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "knowledge"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "disparities",
+          "community",
+          "diversity",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "team",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 1050
+    },
+    {
+      "school_name": "University of British Columbia Faculty of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4,
+        "Service": 9.4,
+        "Teamwork": 7.1,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "rural health"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "rural",
+          "equity",
+          "diversity"
+        ],
+        "Teamwork": [
+          "transform",
+          "collaboration"
+        ],
+        "Clinical": [
+          "generalist",
+          "practice"
+        ]
+      },
+      "mission_chars": 1453
+    },
+    {
+      "school_name": "University of California, Davis, School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.1,
+        "Service": 9.6,
+        "Teamwork": 6.8,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "primary care",
+        "rural health",
+        "underserved communities",
+        "community health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "medically underserved",
+          "community health",
+          "rural",
+          "disparities",
+          "community",
+          "diversity",
+          "inclusion",
+          "service"
+        ],
+        "Teamwork": [
+          "partnership",
+          "transform",
+          "collaboration"
+        ],
+        "Clinical": [
+          "primary care",
+          "clinical care",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 3483
+    },
+    {
+      "school_name": "University of California, Irvine, School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 10,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "discovery"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 177
+    },
+    {
+      "school_name": "University of California, Los Angeles David Geffen School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.8,
+        "Service": 5.3,
+        "Teamwork": 6.5,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "collaborative",
+          "partnership",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 614
+    },
+    {
+      "school_name": "University of California, Riverside School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.4,
+        "Service": 10,
+        "Teamwork": 6.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "medically underserved"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 403
+    },
+    {
+      "school_name": "University of California, San Diego School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.5,
+        "Service": 5.7,
+        "Teamwork": 5.5,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 543
+    },
+    {
+      "school_name": "University of California, San Francisco, School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.3,
+        "Service": 5.7,
+        "Teamwork": 5.8,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "public health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research",
+          "scientific"
+        ],
+        "Service": [
+          "vulnerable populations",
+          "public health",
+          "service"
+        ],
+        "Teamwork": [
+          "partnership"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 1302
+    },
+    {
+      "school_name": "University of Central Florida College of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.8,
+        "Service": 7.3,
+        "Teamwork": 8.9,
+        "Clinical": 7.6
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 441
+    },
+    {
+      "school_name": "University of Chicago Division of the Biological Sciences The Pritzker School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.1,
+        "Service": 6,
+        "Teamwork": 5.9,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "health equity",
+        "community health",
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "discovery",
+          "scholarship",
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "health equity",
+          "community health",
+          "equity",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 2932
+    },
+    {
+      "school_name": "University of Cincinnati College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9,
+        "Service": 5.5,
+        "Teamwork": 5.9,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "inclusion",
+          "service"
+        ],
+        "Teamwork": [
+          "collaboration"
+        ],
+        "Clinical": [
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 323
+    },
+    {
+      "school_name": "University of Colorado School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.9,
+        "Service": 5.5,
+        "Teamwork": 6,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "health policy",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "health policy"
+        ],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 924
+    },
+    {
+      "school_name": "University of Connecticut School of Medicine",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7.4,
+        "Service": 5.7,
+        "Teamwork": 8,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "innovation"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 265
+    },
+    {
+      "school_name": "University of Florida College of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.5,
+        "Service": 7.3,
+        "Teamwork": 9,
+        "Clinical": 7.7
+      },
+      "emphasis_tags": [
+        "primary care",
+        "basic science",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "basic science",
+          "research",
+          "discovery",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "service",
+          "advocacy"
+        ],
+        "Teamwork": [
+          "leadership",
+          "transform",
+          "team",
+          "leaders"
+        ],
+        "Clinical": [
+          "primary care",
+          "patient care",
+          "clinical care",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 3612
+    },
+    {
+      "school_name": "University of Hawaii, John A. Burns School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.2,
+        "Service": 9,
+        "Teamwork": 7.4,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "primary care",
+        "rural health",
+        "research",
+        "leadership",
+        "global health"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "rural",
+          "community"
+        ],
+        "Teamwork": [
+          "leadership",
+          "partnership",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "primary care",
+          "practice"
+        ]
+      },
+      "mission_chars": 1776
+    },
+    {
+      "school_name": "University of Houston Tilman J. Fertitta Family College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 8.8,
+        "Teamwork": 7.3,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "primary care",
+        "interprofessional care",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "interprofessional",
+          "team"
+        ],
+        "Clinical": [
+          "primary care"
+        ]
+      },
+      "mission_chars": 716
+    },
+    {
+      "school_name": "University of Illinois College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.4,
+        "Service": 9,
+        "Teamwork": 7,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities",
+        "basic science",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "basic science",
+          "research",
+          "scientific",
+          "inquiry",
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "rural",
+          "community",
+          "advocacy"
+        ],
+        "Teamwork": [
+          "leadership",
+          "collaborative",
+          "team",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinical care",
+          "clinical practice",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 2844
+    },
+    {
+      "school_name": "University of Iowa Roy J. and Lucille A. Carver College of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6,
+        "Service": 7.2,
+        "Teamwork": 6.6,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "rural health"
+      ],
+      "matched": {
+        "Inquiry": [],
+        "Service": [
+          "rural",
+          "service"
+        ],
+        "Teamwork": [
+          "collaboration"
+        ],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 1563
+    },
+    {
+      "school_name": "University of Kansas School of Medicine",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 8.5,
+        "Service": 5.5,
+        "Teamwork": 8,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 112
+    },
+    {
+      "school_name": "University of Louisville School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.9,
+        "Service": 5.4,
+        "Teamwork": 6.3,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "partnership",
+          "transform"
+        ],
+        "Clinical": [
+          "compassionate care"
+        ]
+      },
+      "mission_chars": 292
+    },
+    {
+      "school_name": "University of Maryland School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.8,
+        "Service": 6.8,
+        "Teamwork": 6,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "health equity",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research"
+        ],
+        "Service": [
+          "health equity",
+          "equity"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 338
+    },
+    {
+      "school_name": "University of Massachusetts T.H. Chan School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.2,
+        "Service": 9.9,
+        "Teamwork": 6.8,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "rural health",
+        "health equity",
+        "community health",
+        "entrepreneurship",
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "health equity",
+          "community health",
+          "rural",
+          "equity",
+          "disparities",
+          "community",
+          "diversity",
+          "inclusion",
+          "service",
+          "advocacy"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 2882
+    },
+    {
+      "school_name": "University of Miami Leonard M. Miller School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.6,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "translational research",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical practice",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 522
+    },
+    {
+      "school_name": "University of Michigan Medical School",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7,
+        "Service": 6.1,
+        "Teamwork": 8.4,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 806
+    },
+    {
+      "school_name": "University of Minnesota Medical School",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.5,
+        "Service": 6.5,
+        "Teamwork": 6.8,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "rural health",
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "rural",
+          "diversity"
+        ],
+        "Teamwork": [
+          "partnership",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "clinicians"
+        ]
+      },
+      "mission_chars": 744
+    },
+    {
+      "school_name": "University of Mississippi School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.4,
+        "Service": 7.3,
+        "Teamwork": 7,
+        "Clinical": 9.4
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical practice",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 406
+    },
+    {
+      "school_name": "University of Missouri-Columbia School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.8,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 9.8
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 125
+    },
+    {
+      "school_name": "University of Missouri-Kansas City School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 6.2,
+        "Service": 7.2,
+        "Teamwork": 9.1,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research",
+          "academic medicine"
+        ],
+        "Service": [
+          "diversity"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 525
+    },
+    {
+      "school_name": "University of Nebraska College of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.8,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 9.8
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 263
+    },
+    {
+      "school_name": "University of Nevada, Reno School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9.4,
+        "Teamwork": 6.5,
+        "Clinical": 7.3
+      },
+      "emphasis_tags": [
+        "rural health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "rural",
+          "diversity",
+          "inclusion"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 322
+    },
+    {
+      "school_name": "University of New Mexico School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.1,
+        "Service": 10,
+        "Teamwork": 6.7,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities",
+        "health equity"
+      ],
+      "matched": {
+        "Inquiry": [
+          "knowledge"
+        ],
+        "Service": [
+          "underserved",
+          "health equity",
+          "medically underserved",
+          "rural",
+          "equity",
+          "community",
+          "diversity"
+        ],
+        "Teamwork": [
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 1793
+    },
+    {
+      "school_name": "University of North Carolina at Chapel Hill School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.6,
+        "Service": 7.7,
+        "Teamwork": 8.9,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "physician-scientist training",
+        "primary care",
+        "rural health",
+        "underserved communities",
+        "social justice"
+      ],
+      "matched": {
+        "Inquiry": [
+          "physician-scientist",
+          "md-phd",
+          "research",
+          "discovery",
+          "scientific",
+          "academic medicine"
+        ],
+        "Service": [
+          "underserved",
+          "social justice",
+          "community health",
+          "rural",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "partnership",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "primary care",
+          "patient care",
+          "clinical",
+          "practice"
+        ]
+      },
+      "mission_chars": 3823
+    },
+    {
+      "school_name": "University of North Dakota School of Medicine and Health Sciences",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 5,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 8.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 328
+    },
+    {
+      "school_name": "University of Oklahoma College of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.4,
+        "Service": 7.3,
+        "Teamwork": 9.3,
+        "Clinical": 7.6
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [
+          "teamwork",
+          "team"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 327
+    },
+    {
+      "school_name": "University of Ottawa Faculty of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 5,
+        "Service": 6.5,
+        "Teamwork": 7,
+        "Clinical": 8.5
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 159
+    },
+    {
+      "school_name": "University of Pittsburgh School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 6,
+        "Service": 7,
+        "Teamwork": 9.5,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "academic medicine"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 335
+    },
+    {
+      "school_name": "University of Puerto Rico School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.6,
+        "Service": 5.6,
+        "Teamwork": 5.5,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "translational research",
+        "research",
+        "global health"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "research",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 492
+    },
+    {
+      "school_name": "University of Rochester School of Medicine and Dentistry",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7.2,
+        "Service": 5.5,
+        "Teamwork": 9.3,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [
+          "discovery"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 385
+    },
+    {
+      "school_name": "University of Saskatchewan College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 8.8,
+        "Teamwork": 7.8,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "leadership",
+          "collaborative",
+          "partnership",
+          "leaders"
+        ],
+        "Clinical": [
+          "clinicians"
+        ]
+      },
+      "mission_chars": 355
+    },
+    {
+      "school_name": "University of South Carolina School of Medicine Columbia",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9.4,
+        "Teamwork": 6.8,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "community"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "compassionate care"
+        ]
+      },
+      "mission_chars": 405
+    },
+    {
+      "school_name": "University of South Carolina School of Medicine Greenville",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 6.8,
+        "Service": 5.5,
+        "Teamwork": 9.3,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "interprofessional care",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "interprofessional",
+          "transform",
+          "leaders",
+          "collaboration"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 393
+    },
+    {
+      "school_name": "University of South Dakota, Sanford School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.4,
+        "Service": 8.1,
+        "Teamwork": 7,
+        "Clinical": 8.5
+      },
+      "emphasis_tags": [
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "medically underserved",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 444
+    },
+    {
+      "school_name": "University of Tennessee Health Science Center College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9,
+        "Service": 5.2,
+        "Teamwork": 6.1,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "scholarship"
+        ],
+        "Service": [
+          "service"
+        ],
+        "Teamwork": [
+          "collaborative",
+          "transform"
+        ],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 392
+    },
+    {
+      "school_name": "University of Texas at Austin Dell Medical School",
+      "primary_category": "The Innovator",
+      "targets": {
+        "Inquiry": 7.1,
+        "Service": 5.8,
+        "Teamwork": 8.7,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "entrepreneurship",
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "collaborative",
+          "transform"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 1304
+    },
+    {
+      "school_name": "University of Texas Medical Branch John Sealy School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9,
+        "Service": 5.3,
+        "Teamwork": 6,
+        "Clinical": 7.2
+      },
+      "emphasis_tags": [
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "scholarship",
+          "scientific",
+          "knowledge"
+        ],
+        "Service": [
+          "community",
+          "diversity",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "partnership",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinical excellence",
+          "bedside",
+          "clinical"
+        ]
+      },
+      "mission_chars": 1069
+    },
+    {
+      "school_name": "University of Texas Rio Grande Valley School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.8,
+        "Service": 8.8,
+        "Teamwork": 6.8,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "entrepreneurship",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "academic medicine"
+        ],
+        "Service": [
+          "community"
+        ],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "patient-centered"
+        ]
+      },
+      "mission_chars": 308
+    },
+    {
+      "school_name": "University of Texas Southwestern Medical School",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 10,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 508
+    },
+    {
+      "school_name": "University of Virginia School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.5,
+        "Service": 7,
+        "Teamwork": 9,
+        "Clinical": 7.9
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "transform"
+        ],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 344
+    },
+    {
+      "school_name": "University of Washington School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.7,
+        "Service": 9.1,
+        "Teamwork": 6.9,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "primary care",
+        "underserved communities",
+        "research",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "biomedical research",
+          "research",
+          "knowledge",
+          "academic medicine"
+        ],
+        "Service": [
+          "underserved",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "primary care"
+        ]
+      },
+      "mission_chars": 986
+    },
+    {
+      "school_name": "University of Wisconsin School of Medicine and Public Health",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.4,
+        "Service": 7.6,
+        "Teamwork": 6,
+        "Clinical": 6.5
+      },
+      "emphasis_tags": [
+        "health equity",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "service"
+        ],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 536
+    },
+    {
+      "school_name": "USF Health Morsani College of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.3,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.8
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 339
+    },
+    {
+      "school_name": "Vanderbilt University School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 8.9,
+        "Service": 5.7,
+        "Teamwork": 5.9,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "health equity",
+        "innovation",
+        "leadership"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "innovation",
+          "knowledge"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "community"
+        ],
+        "Teamwork": [
+          "leadership",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient care",
+          "clinicians"
+        ]
+      },
+      "mission_chars": 400
+    },
+    {
+      "school_name": "Virginia Commonwealth University School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9.6,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 7.4
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care"
+        ]
+      },
+      "mission_chars": 292
+    },
+    {
+      "school_name": "Virginia Tech Carilion School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.6,
+        "Service": 7,
+        "Teamwork": 9.3,
+        "Clinical": 7.5
+      },
+      "emphasis_tags": [
+        "interprofessional care",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "discovery",
+          "inquiry"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "interprofessional",
+          "team",
+          "leaders"
+        ],
+        "Clinical": [
+          "patient-centered",
+          "clinical"
+        ]
+      },
+      "mission_chars": 480
+    },
+    {
+      "school_name": "Wake Forest University School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.5,
+        "Service": 7,
+        "Teamwork": 10,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "innovation"
+        ],
+        "Service": [],
+        "Teamwork": [
+          "transform",
+          "leaders"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 350
+    },
+    {
+      "school_name": "Washington State University Elson S. Floyd College of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9.8,
+        "Teamwork": 6.9,
+        "Clinical": 6.6
+      },
+      "emphasis_tags": [
+        "rural health",
+        "underserved communities",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "underserved",
+          "rural",
+          "community",
+          "diversity"
+        ],
+        "Teamwork": [
+          "team",
+          "collaboration"
+        ],
+        "Clinical": [
+          "practice"
+        ]
+      },
+      "mission_chars": 3439
+    },
+    {
+      "school_name": "Washington University in St. Louis School of Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9,
+        "Service": 5.9,
+        "Teamwork": 5.8,
+        "Clinical": 6.8
+      },
+      "emphasis_tags": [
+        "primary care",
+        "underserved communities",
+        "health disparities",
+        "social justice",
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "translational",
+          "basic science",
+          "research",
+          "scientific",
+          "innovation",
+          "academic medicine"
+        ],
+        "Service": [
+          "underserved",
+          "health disparities",
+          "social justice",
+          "equity",
+          "disparities",
+          "community",
+          "diversity",
+          "inclusion",
+          "service",
+          "advocacy"
+        ],
+        "Teamwork": [
+          "partnership",
+          "transform",
+          "team",
+          "leaders"
+        ],
+        "Clinical": [
+          "primary care",
+          "compassionate care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 3920
+    },
+    {
+      "school_name": "Wayne State University School of Medicine",
+      "primary_category": "The Balanced",
+      "targets": {
+        "Inquiry": 6.3,
+        "Service": 6.8,
+        "Teamwork": 6.7,
+        "Clinical": 6.7
+      },
+      "emphasis_tags": [
+        "public health",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "public health",
+          "community",
+          "service"
+        ],
+        "Teamwork": [
+          "health care leaders",
+          "leaders"
+        ],
+        "Clinical": [
+          "clinical"
+        ]
+      },
+      "mission_chars": 1324
+    },
+    {
+      "school_name": "Weill Cornell Medicine",
+      "primary_category": "The Investigator",
+      "targets": {
+        "Inquiry": 9,
+        "Service": 5,
+        "Teamwork": 5.5,
+        "Clinical": 8
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "knowledge"
+        ],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": [
+          "patient care",
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 354
+    },
+    {
+      "school_name": "West Virginia University School of Medicine",
+      "primary_category": "The Practitioner",
+      "targets": {
+        "Inquiry": 3.5,
+        "Service": 7,
+        "Teamwork": 7.5,
+        "Clinical": 9
+      },
+      "emphasis_tags": [],
+      "matched": {
+        "Inquiry": [],
+        "Service": [],
+        "Teamwork": [],
+        "Clinical": []
+      },
+      "mission_chars": 55
+    },
+    {
+      "school_name": "Western Michigan University Homer Stryker M.D. School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9.4,
+        "Teamwork": 6.9,
+        "Clinical": 6.9
+      },
+      "emphasis_tags": [
+        "health equity",
+        "innovation",
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research",
+          "innovation"
+        ],
+        "Service": [
+          "health equity",
+          "equity",
+          "community",
+          "diversity",
+          "inclusion"
+        ],
+        "Teamwork": [
+          "partnership",
+          "transform"
+        ],
+        "Clinical": [
+          "patient care",
+          "practice"
+        ]
+      },
+      "mission_chars": 506
+    },
+    {
+      "school_name": "Wright State University Boonshoft School of Medicine",
+      "primary_category": "The Advocate",
+      "targets": {
+        "Inquiry": 4.3,
+        "Service": 9,
+        "Teamwork": 7.1,
+        "Clinical": 7.1
+      },
+      "emphasis_tags": [
+        "research"
+      ],
+      "matched": {
+        "Inquiry": [
+          "research"
+        ],
+        "Service": [
+          "community",
+          "diversity"
+        ],
+        "Teamwork": [
+          "partnership",
+          "transform"
+        ],
+        "Clinical": [
+          "clinical care",
+          "clinical"
+        ]
+      },
+      "mission_chars": 268
+    },
+    {
+      "school_name": "Yale School of Medicine",
+      "primary_category": "The Leader",
+      "targets": {
+        "Inquiry": 5.7,
+        "Service": 7.5,
+        "Teamwork": 9.2,
+        "Clinical": 7
+      },
+      "emphasis_tags": [
+        "innovation"
+      ],
+      "matched": {
+        "Inquiry": [
+          "discovery",
+          "inquiry",
+          "innovation"
+        ],
+        "Service": [
+          "community",
+          "diversity"
+        ],
+        "Teamwork": [
+          "partnership",
+          "leaders"
+        ],
+        "Clinical": []
+      },
+      "mission_chars": 387
+    }
+  ]
+}

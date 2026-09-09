@@ -544,6 +544,35 @@ export function computeMatch(
   };
 }
 
+/**
+ * A school's own target vector, derived from its published mission statement
+ * (scripts/derive-school-targets.ts). Falls back to the archetype baseline when a
+ * school has no derived values, so the app works whether or not the data has been
+ * applied to the database yet.
+ */
+export function schoolTargets(school: {
+  primary_category?: string | null;
+  target_inquiry?: number | string | null;
+  target_service?: number | string | null;
+  target_teamwork?: number | string | null;
+  target_clinical?: number | string | null;
+}): { targets: PillarScores; isSchoolSpecific: boolean } {
+  const arch = SCHOOL_ARCHETYPES.find(a => a.dbCategory === school.primary_category);
+  const fallback = arch?.targets ?? SCHOOL_ARCHETYPES[SCHOOL_ARCHETYPES.length - 1].targets;
+
+  // Postgres numeric comes back as a string through PostgREST.
+  const raw = [school.target_inquiry, school.target_service, school.target_teamwork, school.target_clinical];
+  const parsed = raw.map(v => (v === null || v === undefined || v === '' ? NaN : Number(v)));
+  if (parsed.some(v => !Number.isFinite(v) || v <= 0)) {
+    return { targets: fallback, isSchoolSpecific: false };
+  }
+
+  return {
+    targets: { Inquiry: parsed[0], Service: parsed[1], Teamwork: parsed[2], Clinical: parsed[3] },
+    isSchoolSpecific: true,
+  };
+}
+
 /** The archetype this profile fits best, by the same formula the UI displays. */
 export function bestFitArchetype(scores: PillarScores): SchoolArchetype {
   return SCHOOL_ARCHETYPES.reduce((best, arch) => {

@@ -6,6 +6,7 @@ import {
     computeCompetency,
     computeCompleteness,
     computeMatch,
+    schoolTargets,
     SCHOOL_ARCHETYPES,
     type MatchResult,
 } from '../utils/missionFit';
@@ -28,6 +29,12 @@ interface MedicalSchool {
     primary_category: string;
     matchScore?: number;
     matchDetail?: MatchResult;
+    isSchoolSpecific?: boolean;
+    emphasis_tags?: string[] | null;
+    target_inquiry?: number | string | null;
+    target_service?: number | string | null;
+    target_teamwork?: number | string | null;
+    target_clinical?: number | string | null;
 }
 
 export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities }) => {
@@ -80,10 +87,9 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                 // One shared formula with the Mission Fit Radar — the same profile
                 // showing two different match numbers across two tabs was its own bug.
                 const processedSchools = data.map((school: MedicalSchool) => {
-                    const arch = SCHOOL_ARCHETYPES.find(a => a.dbCategory === school.primary_category);
-                    if (!arch) return { ...school, matchScore: 0 };
-                    const result = computeMatch(studentScores, arch.targets, completeness.factor);
-                    return { ...school, matchScore: result.match, matchDetail: result };
+                    const { targets, isSchoolSpecific } = schoolTargets(school);
+                    const result = computeMatch(studentScores, targets, completeness.factor);
+                    return { ...school, matchScore: result.match, matchDetail: result, isSchoolSpecific };
                 });
 
                 processedSchools.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
@@ -410,7 +416,12 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
                                 <BarChart3 className="w-4 h-4 text-brand-teal" /> Competency Breakdown 
                              </h3>
                              <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                                This program operates as a <strong className="text-brand-dark">{selectedSchool.primary_category}</strong> archetype. Below is how your pillar scores (0–10) compare to this school's expected baseline targets.
+                                This program operates as a <strong className="text-brand-dark">{selectedSchool.primary_category}</strong> archetype.
+                                {selectedSchool.emphasis_tags && selectedSchool.emphasis_tags.length > 0 ? (
+                                    <> Its mission statement emphasizes <strong className="text-brand-dark">{selectedSchool.emphasis_tags.slice(0, 3).join(', ')}</strong>, which shifts the targets below away from the archetype baseline.</>
+                                ) : (
+                                    <> Below is how your pillar scores (0–10) compare to this school's expected targets.</>
+                                )}
                              </p>
 
                              {selectedSchool.matchDetail && (
@@ -448,11 +459,8 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
 
                              <div className="space-y-5">
                                  {['Inquiry', 'Service', 'Teamwork', 'Clinical'].map((category) => {
-                                     // Calculate comparison
-                                     const archData = SCHOOL_ARCHETYPES.find(a => a.dbCategory === selectedSchool.primary_category);
-                                     if (!archData) return null;
-                                     
-                                     const targetScore = archData.targets[category as keyof typeof archData.targets];
+                                     const { targets } = schoolTargets(selectedSchool);
+                                     const targetScore = targets[category as keyof typeof targets];
                                      const myScore = studentScores[category as keyof typeof studentScores];
                                      
                                      // We cap the fill percentage at 100% just for UI rendering so it doesn't break limits
