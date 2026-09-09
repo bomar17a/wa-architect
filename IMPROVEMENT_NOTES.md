@@ -5,7 +5,7 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-09-02 (session 8). **The original backlog is empty**; session 8 covers post-backlog polish.
+Last updated: 2026-09-08 (session 9). **The original backlog is empty**; sessions 8-9 cover post-backlog work.
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
@@ -462,3 +462,79 @@ Delete `_modal_test.*`, `_export_test.*` and `_dl*/` before committing — never
 
 ### Still open
 - The deep-teal re-skin remains deliberately not done (see session 1 reasoning in git history).
+
+---
+
+## Session 9 — scoring recalibration (Mission Fit Radar + School Recommender)
+
+Reported by the user: a profile with 5 activities, one 500-hour research role, and **zero
+clinical hours** scored 10/10 on Inquiry and a 76% match against four schools that all read
+76%. Both numbers were wrong, for different reasons.
+
+### What was actually broken
+
+- **The Inquiry curve topped out at 500 hours.** `milestone()` flatlines at its last breakpoint,
+  and that breakpoint was `[500, 10]`. In published matriculant data 500 research hours is the
+  *middle* of the sustained-engagement band. The "AAMC-researched" header comment cited nothing,
+  and `utils/scoring.tsx` separately used a research target of 100h — the two engines disagreed.
+- **The match formula never punished a zero.** `Σ min(student, target) / Σ target` caps
+  overperformance but a missing pillar only costs its own weight, so no clinical experience at
+  all still cleared 76%.
+- **The two tabs used different formulas.** The Radar did cosine × magnitude ratio; the
+  Recommender did the coverage ratio above. Same profile, two different numbers.
+- **Nothing school-specific entered the match**, so a whole archetype bucket shared one score.
+
+### What changed
+
+Curves now run to genuine top-decile figures (2,000 research hours for a 10) with the sources in
+the header comment. An **evidence gate** caps each pillar by how many distinct activities support
+it (1 → 6.5, 2 → 8.5, 3+ → 10), because logged hours are self-reported and one huge claimed
+number should not outrank three sustained roles. The soft-bonus ceiling dropped 2.0 → 1.25; at
+20% of the scale it had been pushing merely-solid profiles to a flat 10.0 on three pillars.
+
+One shared match formula now serves both tabs: coverage × balance (weakest pillar drags) × shape
+(is your emphasis where this school looks) × completeness. Archetype targets were re-derived onto
+the new scale, and the readiness score re-weighted so the pillars carry 70 of 100 rather than
+competing with 47 points of bonuses that mostly measure diligence at filling in the form. Tier
+cutoffs (40/70/90) are unchanged and still mean what they say.
+
+**On the reported profile: Inquiry 10 → 6.5, match 76% → 26%, readiness 37 → 31.**
+
+### Structure — read this before touching the scoring again
+
+The engine moved **out of `components/MissionFitRadar.tsx`** into `utils/missionFit.ts`, and the
+numeric half of the readiness score into `utils/adcomScore.ts`. Neither imports React or Supabase.
+`utils/scoring.tsx` is now only a presentation wrapper that attaches lucide icons to feedback
+items. `MissionFitRadar.tsx` re-exports from `utils/missionFit` so existing import paths still work.
+
+This split exists so the engine can be run headlessly. **`node scripts/calibrate-scoring.ts` is
+the acceptance test** — five reference profiles asserted into bands, plus monotonicity and
+archetype-reachability checks. No new dependency; Node 24 strips the types natively (hence the
+explicit `.ts` extension on the runtime import in `adcomScore.ts` — `allowImportingTsExtensions`
+was already on). **If you change a curve, a bonus, or a match constant, run it.**
+
+One thing the harness taught us mid-session, worth not re-litigating: the AdCom score must rise
+strictly across the reference ladder, but the **match may not** — it measures fit to one
+archetype and saturates by design. Once an applicant clears every target a school looks for,
+being stronger cannot make them a better fit. Strong and Exceptional both land at the 95% ceiling
+and that is correct; they separate on the readiness score (86 vs 93), not on match.
+
+### Per-school targets — generated, NOT applied
+
+`scripts/derive-school-targets.ts` reads each school's published mission statement and emits a
+target vector + emphasis tags into `school_targets.json` (reviewable; records the matched terms
+per pillar). `scripts/build-school-targets-migration.mjs` turns that into
+`supabase/migrations/20260908000000_add_school_target_vectors.sql`.
+
+**The migration has not been applied.** `schoolTargets()` falls back to the archetype baseline
+whenever the columns are absent or null, which is the state of the live table today — so the app
+is correct either way, and applying it is a deliberate follow-up, not a prerequisite.
+
+It is a **keyword lexicon, not a model**, on purpose: these numbers are shown to applicants making
+expensive decisions, so each adjustment should trace to the words that caused it. It also could
+not have been a model here — the Gemini key lives in edge-function secrets and `geminiService`
+requires an authenticated session, and there is still no test account.
+
+Sanity check on a median-matriculant profile: matches spread 52–81% across 27 distinct values,
+and rank sensibly (research-heavy → UT Southwestern / UC Irvine; service-heavy → Alice L. Walton /
+UBC, each the other's worst fit).
