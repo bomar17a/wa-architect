@@ -146,8 +146,8 @@ if (dryRun) {
   process.exit(0);
 }
 
-// Imported here rather than at the top so --dry-run works without it. `pg` is not
-// in package.json — scripts/db/apply-migration.mjs has the same unlisted dependency.
+// Imported here rather than at the top so --dry-run stays usable — and therefore
+// runnable in CI — without a database driver being present.
 const { default: pg } = await import('pg');
 
 const client = new pg.Client({
