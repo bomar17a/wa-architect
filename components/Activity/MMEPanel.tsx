@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trophy, HelpCircle, Sparkles, Wand2 } from 'lucide-react';
 import { CharacterCounter } from './CharacterCounter';
+import { MmeQualityBreakdown } from './MmeQualityBreakdown';
 import { MME_LIMIT } from '../../constants';
 import * as geminiService from '../../services/geminiService';
 import { useToast } from '../../contexts/ToastContext';
@@ -139,6 +140,7 @@ export const MMEPanel: React.FC<MMEPanelProps> = ({ description, descLimit, mmeA
                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div className={`h-full rounded-full transition-all duration-300 ${budgetColor}`} style={{ width: `${essayPct}%` }}></div>
                     </div>
+                    <MmeQualityBreakdown mmeEssay={mmeEssay} description={description} />
                 </div>
 
                 {/* Regular vs MME comparison */}

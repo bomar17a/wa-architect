@@ -538,3 +538,277 @@ requires an authenticated session, and there is still no test account.
 Sanity check on a median-matriculant profile: matches spread 52–81% across 27 distinct values,
 and rank sensibly (research-heavy → UT Southwestern / UC Irvine; service-heavy → Alice L. Walton /
 UBC, each the other's worst fit).
+
+---
+
+## Session 10a — exemplar corpus, and what it revealed about the NQ heuristic
+
+Goal was a Supabase corpus of published AMCAS Work & Activities entries to ground `draft-analysis`
+and `narrative-quality`. The corpus got built. The more useful outcome was that pointing it at the
+existing scorer showed the scorer is measuring the wrong things.
+
+### The heuristic is broken, and it fails upward
+
+`scoreNarrativeQuality()` in `services/narrativeQualityService.ts` runs on every keystroke and is
+the number users see in the header bar before any AI call resolves. Eight entries from the corpus
+were hand-scored on the same 0-25 scale and run against it:
+
+```
+entry                                  human  heuristic   delta
+sorority-philanthropy-coordinator       57        73     +16
+lyme-disease-research                   52        46      -6
+custom-sneakers                         52        65     +13
+patient-navigator-interpreter           51        73     +22
+ed-technician                           44        45      +1
+ed-assistant                            37        55     +18
+lawrence-memorial-shadowing             28        53     +25
+maple-grove-hospital-volunteer          26        57     +31
+```
+
+Six of eight score too high, and **the error grows as entries get worse** — the two weakest are off
+by +25 and +31. That is the wrong direction for a coaching tool: it is most wrong exactly where a
+user most needs to be told something is wrong.
+
+Direct probes of the mechanisms (all reproducible with `scoreNarrativeQuality`):
+
+- **Specificity is length wearing a disguise.** 20 sentences of contentless filler ("The work
+  continued. My role expanded. The team responded.") scores **25/25 specificity, 25/25 voice,
+  59/100 total**. `lengthScore` maxes out at 250 characters, and the named-entity regex
+  `/[a-z][.,!?]?\s+[A-Z][a-zA-Z]+/g` matches every sentence boundary, so any multi-sentence draft
+  of normal length collects the full 25. `maple-grove-hospital-volunteer`, the emptiest entry in
+  the corpus, scores a perfect 25.
+- **That filler outscores the corpus.** 59 beats the Lyme research description (46) and the ED
+  technician description (45), both of which are genuinely good writing.
+- **Quantification is a digit counter.** "I saw 1 patient, 2 patients, 3 patients, and 4 patients"
+  → **25/25**. Four numerals is full marks, and `$20,000` counts as two. Meanwhile "results
+  indicated a risk for human infection well above the established threshold" → **0**.
+- **Voice is 25/25 unless a listed cliché appears.** Four uses of "wonderful" plus "I had the
+  pleasure of" scores 23-25, because that padding vocabulary is not in the `CLICHES` map.
+- **Reflection is keyword bingo.** Nine points per hit from a 17-word list, so three hits is full
+  marks and real reflection phrased differently scores zero.
+
+Not fixed this session — the fix is a rewrite of all four dimensions, and it deserves its own
+pass with the harness already in place to prove it. `scripts/audit-exemplars.ts` currently exits 1
+on `voiceAuthenticity` (MAE 8.25 against a threshold of 5.0). **That failure is the accurate
+state of the code, not a broken test.**
+
+### The corpus
+
+`data/amcas-exemplars.json` — 47 entries from two Cracking Med School Admissions PDFs, normalised
+to the 18 AMCAS types, banded `exemplar` / `solid` / `weak` / `counter_example`, each with a
+required `curator_note` saying why it lands there. `data/README.md` has the governance rules.
+
+The source PDFs needed real curation, not import:
+
+- Two entries filed under **"Community Health Advocacy"**, which is not an AMCAS experience type.
+- One entry titled **"Clinical Shadowing at Vibrant Health Clinic"** whose description is about
+  tutoring for Varsity Tutors. Loading that verbatim teaches a classifier to map tutoring text to
+  shadowing.
+- One hours field reading **"3 years"**.
+- **10 of 47 descriptions are over the 700-character limit**, two MMEs over 1,325. Median
+  description is 689 characters, so the distribution sits right against the ceiling and a fifth of
+  it spills over. These are published examples that could not be submitted as written.
+
+Coverage is 12/18 experience types and 15/15 AAMC competencies. Missing: Artistic Endeavors,
+Conferences Attended, Intercollegiate Athletics, Military Service, Other, Publications.
+
+**Anchors are scored against the `description` field only**, because that is the only text
+`scoreNarrativeQuality()` ever receives. The first version of the anchor set was scored against
+whole entries and reported a 33-point error on Lyme that was largely the curator's, not the
+scorer's. Worth not repeating.
+
+### Retrieval — wired, migration NOT applied
+
+`supabase/functions/gemini-ai/index.ts` gained `fetchExemplars()` plus two renderers.
+`narrative-quality` now receives up to four scored anchors so "a mediocre entry should score in
+the 40s" has something behind it; `draft-analysis` receives one strong and one weak entry of the
+same type with the curator's reasoning attached.
+
+Three properties this is built to hold:
+
+1. **Nothing reaches the browser.** `public.wa_exemplars` has RLS enabled and **no SELECT policy**
+   — clients read zero rows, `service_role` bypasses. The edge function is the only reader.
+2. **The model may not quote.** Every prompt forbids quoting or paraphrasing exemplars into
+   feedback; keepers and trimmers must come from the applicant's own draft.
+3. **Retrieval is optional.** `fetchExemplars()` never throws and returns `[]` on any failure, so
+   both prompts degrade to exactly the text that shipped before this existed. Same posture as the
+   school-target vectors in session 9.
+
+`supabase/migrations/20260908120000_create_wa_exemplars.sql` and
+`scripts/db/seed-exemplars.mjs` are written and dry-run clean (47 rows), **not applied and not
+deployed**. The app is correct either way. `pg` is still an unlisted dependency, same as
+`apply-migration.mjs`; the seeder imports it lazily so `--dry-run` works without it.
+
+### Two small import fixes
+
+`constants.ts` and `narrativeQualityService.ts` needed explicit `.ts` extensions, and
+`constants.ts` needed `type`-qualified imports, so the corpus harness can run headlessly the way
+`calibrate-scoring.ts` does. Note the harness needs `--experimental-transform-types`, not bare
+`node`, because `types.ts` exports enums and strip-only mode rejects those. `npm run build` is
+unaffected.
+
+### Still open
+- ~~Rewrite the four NQ dimensions against the anchors.~~ Done in session 10b.
+- Apply the migration and seed, then deploy the edge function.
+- Six uncovered experience types; a second source with a different house style would help more
+  than more entries from this one.
+
+---
+
+## Session 10b — the NQ rewrite
+
+`scoreNarrativeQuality()` is rewritten. The audit harness now passes.
+
+```
+                 tuning MAE      held-out MAE
+before              16.50              n/a
+after                6.13             6.25     generalisation gap +0.13
+```
+
+### Protocol
+
+Eight more anchors were hand-scored **before** the rewrite and withheld during it
+(`anchor_set: "holdout"` in the corpus). Sixteen anchors against roughly a dozen weights is
+thin enough to overfit by accident, and a scorer tuned into agreement with its own tuning set
+proves nothing. The +0.13 gap is the evidence that the weights track the rubric rather than
+those eight rows. `scripts/audit-exemplars.ts` gates both sets independently and fails on a
+generalisation gap over 6 points.
+
+### Three of the four fixes were bugs, not weights
+
+- **Substring matching.** `includes()` scored "ratio" inside *collabo**ratio**n*, "weekly"
+  inside *bi**weekly***, and both "sample" and "samples" on the single word *samples*. Three
+  false positives that pushed entries containing no numbers at all to 12/25 on quantification.
+  Everything now matches on word boundaries.
+- **Specificity was length.** `lengthScore` maxed out at 250 characters and the named-entity
+  regex `/[a-z][.,!?]?\s+[A-Z][a-zA-Z]+/g` matched every sentence boundary, so any
+  multi-sentence draft collected all 25. Proper nouns are now counted **distinctly** and
+  sentence-initial capitals are excluded, so repeating one doctor's name six times is one
+  specific, not six.
+- **Voice had no ceiling logic.** Starting at 25 and subtracting meant any entry with no
+  detectable tells scored full marks — `psychiatric-ward-volunteer` (clean, institutional,
+  human 16) tied with the most distinctive prose in the corpus. Base is now **19**, with the
+  last six points earned by `voiceCredit()`: a non-"I" opening, a question, an admitted
+  interior state, genuinely varied pacing.
+- **Reflection was keyword bingo** — 9 points per hit from one flat 17-word list, so three uses
+  of "learned" maxed it. Now five categories scored by **breadth** (learning, change, revision,
+  forward-link, interiority) with diminishing credit inside each. A sixth, `transfer`, was added
+  after the first pass scored `in-house-mechanic` ("other facets of my life") 4 against a human
+  14 and `x-house-orphanage` ("a person is not their illness") 0 against a human 15 — both
+  generalise, neither uses a learning verb.
+
+### The pathologies, before and after
+
+| probe | before | after |
+|---|---|---|
+| 20 sentences of contentless filler | **59** (spec 25, voice 25) | **31** (spec 11, voice 16) |
+| "I had the pleasure... wonderful... truly memorable" | voice **25** | voice **0** |
+| "a risk well above the established threshold" | quant **0** | quant **6** |
+| `lyme-disease-research` description | 46 | 55 |
+| `maple-grove-hospital-volunteer` (the empty one) | 57 | 19 |
+
+Filler used to outscore every real entry in the corpus. It now sits below all of them.
+
+**Still generous in one place**, and left that way on purpose: "I saw 1 patient, 2 patients, 3
+patients, and 4 patients" still scores 18/25 on quantification. A lexicon cannot tell a
+meaningful number from a meaningless one. Its specificity (12) and reflection (0) drag the total
+to 49, below the corpus's good entries, so the composite behaves even where the dimension does not.
+
+### One real bug found on the way
+
+`services/aiCache.ts` keys on `hash(payload)` with a hardcoded `VERSION = 'v1'`. Once the edge
+function injects exemplars, the same draft produces different output — but every user with a
+cached `draft-analysis` or `narrative-quality` result would keep seeing the pre-grounding answer
+for up to the 30-day TTL. Bumped to **v2**, which `prune()` self-cleans. **Bump it whenever an
+edge-function change alters output for an unchanged payload.**
+
+### Still open
+- Apply `20260908120000_create_wa_exemplars.sql`, seed, deploy the edge function. Nothing is live.
+- ~~Nothing scores the MME.~~ Done in session 10c. Was: `mmeEssay` has a 1,325-character budget, is one of only three per
+  application, and gets no quality signal at all — the largest single gap in the product.
+- The AI score and the heuristic can disagree by 30 points with no reconciliation shown.
+- Six uncovered experience types; AACOMAS has no corpus at all.
+
+---
+
+## Session 10c — the MME scorer
+
+Nothing scored the Most Meaningful Experience remark. `scoreNarrativeQuality()` was only ever
+called on `description`; the 1,325-character box — three per application, the highest-leverage
+writing in the app — got no quality signal at all. It has one now: `scoreMmeQuality(mme, description)`.
+
+```
+              tuning MAE   held-out MAE   gap
+MME scorer        4.43          7.86     +3.43
+```
+
+Fourteen MME anchors, hand-scored by reading and **recorded before the scorer was written** —
+7 tuning, 7 held out. Same protocol as 10b.
+
+### It needed its own rubric
+
+Not the description's four dimensions. AMCAS asks two things of this box (what you learned, how
+it prepared you to practise medicine), so quantification is close to irrelevant. The dimensions
+are **insight / evidence / distinctness / voice**, and the third one is why this could not be a
+parameter on the existing scorer:
+
+**Distinctness needs both texts.** The characteristic MME failure is re-telling the 700 in 1,325,
+and it is invisible inside either text alone. `clinical-research-internship-neuro` reads fine
+twice over and is still spending most of its MME on the ODI-score story its entry already told.
+
+### The overlap metric was wrong the first time
+
+The first implementation measured **4-gram containment**, on the theory that shared phrasing is
+the tell. It returned **0-2% for all 14 entries**, including the one a reader scores 7/25. The
+retelling is a paraphrase — no n-gram survives it.
+
+Switching to **content-word overlap** (stopwords and unavoidable clinical vocabulary excluded)
+tracks the reader almost monotonically:
+
+```
+overlap   17%  15%  13%  13%  11%  10%  10%   7%   7%   7%   6%   5%   4%   3%
+human      7   14   14   20   17   16   10   19   21   24   22   23   23   23
+distinctness
+```
+
+n-gram containment stays as a separate check — verbatim copy-paste is a different and worse
+failure than paraphrased retelling, and it now costs an extra 4 points when it appears.
+
+### Two more findings worth keeping
+
+- **Proper nouns barely carry evidence in an MME.** The most concrete passage in the corpus — a
+  pineal tumour obstructing the circulation of cerebrospinal fluid — contains none. Evidence is
+  now carried by `technicalVocabulary()`: distinct words of 9+ characters that are *not*
+  abstractions. The exclusion list matters as much as the rule; without it
+  `midland-care-hospice` scored as full of detail on the strength of "preconceptions",
+  "individuals" and "environment", when its whole weakness is that it never names a person.
+- **Breadth scoring was wrong at both ends.** Flat per-category credit saturated wide-but-shallow
+  remarks at 25 (reader: 20) while scoring `patient-navigator-interpreter` — which lands its
+  entire insight inside two categories and reads 21/25 — as shallow. Now a diminishing ladder
+  (4.5, 3.5, 2.8, 2.2, 1.6, 1.2) over a base of 5. The stock-frame penalty is also capped at half
+  of what was earned: "This experience was meaningful because" dilutes real reflection next to
+  it, it does not delete it, and at a flat 3 points a hit it was scoring a 9 as a 1.
+
+The shared `REFLECTION_CATEGORIES` gained MME-register terms. Description calibration was re-run
+after every change and is unmoved at 6.13 / 6.25 — reassuring, since both scorers read the same
+lexicon.
+
+### Surfaced, not just computed
+
+- **`components/Activity/MmeQualityBreakdown.tsx`** — four bars in `MMEPanel`, below the essay.
+  Hidden under 200 characters; a red score on two sentences is discouraging noise, not feedback.
+- **The overlap percentage is shown as a number**, not only as a lowered bar. "Roughly 17% of
+  this covers ground your entry already covers" tells someone what to cut; a short bar does not.
+  Notice fires at 12%.
+- **`redFlagService` rules 7a and 7b.** `mme-overlap` at 15% shared content, and
+  `mme-thin-hours` for an MME under 25 hours — the two six-hour single-day MMEs in the corpus
+  were the reference case, and rule 5 (prestige bias) did not catch them because a six-hour
+  shadowing day is not a high-status type.
+
+### Still open
+- Apply the migration, seed, deploy the edge function. **Nothing from 10a-10c is live.**
+- The AI path (`getAiNarrativeQuality`) still has no MME equivalent and no eval against the
+  anchors. Both scorers are heuristics; the anchors would test the AI too, given a deployment
+  and a test account.
+- MME held-out bias is +4.7 — slightly generous, inside the ±8 gate but the direction to watch.
+- AACOMAS: no corpus, no MME concept, 600-character limit. Entirely uncovered.

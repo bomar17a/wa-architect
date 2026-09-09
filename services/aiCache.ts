@@ -10,7 +10,14 @@
 // mme-synthesis are generative, and the user clicks them repeatedly *wanting*
 // something different. Serving those from cache would read as a broken button.
 
-const VERSION = 'v1';
+// Bump this whenever a change to the edge function makes the SAME payload produce a
+// materially different result. The cache key hashes the payload only, so without a
+// bump a user keeps being served the old answer for up to TTL_MS — and prune() drops
+// keys from earlier versions, so bumping is self-cleaning.
+//
+// v2: draft-analysis and narrative-quality now retrieve exemplars from wa_exemplars
+// inside the edge function. Identical drafts, different (grounded) output.
+const VERSION = 'v2';
 const PREFIX = 'wa-ai-cache';
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_ENTRIES = 60;

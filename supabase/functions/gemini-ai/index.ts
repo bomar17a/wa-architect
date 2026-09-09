@@ -77,7 +77,7 @@ serve(async (req) => {
 
         switch (action) {
             case 'draft-analysis':
-                result = await handleDraftAnalysis(payload, flashModel, generateWithRetry);
+                result = await handleDraftAnalysis(payload, flashModel, generateWithRetry, supabaseAdmin);
                 break;
             case 'rewrite':
                 result = await handleRewrite(payload, liteModel, generateWithRetry);
@@ -104,7 +104,7 @@ serve(async (req) => {
             // That is exactly the shaped-extraction job flash-lite is for, and the
             // response schema does the structural work the bigger model was paying for.
             case 'narrative-quality':
-                result = await handleNarrativeQuality(payload, liteModel, generateWithRetry);
+                result = await handleNarrativeQuality(payload, liteModel, generateWithRetry, supabaseAdmin);
                 break;
             default:
                 throw new Error(`Unknown action: ${action} `);
@@ -122,9 +122,137 @@ serve(async (req) => {
     }
 })
 
+// --- Exemplar retrieval -----------------------------------------------------
+//
+// Reads public.wa_exemplars, a curated corpus of published AMCAS entries. See
+// supabase/migrations/20260908120000_create_wa_exemplars.sql. The table is
+// service-role-only; this function holds the only key that can read it.
+//
+// The corpus grounds the model, it does not replace it. Two failure modes it is
+// explicitly built against:
+//
+//   1. REGURGITATION. If the model quotes an exemplar into a user's draft, the
+//      applicant ships text that also appears in a widely distributed PDF. Every
+//      prompt below therefore forbids quoting, and no exemplar text is ever
+//      returned to the client.
+//   2. HARD DEPENDENCE. If retrieval returns nothing — table absent, empty, or
+//      slow — the prompt must still be complete and correct. Every call site
+//      degrades to exactly the prompt that shipped before this existed.
+
+interface Exemplar {
+    slug: string;
+    experience_type: string;
+    title: string;
+    description: string;
+    mme_remarks: string | null;
+    quality_band: string;
+    techniques: string[];
+    defects: string[];
+    curator_note: string;
+    anchor_specificity: number | null;
+    anchor_quantification: number | null;
+    anchor_reflection: number | null;
+    anchor_voice: number | null;
+}
+
+const EXEMPLAR_COLUMNS =
+    'slug, experience_type, title, description, mme_remarks, quality_band, techniques, defects, ' +
+    'curator_note, anchor_specificity, anchor_quantification, anchor_reflection, anchor_voice';
+
+/**
+ * Never throws. A grounding corpus that can take the whole feature down with it
+ * is worse than no corpus, so every failure path returns [] and the caller
+ * falls back to its ungrounded prompt.
+ */
+async function fetchExemplars(
+    supabaseAdmin: any,
+    opts: { experienceType?: string; bands?: string[]; anchorsOnly?: boolean; limit: number },
+): Promise<Exemplar[]> {
+    try {
+        const base = () => {
+            let q = supabaseAdmin.from('wa_exemplars').select(EXEMPLAR_COLUMNS);
+            if (opts.anchorsOnly) q = q.not('anchor_specificity', 'is', null);
+            if (opts.bands?.length) q = q.in('quality_band', opts.bands);
+            return q;
+        };
+
+        // Same experience type first — a research reader and a shadowing reader
+        // reward different things, and a cross-type exemplar teaches the wrong bar.
+        const rows: Exemplar[] = [];
+        if (opts.experienceType) {
+            const { data } = await base().eq('experience_type', opts.experienceType).limit(opts.limit);
+            if (data) rows.push(...data);
+        }
+
+        // Top up from the rest of the corpus. Six of the 18 AMCAS types have no
+        // exemplars yet, so for those this is the only branch that returns anything.
+        if (rows.length < opts.limit) {
+            const seen = rows.map(r => r.slug);
+            let q = base().limit(opts.limit - rows.length);
+            if (seen.length) q = q.not('slug', 'in', `(${seen.join(',')})`);
+            const { data } = await q;
+            if (data) rows.push(...data);
+        }
+
+        return rows;
+    } catch (e) {
+        console.warn('exemplar retrieval failed, continuing ungrounded:', (e as any)?.message);
+        return [];
+    }
+}
+
+/** Scored reference points for the narrative-quality rubric. */
+function renderAnchorBlock(rows: Exemplar[]): string {
+    const scored = rows.filter(r => r.anchor_specificity !== null);
+    if (scored.length === 0) return '';
+
+    const blocks = scored.map(r => `[${r.experience_type}] scored specificity ${r.anchor_specificity}, ` +
+        `quantification ${r.anchor_quantification}, reflection ${r.anchor_reflection}, ` +
+        `voiceAuthenticity ${r.anchor_voice}
+Why: ${r.curator_note}
+Text: ${r.description}`).join('\n\n');
+
+    return `
+    CALIBRATION ANCHORS — real published entries, scored by a human reader on the same 0-25 scale.
+    Use them to fix the absolute position of your scores. An entry no better than the lowest anchor
+    must not score above it; an entry clearly weaker than every anchor should score below all of them.
+
+    ${blocks}
+
+    These anchors are reference only. Do not mention them, quote them, or compare the applicant to
+    them in your summary or topFix — speak only about the entry you were given.
+    `;
+}
+
+/** A strong and a weak entry of the same type, with the reason each lands where it does. */
+function renderContrastBlock(rows: Exemplar[]): string {
+    const strong = rows.find(r => r.quality_band === 'exemplar');
+    const weak = rows.find(r => r.quality_band === 'weak' || r.quality_band === 'counter_example');
+    if (!strong && !weak) return '';
+
+    const one = (r: Exemplar, label: string) =>
+        `${label} (${r.experience_type})\nWhy it lands there: ${r.curator_note}\nText: ${r.description}`;
+
+    const parts = [
+        strong ? one(strong, 'A STRONG published entry') : '',
+        weak ? one(weak, 'A WEAK published entry') : '',
+    ].filter(Boolean).join('\n\n');
+
+    return `
+    For your own calibration, here is how published entries in this category actually read:
+
+    ${parts}
+
+    Hard rules about the above: they are a standard of comparison, nothing more. Never quote them,
+    never paraphrase their sentences into your feedback, and never tell the applicant to write
+    something because an example did. Your keepers and trimmers must come from the applicant's own
+    draft. If their draft is already stronger than these, say so.
+    `;
+}
+
 // --- Handler Functions ---
 
-async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
+async function handleDraftAnalysis(payload: any, model: any, retryFn: any, supabaseAdmin?: any) {
     const { draft, limit, experienceType } = payload;
     const isOverLimit = draft.length > limit;
     const overLimitInstruction = isOverLimit
@@ -145,6 +273,16 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
         }
     }
 
+    // Empty string whenever the corpus is unreachable or has nothing for this type,
+    // which leaves the prompt exactly as it was before grounding existed.
+    const contrastBlock = supabaseAdmin
+        ? renderContrastBlock(await fetchExemplars(supabaseAdmin, {
+            experienceType,
+            bands: ['exemplar', 'weak', 'counter_example'],
+            limit: 4,
+        }))
+        : '';
+
     const prompt = `You are an expert medical school admissions writing tutor. A pre-med applicant has written a draft for their Work & Activities section and needs your feedback. Do NOT rewrite their draft. Your role is to provide strategic analysis.
 
     User's Draft:
@@ -154,6 +292,7 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any) {
 
     ${overLimitInstruction}
     ${typeSpecificInstruction}
+    ${contrastBlock}
 
     Your task is to provide feedback in five parts:
     1.  **General Feedback:** A top-level comment evaluating the strength of their draft and suggesting thematic improvements.
@@ -563,8 +702,20 @@ async function handleSchoolAlignment(payload: any, model: any, retryFn: any) {
     return JSON.parse(result_raw.response.text());
 }
 
-async function handleNarrativeQuality(payload: any, model: any, retryFn: any) {
+async function handleNarrativeQuality(payload: any, model: any, retryFn: any, supabaseAdmin?: any) {
     const { description, experienceType, limit } = payload;
+
+    // "A mediocre entry should score in the 40s" is a claim with nothing behind it —
+    // the model has no way to know what mediocre looks like at 700 characters. The
+    // anchors replace that instruction with scored examples. Empty when the corpus
+    // is unreachable, and the sentence below still stands on its own.
+    const anchorBlock = supabaseAdmin
+        ? renderAnchorBlock(await fetchExemplars(supabaseAdmin, {
+            experienceType,
+            anchorsOnly: true,
+            limit: 4,
+        }))
+        : '';
 
     const prompt = `You are a medical school admissions reader scoring ONE Work & Activities entry. Score it honestly against what AdComs actually reward — a mediocre entry should score in the 40s, not the 80s.
 
@@ -575,6 +726,7 @@ async function handleNarrativeQuality(payload: any, model: any, retryFn: any) {
     ---
     ${description}
     ---
+    ${anchorBlock}
 
     Score each dimension 0-25:
     - specificity: Does it name concrete people, places, roles, or moments, rather than generic duties?

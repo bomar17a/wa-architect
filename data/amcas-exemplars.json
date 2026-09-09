@@ -1,0 +1,1735 @@
+{
+  "_meta": {
+    "purpose": "Reference corpus of published AMCAS Work & Activities entries, used to GROUND the analyze and narrative-quality features. Not a source of truth and not a template library - see data/README.md.",
+    "sources": [
+      {
+        "id": "cracking-med-workbook",
+        "title": "AMCAS Work & Activities Workbook",
+        "publisher": "Cracking Med School Admissions (Dr. Rachel Rizal, Dr. Rishi Mediratta)",
+        "year": 2020,
+        "note": "Freely distributed applicant workbook. Entries are redacted by the publisher (names appear as 'Dr. A', 'X University')."
+      },
+      {
+        "id": "cracking-med-examples",
+        "title": "AMCAS Work and Activities Examples",
+        "publisher": "Cracking Med School Admissions",
+        "note": "Companion example set, organised by experience type."
+      }
+    ],
+    "license_position": "Third-party published examples held for internal prompt grounding and rubric calibration. Never returned to the client, never quoted into user-facing generation. See data/README.md.",
+    "transcribed": "2026-09-08",
+    "schema_version": 1,
+    "anchor_scoring_contract": "anchor_scores are assigned against the `description` field ONLY, because that is the sole input scoreNarrativeQuality() receives in the app. Never score the MME or the hours into them, or the calibration harness ends up measuring the curator instead of the scorer.",
+    "anchor_sets": "tune = the 8 anchors the deterministic scorer was fitted against. holdout = 8 more scored before the rewrite and not consulted during it. Report both; a large gap between them means the scorer was fitted to the anchors rather than to the rubric.",
+    "mme_anchor_contract": "mme_anchor_scores rate the `mme_remarks` text, judged against that entry's own `description` (distinctness is \"how much of this is new material\"). Recorded before scoreMmeQuality() was written and before any n-gram overlap was measured, so the overlap metric is being tested against a reader's judgement rather than fitted to it."
+  },
+  "entries": [
+    {
+      "slug": "ed-assistant",
+      "source": "cracking-med-examples",
+      "experience_type": "Paid Employment - Medical/Clinical",
+      "experience_type_as_published": "Paid Employment - Medical/Clinical",
+      "title": "Emergency Department (ED) Assistant",
+      "organization": null,
+      "total_hours": 1400,
+      "hours_as_published": "1,400 hours",
+      "is_most_meaningful": false,
+      "description": "In the ED, I provided constant observation to assigned medical and psychiatric patients, assisted with direct patient care and safely transported patients to and from the department. Being part of a patient care team, I learned that every member of the team contributes an invaluable skillset, essential to the efficiency and success of the department. I played a calming and helpful role during a difficult and often stressful time for the patients. I empathized and worked to develop trusting relationships so patients could work with our team more effectively. Working in this challenging position and with patients with different sets of needs, I have learned patience and compassion.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "clinical"
+      ],
+      "competencies": [
+        "Service Orientation",
+        "Teamwork",
+        "Social Skills"
+      ],
+      "techniques": [
+        "duty-list-then-lesson"
+      ],
+      "defects": [
+        "no_quantification_in_prose",
+        "no_named_moment",
+        "abstract_closer"
+      ],
+      "curator_note": "The honest middle of the distribution. Duties are concrete, but every lesson is asserted rather than shown ('I have learned patience and compassion') and 1,400 hours of ED work produce not one specific patient. This is what most first drafts look like.",
+      "anchor_scores": {
+        "specificity": 12,
+        "quantification": 1,
+        "reflection": 10,
+        "voiceAuthenticity": 14
+      },
+      "anchor_set": "tune"
+    },
+    {
+      "slug": "ed-technician",
+      "source": "cracking-med-examples",
+      "experience_type": "Paid Employment - Medical/Clinical",
+      "experience_type_as_published": "Paid Employment - Medical/Clinical",
+      "title": "Emergency Department Technician",
+      "organization": null,
+      "total_hours": 1500,
+      "hours_as_published": "1,500",
+      "is_most_meaningful": true,
+      "description": "As a full-time technician, I work closely with physicians and nurses to perform EKGs, CPR, point-of-care testing, phlebotomy, wound care, and splinting. I administer medications under nurses' orders, assist in crutch walking, and assist physicians with procedures. I was promoted to Resource Technician because of my knowledge of the department, teamwork, and time management skills. I am now in a leadership position that requires critical thinking, knowledge of the needs of the department and my capacity for leadership. I supervise the ED Technicians and Assistants, help in each zone of the department, and solve problems. I also train new technicians.",
+      "mme_remarks": "In the 7 months that I have worked in this level one trauma center, I witnessed and participated in a variety of medical cases among a diverse patient population. I developed many clinical skills and refined my medical knowledge. While documenting a patient's vital signs, I noticed an irregular and concerning heart rhythm, and supraventricular tachycardia, and immediately notified the patient's physician. I learned the importance of diligence and paying attention to detail during the most routine task. Additionally, my role as a technician necessitates working closely with many physicians and nurses. I prioritize tasks, anticipate the needs of physicians and nurses, and manage my time to be an effective member of the team. I have worked on my interpersonal skills to be more patient and understanding.\n\nWorking in this leadership role as Resource Technician, I continuously improve my collaboration and leadership skills but also gain a better understanding of the inner workings of running a successful team in the Emergency Department. I believe my time working as a technician in a high-stress, fast-paced environment, acting as a supervisor to my colleagues, and orienting new hires has allowed me to gain more clinical experience and skills and has better prepared me for medical school.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "clinical",
+        "teamwork"
+      ],
+      "competencies": [
+        "Reliability and Dependability",
+        "Teamwork",
+        "Critical Thinking",
+        "Capacity for Improvement"
+      ],
+      "techniques": [
+        "skill-inventory",
+        "promotion-arc",
+        "single-clinical-moment"
+      ],
+      "defects": [
+        "mme_closes_on_generic_claim"
+      ],
+      "curator_note": "The SVT catch is the whole entry: one specific moment that proves the diligence claim instead of asserting it. Note the promotion arc - scope visibly grows inside 700 characters. The MME still closes on 'better prepared me for medical school', its weakest sentence.",
+      "anchor_scores": {
+        "specificity": 22,
+        "quantification": 3,
+        "reflection": 2,
+        "voiceAuthenticity": 17
+      },
+      "anchor_set": "tune",
+      "mme_anchor_set": "tune",
+      "mme_anchor_scores": {
+        "insight": 13,
+        "evidence": 17,
+        "distinctness": 14,
+        "voice": 13
+      }
+    },
+    {
+      "slug": "asian-language-specialist",
+      "source": "cracking-med-examples",
+      "experience_type": "Paid Employment - Medical/Clinical",
+      "experience_type_as_published": "Paid Employment - Medical/Clinical",
+      "title": "Asian Language Specialist",
+      "organization": "NYP Brooklyn Methodist Hospital",
+      "total_hours": 3493,
+      "hours_as_published": "3,493 hours",
+      "is_most_meaningful": true,
+      "description": "I currently work as an Asian Language Specialist. Compared to my previous volunteering position at this hospital as an interpreter, my responsibility for the patients have notably increased. In addition to providing interpretation services to patients and to the medical staff, I also conduct administrative tasks such as obtaining insurance authorization and resolving billing issues. This work experience has allowed me to gain clinical experience while also learning the administrative mechanisms behind the scene that makes the practice of medicine possible. Together I was able to have a holistic experience in healthcare, which made me appreciate healthcare even more.",
+      "mme_remarks": "When I learned that I was not accepted to a medical school, I felt lost and doubtful of my career path. I decided to return to NYP Brooklyn Methodist to rediscover my passion. It has been nearly 2 years since I started working as an Asian Language Specialist, and I have thoroughly enjoyed my experience in the hospital. Every patient encounter has been a learning opportunity. Every day, I seek to improve and be better than the day before. In the last 2 years, I had the opportunity to work closely with Dr. Brian Wong who generously shared with me his knowledge and experience. I was under the wrong impression that a great physician is one to be idolized by patients. I realized that physicians have achieved most when their patients recover completely and develop comfort in returning for routine checkups. Most patients are grateful after undergoing successful treatment plan, but if the fear persists then it means their physician's job is still incomplete. A physician's responsibility is to cure presenting illnesses and to empower patients with knowledge and confidence. I believe that doctors feel most successful when their patients return to their home, feel accomplished for having the courage to seek medical treatment, and continue to do so in the future with a renewed motivation to manage their illness.",
+      "quality_band": "solid",
+      "pillars": [
+        "clinical",
+        "service"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Oral Communication",
+        "Resilience and Adaptability"
+      ],
+      "techniques": [
+        "reapplicant-framing",
+        "belief-revision",
+        "named-mentor"
+      ],
+      "defects": [
+        "grammar_errors_in_source",
+        "description_ends_vague"
+      ],
+      "curator_note": "Two things worth teaching. It names the reapplication directly instead of hiding it, which reads as confidence rather than liability. And the MME turns on an explicit belief revision ('I was under the wrong impression that...'), the most reliable way to make reflection read as real rather than performed.",
+      "anchor_scores": null,
+      "mme_anchor_set": "holdout",
+      "mme_anchor_scores": {
+        "insight": 21,
+        "evidence": 12,
+        "distinctness": 22,
+        "voice": 15
+      }
+    },
+    {
+      "slug": "medical-assistant",
+      "source": "cracking-med-examples",
+      "experience_type": "Paid Employment - Medical/Clinical",
+      "experience_type_as_published": "Paid Employment - Medical/Clinical",
+      "title": "Medical Assistant",
+      "organization": null,
+      "total_hours": 1000,
+      "hours_as_published": "1,000+",
+      "is_most_meaningful": true,
+      "description": "In 2015, I became a Certified Medical Assistant and worked at X Clinic in YZ, Michigan. After working at X clinic in the summer of 2015, I enjoyed this experience so much that I continued to work as a medical assistant in college at X Children Hospital. During a normal shift, I drew blood, worked with medical equipment such as X-Ray machinery, changed dressings, removed sutures, as well as prepped the patients for examination. The active learning environment and close contact with patients invigorated my body and mind. I worked long shifts that were sometimes overnight. However, I was never tired or stressed.",
+      "mme_remarks": "Being a medical assistant caused me to gain experience with cultural communication, as we often had many patients who did not speak English and were Spanish-speaking. As a native Spanish speaker, I understood the disconnect in trust and adherence to treatment that occurs when the doctor and the patient cannot communicate effectively. I worked hard to bridge this gap and ensure that patients felt their concerns, worries, and apprehensions were heard and addressed by those treating them. Trust is essential for positive outcomes, and there can be no trust without communication. I remember one instance where a Venezuelan lady brought in her son who had been involved in a terrible accident. I gave her hourly updates on the status of her son in surgery, as well as sat with her all night as she worried about the fate of her son. I did my job as well as I could, and deeply cared for the patients. This experience further developed my passion for patient-doctor interactions. I sought to replicate the joy I felt as a medical assistant through my path to becoming a physician.",
+      "quality_band": "solid",
+      "pillars": [
+        "clinical",
+        "service"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Oral Communication",
+        "Service Orientation"
+      ],
+      "techniques": [
+        "single-family-story",
+        "identity-as-asset"
+      ],
+      "defects": [
+        "unbelievable_claim",
+        "cliche_passion"
+      ],
+      "curator_note": "The all-night vigil with the Venezuelan mother is the strongest single image in the corpus. It sits next to 'I was never tired or stressed', which no interviewer will believe and some will open on. One unguarded sentence undercutting a strong entry.",
+      "anchor_scores": null,
+      "mme_anchor_set": "tune",
+      "mme_anchor_scores": {
+        "insight": 17,
+        "evidence": 23,
+        "distinctness": 23,
+        "voice": 16
+      }
+    },
+    {
+      "slug": "hiv-research-internship",
+      "source": "cracking-med-examples",
+      "experience_type": "Research/Lab",
+      "experience_type_as_published": "Research/Lab",
+      "title": "HIV Research Internship at X University",
+      "organization": "X University",
+      "total_hours": 900,
+      "hours_as_published": "900 hours",
+      "is_most_meaningful": false,
+      "description": "I participated in an Internship at X University through the BioMed Summer Undergraduate Research Fellowship (SURF) program. I conducted research under the supervision of Dr. X entitled \"Exploring Post-Transcriptional Regulation of CCR5 in HIV Elite Controllers\". Using a combination of genomic methods, I worked on identifying the genes causally responsible for elite control in patient samples who manifest a distinct mutation for HIV by performing PCR, gel electrophoresis, and CRISPR. At the end of the summer, I presented my research at the SURF Program Symposium. This experience enriched my learning in many subjects, especially in Biochemistry and Cellular Biology.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "inquiry"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Critical Thinking",
+        "Living Systems"
+      ],
+      "techniques": [
+        "named-techniques",
+        "project-title"
+      ],
+      "defects": [
+        "no_result_stated",
+        "coursework_closer"
+      ],
+      "curator_note": "Technically dense and credible - a reader can tell this person was actually at the bench. But it never says what was found, and it closes by reducing a 900-hour project to which classes it helped with. Naming techniques is not the same as owning a contribution.",
+      "anchor_scores": {
+        "specificity": 22,
+        "quantification": 1,
+        "reflection": 3,
+        "voiceAuthenticity": 16
+      },
+      "anchor_set": "holdout"
+    },
+    {
+      "slug": "clinical-research-internship-neuro",
+      "source": "cracking-med-examples",
+      "experience_type": "Research/Lab",
+      "experience_type_as_published": "Research/Lab",
+      "title": "Clinical Research Internship",
+      "organization": "Spectrum Health",
+      "total_hours": 900,
+      "hours_as_published": "900",
+      "is_most_meaningful": true,
+      "description": "After performing research from a chemistry perspective, I was interested in growing my knowledge in neuroscience. I embarked on a clinical internship at Spectrum Health with a neurosurgeon named Dr. Y. Dr. Y was focused on placing metal electrodes called neurostimulators into the spine of his patients. The neurostimulators bypass the pain receptors in the spinal cord. Because this was a new technique that had variable results depending on the patients, I assessed the effectiveness by comparing pain levels pre- and post-op using Oswestry Disability Index (ODI) Score. Using these ODI scores, I analyzed the data and found statistically significant data that was published by Medtronic.",
+      "mme_remarks": "This experience was meaningful because I was able to interact with patients, increase my knowledge of neuroscience, as well as positively impact patients through my research. Before interacting with patients, I shadowed Dr. Y for almost 100 hours and learned about HIPPA violations, respect for privacy, and compassion for patients. I watched as Dr. Y performed many spinal procedures such as kyphoplasties, injections, and laminectomies. Eventually, I watched him insert the spinal electrodes and I learned about their composition, how they worked, and possible risks. After receiving the ODI scores of patients before the surgery, I compiled patients' ODI scores before and 6 months after their surgeries and noted if they increased or decreased. I shadowed Dr. Y for many hours to get a better understanding of what the spinal stimulators were doing, and I also surveyed the patients to get personal measurements of their pain. I analyzed the ODI scores and was able to find statistically significant data that the manufacturer of the spinal stimulators published in their studies and now uses as a selling point to other surgeons around the country. This experience was extremely special to me because I was able to make a meaningful, measurable difference in patients' quality of life.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "inquiry",
+        "clinical"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Quantitative Reasoning",
+        "Critical Thinking"
+      ],
+      "techniques": [
+        "named-instrument",
+        "outcome-with-downstream-use",
+        "research-to-patient-link"
+      ],
+      "defects": [
+        "mme_repeats_description",
+        "hippa_misspelling"
+      ],
+      "curator_note": "Rare and worth flagging to applicants: research whose outcome is traced all the way to a patient consequence, with a named instrument (ODI) doing the measuring. The failure mode is that the MME re-tells the description rather than adding to it - roughly 40% of its 1,325 characters are already in the 700.",
+      "anchor_scores": null,
+      "mme_anchor_set": "tune",
+      "mme_anchor_scores": {
+        "insight": 9,
+        "evidence": 19,
+        "distinctness": 7,
+        "voice": 10
+      }
+    },
+    {
+      "slug": "achri-symposium",
+      "source": "cracking-med-examples",
+      "experience_type": "Presentations/Posters",
+      "experience_type_as_published": "Posters/Presentations",
+      "title": "Alberta Children's Hospital Research Institute (ACHRI) Symposium",
+      "organization": "Alberta Children's Hospital Research Institute",
+      "total_hours": 78,
+      "hours_as_published": "78",
+      "is_most_meaningful": false,
+      "description": "ACHRI provides a platform for innovation in child and maternal health in Alberta. I was chosen as a trainee of the organization based on my research on Infantile Spasms (IS) in a pediatric neurology lab. I participated in monthly seminar series, journal clubs, inter-departmental competitions, and ACHRI scientific meetings. Presenting my IS research findings at a recent symposium, I engaged with collaborators, clinicians, and scientists from a multitude of medical fields. Having open conversations with a variety of clinicians and scientists about translational studies cemented the impact that collaboration has on the progress of medicine.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "inquiry"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Oral Communication",
+        "Teamwork"
+      ],
+      "techniques": [
+        "one-line-org-context",
+        "selection-signal",
+        "cross-entry-thread"
+      ],
+      "defects": [],
+      "curator_note": "Model for the low-hour entry: one sentence establishing what the organisation is, one establishing that selection was competitive, then the reflection. It also threads to the same applicant's Infantile Spasms grant entry - the portfolio reads as one line of work rather than scattered items.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "nyu-langone-high-school-fellows",
+      "source": "cracking-med-examples",
+      "experience_type": "Research/Lab",
+      "experience_type_as_published": "Research/Lab",
+      "title": "High School Fellows Program at NYU Langone Medical Center",
+      "organization": "NYU Langone Medical Center",
+      "total_hours": 200,
+      "hours_as_published": "200 hours",
+      "is_most_meaningful": false,
+      "description": "This is a program for high school students interested in health careers. I shadowed doctors, nurses, physical and occupational therapists. Observing physicians interact with patients sparked a huge interest in medicine in me. We also received social and behavioral research training and conducted a research project on the correlation between caffeine consumption and sleep quality. Through surveys and literature review, we found an inverse correlation between the two factors. I saw a glimpse of how medical knowledge is developed to improve health. We were selected to present our findings at the Annual STEP conference. My experience in this program set the stage for my path to pursue medicine.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "inquiry"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Human Behavior"
+      ],
+      "techniques": [
+        "states-the-finding",
+        "origin-story"
+      ],
+      "defects": [
+        "high_school_activity",
+        "we_not_i"
+      ],
+      "curator_note": "A high-school activity earning a slot only because it is the origin of the applicant's path. Note it states the actual finding, which the HIV entry does not. Watch the pronouns: 'we found', 'we were selected' - the reader cannot tell what this applicant personally did.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "lyme-disease-research",
+      "source": "cracking-med-examples",
+      "experience_type": "Research/Lab",
+      "experience_type_as_published": "Research/Lab",
+      "title": "Research in Lyme Disease",
+      "organization": null,
+      "total_hours": 540,
+      "hours_as_published": "540 hours",
+      "is_most_meaningful": true,
+      "description": "I developed risk models for Lyme disease. We collected ticks and rodents in the nature preserve and recorded human behavior and ecological data. We extracted DNA from the ticks and the rodents to confirm the presence of a specific pathogen. The rodents' tissues were tested for the Lyme spirochete. Our results indicated a risk for human infection well above the established threshold. We also determined the spatial distribution of ticks and prevalence of Borrelia burgdorferi. We predicted that the prevalence of Lyme disease will increase, posing a public health concern. Our findings were presented at a conference, and we submitted a manuscript to Emerging Infectious Diseases.",
+      "mme_remarks": "This experience not only enriched my appreciation for research in medicine but also helped me grow as a person. Prior to joining the lab, I did not understand how much effort it would take to complete a project successfully. Once I realized the commitment, I spent an entire summer training in the field and the lab, during which my interest in the research grew tremendously. Studying different aspects of the disease allowed me to view medicine differently. I noticed how a disease process is affected by several factors worthy of consideration to a physician, such as the transmission vector and ecological influences. Dr. Garruto recognized my dedication and selected me to oversee both a field team and a lab team. I felt uneasy at first taking on a leadership role that required daunting logistical tasks like teaching field techniques and laboratory protocols to over 20 students. Yet I constantly emphasized the importance of teamwork and learned to prioritize tasks when confronted with many issues simultaneously. He invited me to co-present our findings at the Lyme Disease Conference. I also won the Undergraduate Research Award! By providing a better understanding of the disease mechanism, research can facilitate the development of effective treatment option as well as precise method of diagnosis.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "inquiry",
+        "teamwork"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Quantitative Reasoning",
+        "Teamwork",
+        "Living Systems"
+      ],
+      "techniques": [
+        "states-the-finding",
+        "admitted-discomfort",
+        "named-pi",
+        "leadership-inside-research"
+      ],
+      "defects": [
+        "we_heavy_description",
+        "exclamation_mark"
+      ],
+      "curator_note": "Best example of admitted difficulty in the corpus - 'I felt uneasy at first' buys more credibility than any confident claim would. It also solves a common problem: a research entry that carries leadership evidence (20 students trained) without needing a separate leadership slot.",
+      "anchor_scores": {
+        "specificity": 21,
+        "quantification": 12,
+        "reflection": 3,
+        "voiceAuthenticity": 16
+      },
+      "anchor_set": "tune",
+      "mme_anchor_set": "tune",
+      "mme_anchor_scores": {
+        "insight": 20,
+        "evidence": 19,
+        "distinctness": 21,
+        "voice": 18
+      }
+    },
+    {
+      "slug": "hydration-device-research-intern",
+      "source": "cracking-med-examples",
+      "experience_type": "Research/Lab",
+      "experience_type_as_published": "Research/Lab",
+      "title": "Research Internship, X Center at YZ",
+      "organization": "X Center",
+      "total_hours": 120,
+      "hours_as_published": "120",
+      "is_most_meaningful": false,
+      "description": "As a research intern, I collaborated with medical engineers and tested prototypes for a device under development that measures hydration via capillary refill rates. I tested various parameters to determine reprogramming, redesign, or remanufacturing requirements. Furthermore, I performed repetitive tests to obtain baselines, ran measurements, compiled data, and manipulated testing conditions. I also identified optimal body testing locations to maximize easy access and accurate device readings. Working with diverse knowledge backgrounds allowed us to use a combined biology and engineering multidisciplinary approach. Lastly, I developed a creative design for the device to keep children using it entertained while it takes measurements.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "inquiry"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Teamwork",
+        "Critical Thinking"
+      ],
+      "techniques": [
+        "ends-on-the-distinctive-detail"
+      ],
+      "defects": [
+        "no_reflection",
+        "process_listing",
+        "over_limit"
+      ],
+      "curator_note": "Almost entirely process with no reflection at all, and yet it works better than it should because the last sentence is genuinely distinctive - designing the device to entertain children. Useful counterweight to advice that every entry must end on a lesson.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "holistic-learning-research-assistant",
+      "source": "cracking-med-examples",
+      "experience_type": "Research/Lab",
+      "experience_type_as_published": "Research/Lab",
+      "title": "Holistic Learning Qualitative Research Assistant",
+      "organization": "University of X",
+      "total_hours": 112,
+      "hours_as_published": "112",
+      "is_most_meaningful": false,
+      "description": "As a sophomore at the University of X, I worked on an independent research study to examine the balance of cognitive and emotional intelligence necessary to succeed in post-secondary education. My qualitative study examined holistic learning through emotional, physical, and mental dimensions at the faculties of Arts and Science. I studied the engagement of the \"whole person\" through semi-structured interviews and surveys conducted with course professors and students. In doing so, I used both analytical and creative types of thinking - a useful skill for effective critical thinking. My results aided in understanding the pedagogical role of Holistic Learning at my institution.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "inquiry"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Human Behavior",
+        "Written Communication"
+      ],
+      "techniques": [
+        "non-bench-research-framing"
+      ],
+      "defects": [
+        "circular_reasoning",
+        "no_medicine_link"
+      ],
+      "curator_note": "Included because qualitative and social-science research is under-represented in applicant portfolios and applicants often think it does not count. 'Both analytical and creative types of thinking - a useful skill for effective critical thinking' is circular; the sentence spends characters saying nothing.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "ecuador-mobile-clinic",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Volunteering at Z Mobile Clinic in Ecuador",
+      "organization": "Z Mobile Clinic",
+      "total_hours": 20,
+      "hours_as_published": "20",
+      "is_most_meaningful": false,
+      "description": "I provided education, primary care, and dental care to over 1,000 patients by participating in mobile clinics. I also had the chance to assist in local projects by building staircases with members of the community. I had been struggling with anatomy and considered not pursuing medicine anymore, but my first mobile clinic experience reaffirmed my goal of becoming a doctor. Listening to the patients explain their life stories and struggles to the physicians was invaluable. The opportunity to expose myself to people from new cultures prepared me to interact and communicate with patients from all backgrounds.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [
+        "service",
+        "clinical"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Service Orientation"
+      ],
+      "techniques": [
+        "admitted-doubt"
+      ],
+      "defects": [
+        "scope_claim_implausible",
+        "voluntourism_risk",
+        "hours_mismatch"
+      ],
+      "curator_note": "Teaching case for an over-claim. An undergraduate volunteer did not 'provide primary care and dental care to over 1,000 patients' in 20 hours, and an AdCom reader does that arithmetic. The admitted doubt about quitting medicine is the salvageable part. Global short-term service entries draw extra scrutiny for exactly this reason.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "free-health-clinic-volunteer",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Free Health Clinic Volunteer",
+      "organization": null,
+      "total_hours": 100,
+      "hours_as_published": "100",
+      "is_most_meaningful": false,
+      "description": "After Hurricane Irma affected my community of Fort Lauderdale, I felt an ethical responsibility to get involved. After months of planning and communicating with many hospitals and shelters, I was able to coordinate a free clinic in Fort Lauderdale. Over 10% of Americans have no access to medical care and I felt fortunate to work with generous physicians who donated their time to assess and treat patients in my community. I plan on coordinating a free bi-monthly clinic beginning in the fall. Poverty and lack of access to healthcare remain prevalent issues in the U.S, and I hope to continue working to alleviate these inequalities.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "service"
+      ],
+      "competencies": [
+        "Service Orientation",
+        "Ethical Responsibility to Self and Others"
+      ],
+      "techniques": [
+        "initiator-not-participant",
+        "forward-commitment"
+      ],
+      "defects": [
+        "statistic_without_source",
+        "no_patient_moment"
+      ],
+      "curator_note": "The applicant built the thing rather than signing up for it, which is the highest-value distinction in service entries. The future commitment ('I plan on coordinating a free bi-monthly clinic') is a legitimate move that most applicants never make - it shows the work outlives the application.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "lawrence-memorial-hospital-volunteer",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Lawrence Memorial Hospital Volunteer",
+      "organization": "Lawrence Memorial Hospital",
+      "total_hours": 200,
+      "hours_as_published": "200 hours",
+      "is_most_meaningful": false,
+      "description": "I served as a volunteer at Lawrence Memorial Hospital in their escort unit as well as their gastroenterology clinic. I assisted mostly with the transfer of patients while working in their escort unit and with the turnaround of patient discharge while working within the Gastroenterology Clinic. The position within escort as well as the Gastroenterology Clinic allowed me to interact with discharged patients for prolonged periods of time as they waited for their taxi or family member to come. It was a wonderful way to practice conversing with individuals from different age groups and backgrounds while also getting exposure to a new discipline within medicine in Gastroenterology.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [
+        "clinical",
+        "service"
+      ],
+      "competencies": [
+        "Social Skills",
+        "Service Orientation"
+      ],
+      "techniques": [],
+      "defects": [
+        "repeats_org_name",
+        "no_named_moment",
+        "wasted_characters"
+      ],
+      "curator_note": "Names 'escort unit' and 'Gastroenterology Clinic' three times each inside 700 characters. Roughly 90 characters go to repetition that a single specific conversation with one waiting patient would have filled far better. Good target for the trimmers half of draft-analysis.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "midland-care-hospice",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Midland Care, Hospice and PACE Volunteer",
+      "organization": "Midland Care",
+      "total_hours": 420,
+      "hours_as_published": "420 hours",
+      "is_most_meaningful": true,
+      "description": "I served as a volunteer at Midland Care's Lawrence location. This facility specializes in daytime care for individuals suffering from debilitating health conditions. I assisted administratively, helping with the organization of protocols and weekly record keeping for residents of the facility, as well as helping with the planning and organization of activities for the residents.",
+      "mme_remarks": "When I applied to Midland Care, my intent was to give myself an experience of healthcare in a new and different environment. Having had years of experience in a hospital setting, I challenged myself to experience something out of the ordinary and explore other environments in which I could possibly find myself as a future medical professional. Midland serves as a nonprofit center for individuals to receive daytime care for conditions they are afflicted with that require supervision, as well as hospice care for those individuals who need it. The center in Lawrence specializes in daytime care for residents. My preconceptions told me that this experience would be difficult. Such an environment surely would weigh heavy on one's spirit. What I found in my years at the center was very much the opposite. The individuals working here had such genuine kindness and caring in their heart for their job and their patients, I could only admire the way these professionals conducted themselves. They taught me how one's situation is a product of how you choose to embrace it. What drives my friends at Midland to be the caretakers they are is a deep-rooted belief in the capacity for good we as people have. Every week of volunteering teaches me to redefine success and motivates me to be a multifaceted caretaker.",
+      "quality_band": "solid",
+      "pillars": [
+        "service",
+        "clinical"
+      ],
+      "competencies": [
+        "Service Orientation",
+        "Resilience and Adaptability",
+        "Human Behavior"
+      ],
+      "techniques": [
+        "expectation-subverted",
+        "chose-the-harder-setting"
+      ],
+      "defects": [
+        "short_description",
+        "mme_redefines_org_twice",
+        "no_named_resident"
+      ],
+      "curator_note": "The expectation-subverted structure ('My preconceptions told me this would be difficult... What I found was very much the opposite') is the cleanest reflection pattern here and generalises to almost any entry. Note the description uses only about half its 700 characters while the MME spends 250 re-explaining what the organisation is.",
+      "anchor_scores": null,
+      "mme_anchor_set": "holdout",
+      "mme_anchor_scores": {
+        "insight": 20,
+        "evidence": 9,
+        "distinctness": 16,
+        "voice": 16
+      }
+    },
+    {
+      "slug": "maple-grove-hospital-volunteer",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Maple Grove Hospital Volunteer",
+      "organization": "Maple Grove Hospital",
+      "total_hours": 500,
+      "hours_as_published": "500 hours",
+      "is_most_meaningful": false,
+      "description": "I served as a Guest Service Volunteer at the hospital working primarily to guide incoming friends and family members to locations in and around the hospital as well as assisting with patient discharge proceedings. My interactions were largely with new families, and the experience garnered a wonderful environment in which I was able to develop my abilities in both communication and understanding hospital procedures. As I gained experience in the department, I also assisted in the training of incoming volunteers which was one of the first instances in which I have been in the role of a mentor. Helping others become a part of our team was rewarding in itself and added depth to my experience.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [
+        "service"
+      ],
+      "competencies": [
+        "Social Skills",
+        "Teamwork"
+      ],
+      "techniques": [
+        "mentor-progression"
+      ],
+      "defects": [
+        "no_named_moment",
+        "no_quantification_in_prose",
+        "vague_reward_language",
+        "generic_enough_to_be_anyone"
+      ],
+      "curator_note": "Calibration floor for a well-formed but empty entry. Grammatical, on-topic, 500 real hours, and nothing in it could not be written by any of the other thousand hospital volunteers applying this cycle. 'Rewarding in itself and added depth to my experience' is the tell.",
+      "anchor_scores": {
+        "specificity": 7,
+        "quantification": 1,
+        "reflection": 7,
+        "voiceAuthenticity": 11
+      },
+      "anchor_set": "tune"
+    },
+    {
+      "slug": "patient-navigator-interpreter",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Patient Navigator",
+      "organization": "NY Methodist Hospital",
+      "total_hours": 350,
+      "hours_as_published": "350 hours",
+      "is_most_meaningful": true,
+      "description": "As an interpreter for the NY Methodist Hospital, I assist medical staff in resolving concerns from patients, advocate for patient rights, and translate during rounds in both Mandarin and Cantonese. Observing physicians interact with patients was valuable. Speaking on behalf of doctors and patients has allowed me to take on the perspective of both parties. Patients would like to know as much as possible about their condition and alternative treatment plans. Physicians were responsible for educating patients in order to facilitate the decision making process. I learned that doctors must make sure that their patients are fully understood and respected in order to establish mutual trust.",
+      "mme_remarks": "Doctors spend numerous hours trying to cure diseases, but death is ultimately inevitable. After working alongside them, I saw how doctors are also human beings, afraid of failures like the rest of us. Not every patient can be saved or treated. And yet, I learned that physicians must do their best to make patients comfortable until their last seconds of life. I remember assisting a patient with a pineal tumor that was obstructing the normal circulation of cerebrospinal fluid around her brain, and the trapped fluid was increasing the pressure in her head. After a thorough discussion with the neurosurgeon about the complexity of the surgery and potential complications, the patient gave consent as she was in tears. I remember this was one of the most difficult interpretations I had to provide. I was trying my best to not get emotional in order to provide all the information and some reassurance. I knew that my reaction was not helpful to the patient and her family. After the surgery, I saw tears in the husband's eyes as he was being notified about its success, and I had to struggle to control my own. It takes perseverance to care for patients until their very last moment, but it is the best gift patients and their families can receive, even if the outcome would have been less fortunate.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "clinical",
+        "service"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Oral Communication",
+        "Ethical Responsibility to Self and Others",
+        "Social Skills"
+      ],
+      "techniques": [
+        "single-patient-story",
+        "clinical-detail-as-proof",
+        "emotional-restraint-shown"
+      ],
+      "defects": [
+        "description_weaker_than_mme"
+      ],
+      "curator_note": "The strongest MME in the corpus. The pineal-tumour case carries real clinical specificity, and the applicant shows their own emotion being managed rather than announcing empathy. Also a clean example of a role - interpreter - that gives an applicant access to conversations most volunteers never hear.",
+      "anchor_scores": {
+        "specificity": 18,
+        "quantification": 2,
+        "reflection": 15,
+        "voiceAuthenticity": 16
+      },
+      "anchor_set": "tune",
+      "mme_anchor_set": "tune",
+      "mme_anchor_scores": {
+        "insight": 21,
+        "evidence": 24,
+        "distinctness": 23,
+        "voice": 22
+      }
+    },
+    {
+      "slug": "psychiatric-ward-volunteer",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Long-term Psychiatric Ward Volunteer",
+      "organization": "X Medical Centre",
+      "total_hours": 205,
+      "hours_as_published": "205",
+      "is_most_meaningful": false,
+      "description": "At the X Medical Centre, I volunteered at the long-term psychiatric ward. Working alongside physicians and nurses, I acted as a bridge between the health professionals and the patients. My duties included hosting Bingo night to engage patients and assess their social behavior and interactions. I developed critical thinking skills as I often interacted with patients with limited background knowledge and had to use nonverbal communication skills to quickly determine whether a patient was in the mood to be approached or if they would prefer to keep their space at that time.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "clinical",
+        "service"
+      ],
+      "competencies": [
+        "Social Skills",
+        "Human Behavior",
+        "Cultural Competence"
+      ],
+      "techniques": [
+        "concrete-anchor-detail",
+        "skill-named-precisely"
+      ],
+      "defects": [
+        "short_of_limit"
+      ],
+      "curator_note": "'Hosting Bingo night' is doing a lot of work - one concrete, slightly unglamorous detail makes the whole entry believable. The nonverbal-reading skill is named precisely rather than called 'communication skills'. Under-uses its character budget by roughly 130 characters.",
+      "anchor_scores": {
+        "specificity": 16,
+        "quantification": 1,
+        "reflection": 11,
+        "voiceAuthenticity": 16
+      },
+      "anchor_set": "holdout"
+    },
+    {
+      "slug": "medical-genetics-clinic-volunteer",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Medical Genetics Clinic Volunteer",
+      "organization": "X Children's Hospital",
+      "total_hours": 350,
+      "hours_as_published": "350",
+      "is_most_meaningful": false,
+      "description": "During this yearlong internship at X Children's Hospital, I delved into an insofar unfamiliar aspect of medicine: medical genetics. My duties included an initial workup of patients to assemble a family pedigree of the patient. Seeing the manifestation of recessive vs. dominant, familial vs. sex-dependent mutations shed light on the sheer complexity of the human body. Shadowing genetic counselors and clinical geneticists, I also learned about the multifaceted combinations of genetic mutations that lead to pathological outcomes, such as the BRCA1 familial mutation and its effect on the risk of breast and ovarian cancer.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "clinical",
+        "inquiry"
+      ],
+      "competencies": [
+        "Living Systems",
+        "Scientific Inquiry",
+        "Critical Thinking"
+      ],
+      "techniques": [
+        "domain-specificity",
+        "named-mechanism"
+      ],
+      "defects": [
+        "no_patient_moment",
+        "content_over_reflection"
+      ],
+      "curator_note": "Demonstrates content mastery through specificity - naming BRCA1 proves engagement better than saying the work was fascinating. The cost is that a clinic full of families receiving genetic diagnoses produces no human moment at all.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "all-saints-soup-kitchen",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Not Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer -- Non Medical/Clinical",
+      "title": "All Saint's Soup Kitchen",
+      "organization": "All Saint's Soup Kitchen",
+      "total_hours": 20,
+      "hours_as_published": "20 hours",
+      "is_most_meaningful": false,
+      "description": "All Saint's Soup Kitchen provides free lunch on Saturdays to anyone who needs it. I assisted running the kitchen and the dining room. Serving meals for over 100 people every week. They were often homeless, drug addicts, or victims of domestic violence. All Saint's Soup Kitchen operates like a restaurant, thus teamwork and communication were vital. I was initially overwhelmed, but I learned how to prioritize and to work with my team. While providing them with warm meals, I hoped that their quality of lives would soon improve. It reminded me that doctors play a crucial role in identifying barriers to care and that a multidisciplinary team is needed to connect patients to available resources.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "service"
+      ],
+      "competencies": [
+        "Service Orientation",
+        "Teamwork",
+        "Cultural Competence"
+      ],
+      "techniques": [
+        "admitted-overwhelm",
+        "non-clinical-to-clinical-bridge"
+      ],
+      "defects": [
+        "dated_language",
+        "sentence_fragment"
+      ],
+      "curator_note": "Shows how a non-medical service entry earns its place: it bridges explicitly to barriers to care. 'Drug addicts' is language a 2020 document uses and a current AdCom reader will notice - 'people experiencing addiction' is the expected register now. Worth flagging as a live editorial rule, not a transcription error.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "binghamton-student-ambassador",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Not Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Non-Medical",
+      "title": "Binghamton University Student Ambassador",
+      "organization": "Binghamton University",
+      "total_hours": 20,
+      "hours_as_published": "20 hours",
+      "is_most_meaningful": false,
+      "description": "Binghamton University Student Ambassador helps prospective students and their families learn more about attendance, residential life, and academics. I have always wanted to overcome my shyness and decided to become a student ambassador to practice talking to strangers. Initially, I thought I had to tell impressive stories to reflect my university in a positive light. Yet, I learned students wanted to hear about my genuine experience, rather than wanting to be entertained. With this in mind, I became more comfortable talking honestly about my time at Binghamton. I realized the importance of honestly informing my patients about treatment options to foster a trusting relationship with them.",
+      "mme_remarks": null,
+      "quality_band": "exemplar",
+      "pillars": [
+        "service",
+        "teamwork"
+      ],
+      "competencies": [
+        "Oral Communication",
+        "Social Skills",
+        "Capacity for Improvement"
+      ],
+      "techniques": [
+        "admitted-weakness",
+        "belief-revision",
+        "small-activity-real-lesson"
+      ],
+      "defects": [
+        "future_patients_leap"
+      ],
+      "curator_note": "Twenty hours, no medicine in it, and it still works - because it names a personal weakness (shyness), states what the applicant believed, and states what changed. This is the entry to show applicants who think low-hour activities cannot carry weight.",
+      "anchor_scores": {
+        "specificity": 13,
+        "quantification": 1,
+        "reflection": 20,
+        "voiceAuthenticity": 20
+      },
+      "anchor_set": "holdout"
+    },
+    {
+      "slug": "project-sahari",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Not Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Not Medical/Clinical",
+      "title": "Project Sahari Volunteer",
+      "organization": "Project Sahari",
+      "total_hours": 84,
+      "hours_as_published": "84",
+      "is_most_meaningful": false,
+      "description": "Project Sahari is an orphan prevention program supporting single mothers who are at risk of losing their children due to poverty. I raised money for and assisted in the construction of an eco-sustainable two-family home in Tecpan, Guatemala. Although building a home is challenging, working in and coordinating a team made it an enjoyable experience and extremely rewarding. In addition, I participated in preparations and dedication of the Music, Art, and Culture Dome. I learned about the Mayan culture and history while attending a traditional ceremony. With a better understanding of the culture, I could communicate more sensitively with the mothers. Understanding your patients lived experiences and being sensitive to their culture is an extremely important aspect of delivering quality care.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "service"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Service Orientation",
+        "Teamwork"
+      ],
+      "techniques": [
+        "one-line-org-context"
+      ],
+      "defects": [
+        "over_limit",
+        "second_person_slip",
+        "culture_as_checkbox"
+      ],
+      "curator_note": "Runs past the 700-character limit as published, so it could not be submitted as-is - useful when demonstrating that the counter is a hard constraint, not a guideline. Also slips into second person ('Understanding your patients') in the last sentence.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "x-house-orphanage",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Not Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Not Medical/Clinical",
+      "title": "X House Orphanage Volunteer",
+      "organization": "X House Orphanage",
+      "total_hours": 120,
+      "hours_as_published": "120",
+      "is_most_meaningful": true,
+      "description": "As a volunteer at the orphanage, I organized age-appropriate educational English and American Sign Language lessons for the children, assisted with daily tasks for the orphanage, and collected donated materials. I was able to organize a carnival event for the entire orphanage, full of games, face painting, and prizes for the children. However, most impactful was my visit to area orphanages for children with AIDS and accompanying the children to local clinics. The resilience of the human spirit was never more evident to me. These children suffering from AIDS did not let their illness define them. They ran around outside, playing soccer and riding bikes. The experience vividly illustrated the adage that a person is not their illness.",
+      "mme_remarks": "Ethiopia was the first developing nation I visited, and it left a permanent mark on my heart. Visiting X House Orphanage in Z, I could not help comparing it to the experiences of my own childhood. I was adopted at five days old; my parents brought me home directly from the hospital. In contrast, these children grew up in a poverty-stricken orphanage, hoping for families to someday adopt them. Seeing the lack of food, toys, and basic healthcare available to these children and the surrounding village stunned me. I was an orphan and they are orphans, but they were born in Z and I was born in Las Vegas, Nevada. Due to that random bit of luck, I have been afforded an excellent education and plentiful opportunities. Life is not fair, and it will not become fair if left alone. We must work to make it fairer. At fourteen years old, I hosted my first fundraiser and allocated funds to clean water and medical supplies for the X House community. After Ethiopia, I volunteered in Ghana the next year, Uganda in the years after, and most recently Guatemala. Because of what I experienced at X House and my subsequent volunteer trips, I will take my luck and privilege and turn myself into a resource that underserved communities could use.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "service"
+      ],
+      "competencies": [
+        "Service Orientation",
+        "Cultural Competence",
+        "Ethical Responsibility to Self and Others",
+        "Resilience and Adaptability"
+      ],
+      "techniques": [
+        "personal-stake-disclosed",
+        "sustained-commitment-proof",
+        "concrete-contrast"
+      ],
+      "defects": [
+        "cliche_mark_on_my_heart",
+        "adage_closer",
+        "over_limit"
+      ],
+      "curator_note": "The personal stake - the applicant was adopted at five days old - converts what would be a voluntourism entry into the only person who could have written it. And the follow-through across four countries answers the 'was this a one-week trip for the application' question before it is asked.",
+      "anchor_scores": {
+        "specificity": 20,
+        "quantification": 1,
+        "reflection": 15,
+        "voiceAuthenticity": 14
+      },
+      "anchor_set": "holdout",
+      "mme_anchor_set": "holdout",
+      "mme_anchor_scores": {
+        "insight": 21,
+        "evidence": 22,
+        "distinctness": 23,
+        "voice": 18
+      }
+    },
+    {
+      "slug": "math-chemistry-ta",
+      "source": "cracking-med-examples",
+      "experience_type": "Teaching/Tutoring/Teaching Assistant",
+      "experience_type_as_published": "Teaching/Tutoring/Teaching Assistant",
+      "title": "Math and Chemistry Teaching Assistant",
+      "organization": null,
+      "total_hours": 273,
+      "hours_as_published": "273",
+      "is_most_meaningful": false,
+      "description": "I served as a Teaching Assistant (TA) for Mathematics and General Chemistry. As a TA, I attended class with the students, graded assignments, and held office hours and study sessions. Through my position as a TA, I learned patience and worked with each student at his or her own pace. I came up with new ways to explain concepts that were suited to each student's learning style. Their responsiveness and the look on their faces when they first understood a concept were the most rewarding aspects of the job. I will strive to facilitate patient education as a physician, making sure that a patient leaves the clinic well-informed with all of their questions answered regarding their healthcare needs.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "teamwork"
+      ],
+      "competencies": [
+        "Oral Communication",
+        "Service Orientation",
+        "Capacity for Improvement"
+      ],
+      "techniques": [
+        "teaching-to-patient-education-bridge"
+      ],
+      "defects": [
+        "no_named_student",
+        "generic_reward_language",
+        "over_limit"
+      ],
+      "curator_note": "The teaching-to-patient-education bridge is the correct move for this category and this entry makes it explicitly. Everything before that bridge is interchangeable with any TA entry: no student, no subject, no moment where an explanation failed and had to be rebuilt.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "biology-undergraduate-ta",
+      "source": "cracking-med-examples",
+      "experience_type": "Teaching/Tutoring/Teaching Assistant",
+      "experience_type_as_published": "Teaching/Tutoring/Teaching Assistant",
+      "title": "Undergraduate Teaching Assistant (Biology)",
+      "organization": null,
+      "total_hours": 108,
+      "hours_as_published": "108 hours",
+      "is_most_meaningful": false,
+      "description": "I keenly remembered how I did well in Introduction to Cellular and Molecular Biology due to the help of my teaching assistant. To pay forward his assistance, I applied to become a Biology teaching assistant. I assisted with weekly lab setup, demonstrated lab activities to students, and met weekly with the professor to help develop the overall course structure for both its lab and lecture components. I also attended all lectures to assist with discussions and held weekly office hours. Students often came to me for help understanding complex biological concepts. I learned that by connecting concepts together to form a bigger picture, students could grasp the material better. This experience taught me how to teach and to communicate complex ideas.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "teamwork"
+      ],
+      "competencies": [
+        "Oral Communication",
+        "Written Communication",
+        "Capacity for Improvement"
+      ],
+      "techniques": [
+        "motivation-stated-first",
+        "pay-it-forward-arc"
+      ],
+      "defects": [
+        "over_limit",
+        "flat_closer"
+      ],
+      "curator_note": "Opens with why the applicant sought the role rather than what the role was, which is the better order. Slightly over the 700-character limit as published, and the closing sentence ('taught me how to teach and to communicate complex ideas') restates the previous one.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "sophomore-gpa-award",
+      "source": "cracking-med-examples",
+      "experience_type": "Honors/Awards/Recognitions",
+      "experience_type_as_published": "Honors/Awards/Recognitions",
+      "title": "Sophomore Class GPA Award and Merit Scholarship",
+      "organization": "X University",
+      "total_hours": 0,
+      "hours_as_published": "0",
+      "is_most_meaningful": false,
+      "description": "I was one of two students in the sophomore class of the College of General Studies at X University nominated by faculty for my collected works. The Center for Interdisciplinary Teaching and Learning (CITL) selects two students, nominated by faculty, for the Best ePortfolio Award. CITL looks for evidence of student learning and evaluates the quality and quantity of information posted in the ePortfolios. I was also one of ten students recognized at X University College of General Studies for the top GPA of the sophomore class and awarded a merit scholarship for this accomplishment. I continued with my academic success and graduated from the College of Arts and Sciences Magna Cum Laude.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [],
+      "competencies": [
+        "Capacity for Improvement",
+        "Reliability and Dependability"
+      ],
+      "techniques": [
+        "selectivity-quantified",
+        "awards-bundled"
+      ],
+      "defects": [
+        "no_reflection"
+      ],
+      "curator_note": "Correct template for an award entry: state the selection denominator ('one of two students', 'one of ten') so the reader can size the honour, and bundle related awards into one slot rather than spending three. Zero hours is legitimate here. No reflection required for this type.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "health-society-grant",
+      "source": "cracking-med-examples",
+      "experience_type": "Honors/Awards/Recognitions",
+      "experience_type_as_published": "Honors/Awards/Recognitions",
+      "title": "Health Society (HS) Grant",
+      "organization": "Health Society",
+      "total_hours": 0,
+      "hours_as_published": "0",
+      "is_most_meaningful": false,
+      "description": "I was awarded the HS grant, which is a provincial grant given out yearly to the top 5 percent of candidates based on research credibility and long-term impact on clinical medicine. I was selected based on the immediate translatability of my project. Through HS, I further investigated the cure for Infantile Spasms, a project described in another entry. Drafting a research grant was a challenging and transformative experience, which required critical thinking and a reconsideration of the bigger context for medicine and its applications.",
+      "mme_remarks": null,
+      "quality_band": "exemplar",
+      "pillars": [
+        "inquiry"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Written Communication",
+        "Critical Thinking"
+      ],
+      "techniques": [
+        "selectivity-quantified",
+        "explicit-cross-reference"
+      ],
+      "defects": [
+        "short_of_limit"
+      ],
+      "curator_note": "The phrase 'a project described in another entry' is the most under-used move in the whole corpus. It tells the reader the 15 entries are one application, not fifteen, and it saves the characters that re-explaining the project would cost.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "vibrant-health-shadowing",
+      "source": "cracking-med-examples",
+      "experience_type": "Physician Shadowing/Clinical Observation",
+      "experience_type_as_published": "Physician Shadowing/Clinical Observation",
+      "title": "Clinical Shadowing at Vibrant Health Clinic",
+      "organization": "Vibrant Health Clinic",
+      "total_hours": 6,
+      "hours_as_published": "6",
+      "is_most_meaningful": true,
+      "description": "I had the wonderful opportunity to shadow Dr. Kelly Kreisler at Vibrant Health Clinic in Kansas City. I spent the day observing Dr. Kreisler at each of her appointments with patients at the clinic and had the opportunity to see how Doctors work with translators to breach the barrier of language. The experience at this clinic served as an interesting look into how a medical professional approaches handling the delivery of care to patients of diverse backgrounds.",
+      "mme_remarks": "Shadowing Dr. Kreisler served as an invaluable experience when exploring various unique environments within the medical field. Vibrant Health is a clinic in the Kansas City area that serves many individuals who have recently immigrated to the United States from different countries. Dr. Kreisler's specialty is in Pediatrics, where many of the patients she was seeing were young and in the process of acclimating to their new life here in the United States. It was evident how much of an experienced physician Dr. Kreisler was as she seamlessly worked with translators to comprehensively ensure that there were no errors in communication between her and the parents of her patients. A very interesting point in my shadowing experience was seeing how Dr. Kreisler asked her patients and their parents if they were speaking English at home or at school. This was interesting as I didn't even think to consider how socialization played a role in the health and development of these young patients. This really was a lesson for me in seeing what it means to be comprehensive in the care of one's patients. This experience was truly memorable, from its unique setting to the examples of the sometimes complex nature of doctor/patient interactions. It is an attribute I would hope to bring into my own practice, as I pursue my dream of studying and practicing medicine.",
+      "quality_band": "counter_example",
+      "pillars": [
+        "clinical"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Human Behavior"
+      ],
+      "techniques": [
+        "one-observed-question"
+      ],
+      "defects": [
+        "six_hour_mme",
+        "adjective_padding",
+        "single_day_experience"
+      ],
+      "curator_note": "Six hours designated as one of only three Most Meaningful Experiences. Whatever the writing quality, that allocation tells an AdCom the applicant had nothing deeper to nominate. The observation about asking which language is spoken at home is genuinely sharp and belongs in a 700-character entry, not a 1,325-character MME. Flag MME + low hours as a portfolio-level warning.",
+      "anchor_scores": null,
+      "mme_anchor_set": "tune",
+      "mme_anchor_scores": {
+        "insight": 13,
+        "evidence": 12,
+        "distinctness": 10,
+        "voice": 7
+      }
+    },
+    {
+      "slug": "lawrence-memorial-shadowing",
+      "source": "cracking-med-examples",
+      "experience_type": "Physician Shadowing/Clinical Observation",
+      "experience_type_as_published": "Physician Shadowing/Clinical Observation",
+      "title": "Clinical Shadowing Lawrence Memorial Hospital",
+      "organization": "Lawrence Memorial Hospital",
+      "total_hours": 6,
+      "hours_as_published": "6",
+      "is_most_meaningful": true,
+      "description": "I had the pleasure of shadowing Dr. Michael Zabel at Lawrence Memorial's Cardiology Center. I spent the day observing Dr. Zabel make his rounds, evaluate various test results from his patients and was able to see how the process of record keeping is done within a hospital setting from the perspective of the doctor. As my first official opportunity for shadowing a doctor, this was a wonderful way to see many aspects of a Doctor's day on the job from the time he gets to his personal office, to patient rounds, to analyzing test data and charting.",
+      "mme_remarks": "Getting the call that I could shadow a doctor from cardiology was the best start to a Monday that I could have asked for. The fact that the appointment was on my birthday was an added bonus; this was a wonderful way to spend the day. The experience showed me a wonderful example of what a proper and respectful bedside manner looks like between doctors and patients. I was lucky enough to sit in while Dr. Zabel spoke to his patients, most of which were alone in their hospital rooms. He took the time with each of his patients to talk about their condition and make sure they understood what their charts meant. He would then proceed to talk to his patients about their jobs, families, or how their retirement was going. It was a wonderful look into the human side of this profession and an aspect of the job I find myself very much looking forward to. To end the day, Dr. Zabel looked at echocardiographs with me and gave me insight into how he analyzes them and what diagnoses he can derive from them. While this was a bit nerve-wracking, there were times he would ask me to infer what I thought was wrong. I was blown away that he allowed me to do this with him. Instead of feeling like a fly on the wall, I felt as though I was a meaningful part of the doctor's day and was able to interact and see how my qualities could fit into this job.",
+      "quality_band": "counter_example",
+      "pillars": [
+        "clinical"
+      ],
+      "competencies": [
+        "Human Behavior",
+        "Social Skills"
+      ],
+      "techniques": [],
+      "defects": [
+        "six_hour_mme",
+        "wonderful_repeated_four_times",
+        "irrelevant_personal_detail",
+        "applicant_centered_not_patient_centered",
+        "single_day_experience"
+      ],
+      "curator_note": "The calibration floor for an MME. 'Wonderful' appears four times, the applicant's birthday consumes characters that no reader cares about, and the reflection is about how the day made the applicant feel rather than about the patients alone in those rooms. Six hours, again designated Most Meaningful.",
+      "anchor_scores": {
+        "specificity": 14,
+        "quantification": 1,
+        "reflection": 5,
+        "voiceAuthenticity": 8
+      },
+      "anchor_set": "tune",
+      "mme_anchor_set": "holdout",
+      "mme_anchor_scores": {
+        "insight": 7,
+        "evidence": 13,
+        "distinctness": 17,
+        "voice": 5
+      }
+    },
+    {
+      "slug": "physician-shadowing-observer",
+      "source": "cracking-med-examples",
+      "experience_type": "Physician Shadowing/Clinical Observation",
+      "experience_type_as_published": "Physician Shadowing/Clinical Observation",
+      "title": "Physician Shadowing Observer",
+      "organization": null,
+      "total_hours": 146,
+      "hours_as_published": "146",
+      "is_most_meaningful": true,
+      "description": "As a student observer, I shadowed physicians in the areas of dermatology, family medicine, pediatrics, internal medicine, and surgery. With each shadowing experience, I was exposed to working with patients of all ages and backgrounds suffering from acute to chronic issues. Despite differences in specialties, I observed one commonality among each of the specialties: investigating physical symptoms while also assessing patient environments. I realized physicians assess physical health in conjunction with social determinants of health, collaborate with patients, and develop a plan of care best suited to the patient. In observing doctors, my view of physicians shifted from reactive to proactive.",
+      "mme_remarks": "Shadowing has been an incredibly gratifying experience for me. Following each physician, whether it be in the NICU or the clinic, has bridged the gap between the textbook and the patient. As a result, I gained a glimpse into the responsibilities of a physician. I took full advantage and leveraged the opportunity to learn, offered assistance when I could, and asked questions. As a student observer, some of my most memorable experiences were when I shadowed a neonatalogist. Through shadowing, I witnessed the various aspects of medicine. I learned that medicine is not only just treating the illness, but also fostering an environment where a patient can thrive. During my experience, I have seen parents struggle to pay medical bills and spend time with their child, while others spend every moment at the hospital catering to the child's every need. Regardless of the parents' financial situations, the neonatologist provided the best care possible for the neonate. The neonatologist educated me about her life as a physician and we also discussed life outside the healthcare setting. Under her mentorship, I have learned how to manage a career with other aspects of life to maintain a healthy work-life balance. The neonatologist taught me the self-compassion needed to continue my education and my pursuit of medicine.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "clinical"
+      ],
+      "competencies": [
+        "Human Behavior",
+        "Cultural Competence",
+        "Critical Thinking"
+      ],
+      "techniques": [
+        "cross-specialty-synthesis",
+        "shadowing-consolidated",
+        "named-shift"
+      ],
+      "defects": [
+        "neonatologist_misspelled_once",
+        "no_single_patient"
+      ],
+      "curator_note": "The right way to handle shadowing: 146 hours across five specialties consolidated into one entry, with a synthesis no single day could produce, and a named shift ('from reactive to proactive'). Contrast directly against the two six-hour single-day MMEs above - same category, opposite strategy.",
+      "anchor_scores": null,
+      "mme_anchor_set": "holdout",
+      "mme_anchor_scores": {
+        "insight": 18,
+        "evidence": 16,
+        "distinctness": 19,
+        "voice": 13
+      }
+    },
+    {
+      "slug": "south-sudan-medical-internship",
+      "source": "cracking-med-examples",
+      "experience_type": "Physician Shadowing/Clinical Observation",
+      "experience_type_as_published": "Physician Shadowing/Clinical Observation",
+      "title": "Medical Internship in South Sudan",
+      "organization": null,
+      "total_hours": 210,
+      "hours_as_published": "210",
+      "is_most_meaningful": false,
+      "description": "After high school, I wanted to explore global health to better understand what medicine looked like in other countries. This urged me to partake in a medical internship in a rural village in South Sudan. Assigned a physician mentor each week, I shadowed and got involved in medical procedures and policies, while learning to break down cultural and language barriers. I witnessed the impact of limited resources on the quality of patient care, such as lack of oxygen tanks or surgical gloves. My understanding of cross-cultural medical communication was further deepened by daily global health seminars by local physicians.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "clinical",
+        "service"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Human Behavior",
+        "Service Orientation"
+      ],
+      "techniques": [
+        "resource-constraint-detail",
+        "learned-from-local-clinicians"
+      ],
+      "defects": [
+        "got_involved_vague",
+        "scope_of_involvement_unclear"
+      ],
+      "curator_note": "'Lack of oxygen tanks or surgical gloves' is the sentence that makes this real - a specific constraint beats any adjective about hardship. But 'got involved in medical procedures' is the sentence that makes an ethics-minded reader pause, because an undergraduate abroad should not be performing procedures. Precision protects the applicant here.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "varsity-tutors-tutor",
+      "source": "cracking-med-examples",
+      "experience_type": "Paid Employment - Not Medical/Clinical",
+      "experience_type_as_published": "Paid Employment - Not Medical/Clinical",
+      "title": "Varsity Tutors Tutor",
+      "title_as_published": "Clinical Shadowing at Vibrant Health Clinic",
+      "organization": "Varsity Tutors",
+      "total_hours": 400,
+      "hours_as_published": "400",
+      "is_most_meaningful": false,
+      "description": "I worked as an online and in-person tutor for Varsity Tutors in the Minneapolis area as well as in Lawrence. I tutored everything from standardized tests such as the ACT and SATs to individual subjects such as organic chemistry, biology, and many more. I really loved the experience of teaching my students and made sure that I individualized each student's learning plan and really got to the source of any problems they had with the subject. Teaching is very rewarding, and it pushes me as an individual to have a deep understanding of the content I am teaching and explore new, more effective ways of communicating information to my students.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [
+        "teamwork"
+      ],
+      "competencies": [
+        "Oral Communication",
+        "Capacity for Improvement"
+      ],
+      "techniques": [],
+      "defects": [
+        "source_title_mislabeled",
+        "really_repeated",
+        "no_named_student",
+        "no_medicine_link"
+      ],
+      "curator_note": "SOURCE DEFECT: published under the title 'Clinical Shadowing at Vibrant Health Clinic' with a tutoring description - a copy-paste error in the source PDF. Title corrected here; title_as_published preserves the original. This is exactly the kind of row that would teach a classifier to map tutoring text to shadowing, which is why the corpus needs curation before it is loaded.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "perrigo-internship",
+      "source": "cracking-med-examples",
+      "experience_type": "Paid Employment - Not Medical/Clinical",
+      "experience_type_as_published": "Paid Employment - Not Medical/Clinical",
+      "title": "Summer Internship Perrigo Pharmaceuticals",
+      "organization": "Perrigo Company",
+      "total_hours": 490,
+      "hours_as_published": "490",
+      "is_most_meaningful": false,
+      "description": "In the Summer of 2016, I had the opportunity to intern at Perrigo Company in Crystal Minnesota. I had the pleasure of working in the technical operations department. In this position, I was tasked with the development and refinement of manufacturing procedures, as well as working alongside fellow coworkers in the production of the medications. I was given a degree of autonomy in my role, in demonstrating extensive degrees of both innovation and organization in the projects I was tasked with. Many times, the job was a test of perseverance and patience working as a small gear in the machine. The experience offered a unique insight into the industry behind the medical field and how it operates.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [],
+      "competencies": [
+        "Reliability and Dependability",
+        "Teamwork"
+      ],
+      "techniques": [
+        "industry-perspective"
+      ],
+      "defects": [
+        "passive_construction",
+        "self_praise_unsupported",
+        "no_specific_project"
+      ],
+      "curator_note": "'Demonstrating extensive degrees of both innovation and organization' is self-assessment with no evidence behind it, and it is the kind of sentence draft-analysis should route to trimmers. 'A small gear in the machine' is the one honest line. Pharma manufacturing is a genuinely differentiating angle that this entry never actually uses.",
+      "anchor_scores": {
+        "specificity": 14,
+        "quantification": 2,
+        "reflection": 6,
+        "voiceAuthenticity": 10
+      },
+      "anchor_set": "holdout"
+    },
+    {
+      "slug": "assisting-in-the-american-dream",
+      "source": "cracking-med-examples",
+      "experience_type": "Paid Employment - Not Medical/Clinical",
+      "experience_type_as_published": "Paid Employment - Not Medical/Clinical",
+      "title": "Assisting in the American Dream",
+      "organization": null,
+      "total_hours": 50,
+      "hours_as_published": "50 hours",
+      "is_most_meaningful": false,
+      "description": "Through the tutoring company I have worked with for several years I was given the unique opportunity to work in the Kansas City Area this spring to work with newly immigrated individuals and the language barriers they face in their new life in the United States. Many of these individuals were younger than me and had left their homes to come to the States and pursue their American dream. My company contracted me to work with groups of employees from companies in Kansas City to develop English and Communication skills in the job environment. It was an incredible experience hearing the stories of my students and what brought them to the U.S. Their stories inspired me and the opportunity to help them in their pursuit of happiness was a privilege. The experience was also a test of applying my skills in communicating in different languages.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [
+        "service"
+      ],
+      "competencies": [
+        "Cultural Competence",
+        "Oral Communication"
+      ],
+      "techniques": [],
+      "defects": [
+        "over_limit",
+        "stories_mentioned_never_told",
+        "no_medicine_link"
+      ],
+      "curator_note": "Says twice that the students' stories were moving and never tells one. Over the 700-character limit as published, so the fix and the trim are the same edit: replace the two sentences about how inspiring the stories were with one actual story.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "zeta-beta-tau",
+      "source": "cracking-med-examples",
+      "experience_type": "Extracurricular Activities",
+      "experience_type_as_published": "Extracurricular Activities",
+      "title": "Zeta Beta Tau",
+      "organization": "Zeta Beta Tau, University of Kansas",
+      "total_hours": 1000,
+      "hours_as_published": "1,000",
+      "is_most_meaningful": false,
+      "description": "I have been a member of the Zeta Beta Tau fraternity at KU since my freshman year of attending school in Kansas. The Chapter has a wonderful outreach within the community and having the opportunity to work as Operations Director, as well as serve in the risk management committee during my time as a member allowed me to grow the chapter with my fellow leaders, to double in size as a chapter and achieve the permit and raise 75,000 dollars in funding to build a house on campus. I have been a part of numerous volunteering opportunities sponsored by the chapter and have worked extensively to help make the organization well-rounded and reputable within the community at KU.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [
+        "teamwork"
+      ],
+      "competencies": [
+        "Teamwork",
+        "Reliability and Dependability"
+      ],
+      "techniques": [
+        "quantified-outcome"
+      ],
+      "defects": [
+        "run_on_sentence",
+        "leadership_buried",
+        "no_reflection",
+        "hours_inflated"
+      ],
+      "curator_note": "Doubling the chapter and raising $75,000 are strong outcomes buried inside a 90-word run-on sentence, with the Operations Director title mentioned in a subordinate clause. Also 1,000 hours claimed for fraternity membership, which invites the question of what was counted. Best 'the content is there, the structure hides it' case in the corpus.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "custom-sneakers",
+      "source": "cracking-med-examples",
+      "experience_type": "Hobbies",
+      "experience_type_as_published": "Hobbies",
+      "title": "Custom Sneakers",
+      "organization": null,
+      "total_hours": 500,
+      "hours_as_published": "500",
+      "is_most_meaningful": false,
+      "description": "Since I started to dress myself, I always loved picking out shoes above all other articles of clothing. As I grew, I developed a real passion for fashion. I loved finding the most unique sneakers in magazines and cutting them out so one day, when I could afford them, I remembered which ones I liked. There were some though that I liked but were just not quite right. I would buy bland, or on-sale versions of the shoes I liked then paint them to what I thought was perfect. I started to make my own designs and learned about how various paints and glues work on different materials. Working with different materials and techniques taught me how to work procedurally. To achieve the desired product I learned that I must consider the intricacies of each step and execute them in a fashion that leaves as little as possible to chance.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [],
+      "competencies": [
+        "Capacity for Improvement",
+        "Critical Thinking"
+      ],
+      "techniques": [
+        "genuine-voice",
+        "hobby-to-transferable-skill"
+      ],
+      "defects": [
+        "over_limit",
+        "slow_open",
+        "cliche_passion"
+      ],
+      "curator_note": "Anchor for voice scoring specifically. Nobody else wrote this, and the procedural-thinking link is earned rather than bolted on. It is also over the character limit and spends its first 200 characters on childhood preamble. High voice, low everything else - useful for showing the four dimensions move independently.",
+      "anchor_scores": {
+        "specificity": 15,
+        "quantification": 1,
+        "reflection": 13,
+        "voiceAuthenticity": 23
+      },
+      "anchor_set": "tune"
+    },
+    {
+      "slug": "in-house-mechanic",
+      "source": "cracking-med-examples",
+      "experience_type": "Hobbies",
+      "experience_type_as_published": "Hobbies",
+      "title": "In-House Mechanic",
+      "organization": null,
+      "total_hours": 1000,
+      "hours_as_published": "1000",
+      "is_most_meaningful": false,
+      "description": "The worst part about owning cars? Taking your car to the dealership due to a little noise, only to come out having to take out a second mortgage to fix numerous other problems you didn't know you had. My dad and I loved to fix the problems ourselves. We bonded over brake discs, exhaust pipes, and just about anything that rattled and squeaked the way it wasn't supposed to. Working to solve these mechanical problems really developed my critical thinking and reasoning to be able to deduce a larger problem from a few symptomatic indicators. Practicing working algorithmically or using heuristics I found ways to solve the problems in cars and other facets of my life.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [],
+      "competencies": [
+        "Critical Thinking",
+        "Human Behavior"
+      ],
+      "techniques": [
+        "question-open",
+        "differential-diagnosis-parallel",
+        "relationship-detail"
+      ],
+      "defects": [
+        "hours_inflated",
+        "second_person_open"
+      ],
+      "curator_note": "Opens on a question, which almost no entry does, and lands a differential-diagnosis parallel without ever saying 'just like a doctor'. The restraint is the skill. 1,000 hours for a hobby with a parent is the kind of number that invites scrutiny of every other hour figure in the application.",
+      "anchor_scores": {
+        "specificity": 17,
+        "quantification": 1,
+        "reflection": 14,
+        "voiceAuthenticity": 22
+      },
+      "anchor_set": "holdout"
+    },
+    {
+      "slug": "artist-formerly-known-as-orestes",
+      "source": "cracking-med-examples",
+      "experience_type": "Hobbies",
+      "experience_type_as_published": "Hobbies",
+      "title": "The Artist Formerly Known as Orestes",
+      "organization": null,
+      "total_hours": 1000,
+      "hours_as_published": "1,000",
+      "is_most_meaningful": false,
+      "description": "Music, like many art forms teaches the value of patience and how subtle intricacies distinguish your art from being average to outstanding. At the age of six I decided I needed to start playing the piano, at eleven I thought I would try my hand at saxophone, and then in high school, when I bought my first leather jacket, I of course had to learn guitar. Whether it was competing in piano competition, performing in jazz band, or finally nailing the guitar solo in \"Hotel California\", music has also grown and evolved along with me throughout my life. It is a hobby that has taught me how culture and music shape people and led me to explore how understanding culture can enrich one as an individual.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [],
+      "competencies": [
+        "Capacity for Improvement",
+        "Human Behavior"
+      ],
+      "techniques": [
+        "genuine-voice",
+        "specific-cultural-reference",
+        "self-deprecating-humour"
+      ],
+      "defects": [
+        "generic_closer",
+        "hours_inflated",
+        "over_limit"
+      ],
+      "curator_note": "'When I bought my first leather jacket, I of course had to learn guitar' is the single best voice sentence in the corpus - humour, self-awareness, and a real timeline in fourteen words. The closing sentence retreats into generic culture language and undoes some of it.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "premed-public-health-committee",
+      "source": "cracking-med-examples",
+      "experience_type": "Extracurricular Activities",
+      "experience_type_as_published": "Extracurriculars",
+      "title": "Binghamton University Premedical Association's Public Health Committee",
+      "organization": "Binghamton University Premedical Association",
+      "total_hours": 20,
+      "hours_as_published": "20",
+      "is_most_meaningful": false,
+      "description": "Premed Association Public Health Committee is a student-run organization that addresses public health issues on campus such as smoking, safe sex, and healthy dining. As a committee member, I explored various dining options on campus to promote healthy eating. We conducted research and interviews with dietitians to gather information to present during our Health Fair. We invited yoga and taekwondo instructors to demonstrate exercise routines. I learned that people are often aware of what constitutes a poor diet; however, they do not know ways to look for healthy alternatives. As a future physician, I have to make sure to emphasize the importance of a healthy lifestyle and ways to attain it.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "service"
+      ],
+      "competencies": [
+        "Service Orientation",
+        "Human Behavior",
+        "Oral Communication"
+      ],
+      "techniques": [
+        "insight-from-doing",
+        "one-line-org-context"
+      ],
+      "defects": [
+        "we_not_i",
+        "low_hours_low_stakes"
+      ],
+      "curator_note": "The insight - people know what a poor diet is but not how to find alternatives - is a real finding produced by doing the work, and that is what rescues a 20-hour committee membership. Pronouns drift to 'we' for the middle third.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "sorority-philanthropy-coordinator",
+      "source": "cracking-med-examples",
+      "experience_type": "Leadership - Not Listed Elsewhere",
+      "experience_type_as_published": "Leadership",
+      "title": "Philanthropy Coordinator of X Sorority",
+      "organization": "X Sorority",
+      "total_hours": 200,
+      "hours_as_published": "200",
+      "is_most_meaningful": false,
+      "description": "As the philanthropy coordinator of my sorority, XYZ, I coordinated and executed large scale fundraisers that raised money for our philanthropies: Cystic Fibrosis and Relay for Life. I was responsible for reserving spaces, coordinating between venues, and raising awareness as well as planning ways to get as much participation as possible. During our annual male pageant for Cystic Fibrosis, we raised over $20,000 and had a Cystic Fibrosis patient talk and raise awareness of the tumultuous struggles of this disease. In addition, we raised over $15,000 for one of our sisters who had a Stage 3 brain tumor. By effectively raising awareness and collaborating with many sponsors, the entire community was motivated to contribute.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "service",
+        "teamwork"
+      ],
+      "competencies": [
+        "Teamwork",
+        "Service Orientation",
+        "Reliability and Dependability"
+      ],
+      "techniques": [
+        "quantified-outcome",
+        "personal-stakes-in-the-cause"
+      ],
+      "defects": [
+        "no_reflection",
+        "no_medicine_link",
+        "logistics_listing",
+        "over_limit"
+      ],
+      "curator_note": "Anchor for quantification specifically: $20,000, $15,000, Stage 3, two named causes. It is also the entry with the least reflection in the corpus - it never says what any of it meant or what changed. Scores high on one dimension and near-floor on another, which is precisely why it belongs in the anchor set.",
+      "anchor_scores": {
+        "specificity": 19,
+        "quantification": 22,
+        "reflection": 2,
+        "voiceAuthenticity": 14
+      },
+      "anchor_set": "tune"
+    },
+    {
+      "slug": "wwf-climate-activism",
+      "source": "cracking-med-examples",
+      "experience_type": "Community Service/Volunteer - Not Medical/Clinical",
+      "experience_type_as_published": "Community Health Advocacy",
+      "title": "Climate Activism - WWF",
+      "organization": "WWF",
+      "total_hours": null,
+      "hours_as_published": "3 years",
+      "is_most_meaningful": false,
+      "description": "For the past 3 years, I have been involved with the WWF both personally and communally. On the personal side, I have pledged myself to reducing my carbon footprint and supporting wildlife-friendly companies, brands and products in my personal consumption. I have been able to reduce my electricity usage year by year and reduce my personal waste through recycling and composting in a home garden. In the community, I have helped organize numerous fundraising events both in-person and online for the WWF's worldwide plastic reduction initiative. I've also sent multiple letters to my state officials urging them to support climate-friendly policies and legislation.",
+      "mme_remarks": null,
+      "quality_band": "weak",
+      "pillars": [],
+      "competencies": [
+        "Ethical Responsibility to Self and Others",
+        "Service Orientation"
+      ],
+      "techniques": [],
+      "defects": [
+        "invalid_experience_type_in_source",
+        "hours_not_numeric_in_source",
+        "personal_habits_not_activity",
+        "no_outcome",
+        "no_medicine_link"
+      ],
+      "curator_note": "TWO SOURCE DEFECTS. Published under 'Community Health Advocacy', which is not one of the 18 AMCAS experience types; remapped here. And its hours field reads '3 years', which is not a number. Content-wise, half the entry is private consumption habits, which is not an activity an application can credit.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "autism-mental-health-advocate",
+      "source": "cracking-med-examples",
+      "experience_type": "Leadership - Not Listed Elsewhere",
+      "experience_type_as_published": "Community Health Advocacy",
+      "title": "Autism and mental health advocate",
+      "organization": null,
+      "total_hours": 500,
+      "hours_as_published": "500",
+      "is_most_meaningful": false,
+      "description": "In my undergraduate years I formed a student club aimed at raising awareness about and advocating for students with autism. The club also supported student mental health initiatives and provided a space for students with autism to share their experiences, find resources and support. We hosted events against student bullying, club fundraisers which helped promote awareness of what autistic students experience daily and assisted fellow students with receiving educational accommodations at the college. The club had 52 members at its height, and we were able to provide resources and accommodations for over 100 students so they would have the same access to education as non-autistic students.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "service",
+        "teamwork"
+      ],
+      "competencies": [
+        "Service Orientation",
+        "Ethical Responsibility to Self and Others",
+        "Cultural Competence"
+      ],
+      "techniques": [
+        "founder-not-member",
+        "quantified-outcome"
+      ],
+      "defects": [
+        "invalid_experience_type_in_source",
+        "no_reflection",
+        "no_named_student"
+      ],
+      "curator_note": "SOURCE DEFECT: also published under the invalid type 'Community Health Advocacy'; remapped to Leadership since the applicant founded the club. Founding plus 52 members plus 100 students served is strong evidence. No reflection at all, which caps it below the exemplar band despite the outcomes.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "workbook-shadowing-multi-hospital",
+      "source": "cracking-med-workbook",
+      "experience_type": "Physician Shadowing/Clinical Observation",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Shadowing Doctors",
+      "organization": "Multiple Hospitals",
+      "total_hours": null,
+      "hours_as_published": "4 hours/week, 06/2005 - Until Present",
+      "is_most_meaningful": false,
+      "description": "Philippine General Hospital: Infectious Diseases Section (July 2009 - January 2010)\n- Shadowed at in-patient and out-patient consultations and grand rounds\n- Attended international infectious disease conferences\nMain Contact: Dr. E (Head, Infectious Disease Section)\n\nMassachusetts General Hospital: Emergency Room (Summer 2008)\n- Attended patient consultations around the emergency room\nMain Contact: Dr. A\n\nStanford University: Pediatric Cardiothoracic Surgery (Summer 2007; Summer 2005)\n- Observed open heart surgeries\nMain Contact: Dr. M (Division Chief)\n\nPrivate-practice: Nephrology (June 2006)\n- Attended patient consultations during doctor visits and at dialysis centers\n- Observed board meetings with private health clinics to address administrative concerns\nMain Contact: Dr. R (Partner)\n\nCharles Drew Medical Center (Summer 2005)\n- Shadowed Geriatrics and Gerontology Division Chairman\nMain Contact: Dr. A (Division Chair)",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "clinical"
+      ],
+      "competencies": [
+        "Human Behavior"
+      ],
+      "techniques": [
+        "list-format",
+        "shadowing-consolidated",
+        "contacts-inline"
+      ],
+      "defects": [
+        "invalid_experience_type_in_source",
+        "zero_reflection",
+        "over_limit",
+        "cv_dump"
+      ],
+      "curator_note": "STRUCTURAL OUTLIER, kept deliberately. The only list-format entry here: five shadowing placements across five years consolidated into one slot with contacts inline. AMCAS permits this and it maximises information density, but it contains no reflection whatsoever, so it should never be retrieved as a writing model - only as evidence that the format exists. Also mistyped in the source as Community Service/Volunteer rather than Shadowing.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "workbook-vascular-biology-lab",
+      "source": "cracking-med-workbook",
+      "experience_type": "Research/Lab",
+      "experience_type_as_published": "Research/Lab",
+      "title": "Research Assistant in Vascular Biology Lab",
+      "organization": "Geisel Medical School, Dartmouth Hitchcock Medical Center",
+      "total_hours": 1390,
+      "hours_as_published": "440 + 400 + 550 across three date ranges",
+      "is_most_meaningful": true,
+      "description": "I researched the molecular interactions and signaling pathways of rPAI-123, an anti-angiogenic protein that may treat atherosclerosis.\n\nSkills:\n- Sectioned tissue samples, analyzed experimental data, converted confocal images of murine arteries to 3-D digital models of the arterial plexus.\n- Implemented experiments: utilized IHC (Immunohistochemistry) techniques to assess how rPAI-123 affects macrophage congregation in the aortic arch.\n\nImpact:\n- Published in two abstracts and one medical journal (see Publications).\n\nLeadership: Lab Team Leader\n- Ran monthly meetings with PI to track progress in lab\n- Served as student liaison between PI and other assistants",
+      "mme_remarks": "Excerpt from my research journal, February 2012:\nProcedure #27 did not work - monocytes failed to visualize on aortic arch, not pink enough. Amended technique: Will adjust levels of Eosin to 2/75 dilution. Keep incubation time at 11 minutes. Assess results. NOTE: Running out of aortic slides! Make it count!\n\nFor three years, I never wasted my failures. If an experiment failed to produce viable results, I would assess whether the experiment required technical or conceptual revision. Rinse, repeat.\n\nBut my work was never finished - My P.I. held me to the strictest standards in her lab, and I emulated her work ethic; between experimental incubations, I scrubbed flasks, washed counters, keeping my mind busy to rub away regrets, rinse thoughts, and repeat my experiences with new direction. The routine of learning from failures instilled in me methodical discipline, meticulous organization, and perseverance towards a greater goal. The joy of visualizing successful results: the perfect stain on the slide and the underlying evidence for a hypothesis well amended. More so than the success, however, was the knowledge that my painstaking praxis paid off: my methodical approach set the standard in her lab. I am confident that my discipline and determination will help me excel in future research settings.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "inquiry"
+      ],
+      "competencies": [
+        "Scientific Inquiry",
+        "Critical Thinking",
+        "Reliability and Dependability",
+        "Written Communication"
+      ],
+      "techniques": [
+        "labelled-sections",
+        "primary-document-opener",
+        "multiple-date-ranges",
+        "failure-as-method"
+      ],
+      "defects": [
+        "jargon_density",
+        "purple_prose_in_mme"
+      ],
+      "curator_note": "Two techniques nothing else here uses. The description is organised under Skills / Impact / Leadership labels, which scans in seconds. And the MME opens with a verbatim lab-journal entry - a primary document - before stepping back to interpret it. Also the only entry using three date ranges to show a role resumed across years, which this app's dateRanges array already supports.",
+      "anchor_scores": null,
+      "mme_anchor_set": "holdout",
+      "mme_anchor_scores": {
+        "insight": 19,
+        "evidence": 24,
+        "distinctness": 24,
+        "voice": 20
+      }
+    },
+    {
+      "slug": "workbook-shelter-food-director",
+      "source": "cracking-med-workbook",
+      "experience_type": "Leadership - Not Listed Elsewhere",
+      "experience_type_as_published": "Leadership - Not Listed Elsewhere",
+      "title": "Director of Food and Resources",
+      "organization": null,
+      "total_hours": 400,
+      "hours_as_published": "400",
+      "is_most_meaningful": true,
+      "description": "As the Food and Resources Director, I ensure that staff and residents at our shelter have access to daily meals and needed resources to succeed. Alongside biweekly trips to buy groceries from vendors, I also maintain an online menu, inventory system, and feedback form to ensure that board members are well connected to those living at the shelter. This facilitates logistics as changes to the menu and my responsibilities coordinating donations are informed by knowledge of current needs. My position also involves collaboration with many other outside organizations and directors - this has strengthened my abilities to work with others on team projects and accommodate different working styles.",
+      "mme_remarks": "As a growing organization in its third year of operation, the shelter has offered me much autonomy to shape its growth. I have redefined my position by transferring existing physical resources to online mediums - digitalizing recipe books, inventory systems, and avenues for feedback. My efforts resulted in more rapid and accessible communication between board members and shelter staff/residents. Training new staff members on how to use new resources, I have appreciated how a detailed but flexible approach facilitates effective implementation of theory into actual practice.\n\nResponsible for 10 residents and 70 volunteers, my efforts have immediate and observable benefits for others. This has taught me how to lead a team in limited settings. For example, our residents must leave the shelter after 7am on weekdays. I communicated with facilities staff and led discussions with directors to brainstorm solutions. I delegated tasks and organized efforts to successfully implement our shelter's first breakfast/lunch program while considering logistical details from a big-picture perspective. These skills are valuable as I aspire to lead healthcare teams and implement changes in medicine. As our model of a peer-to-peer shelter expands, I will apply lessons from this work to guide my career.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "service",
+        "teamwork"
+      ],
+      "competencies": [
+        "Teamwork",
+        "Service Orientation",
+        "Reliability and Dependability",
+        "Ethical Responsibility to Self and Others"
+      ],
+      "techniques": [
+        "scope-quantified",
+        "constraint-then-solution",
+        "systems-change"
+      ],
+      "defects": [
+        "organization_redacted_in_source"
+      ],
+      "curator_note": "The strongest leadership MME here, and the reason is structural: it states a hard constraint (residents must leave by 7am on weekdays), then what the applicant did about it (a breakfast/lunch program). Constraint then solution is more persuasive than any leadership adjective. 'Responsible for 10 residents and 70 volunteers' sizes the role in eight words.",
+      "anchor_scores": {
+        "specificity": 15,
+        "quantification": 3,
+        "reflection": 6,
+        "voiceAuthenticity": 14
+      },
+      "anchor_set": "holdout",
+      "mme_anchor_set": "tune",
+      "mme_anchor_scores": {
+        "insight": 15,
+        "evidence": 21,
+        "distinctness": 14,
+        "voice": 15
+      }
+    },
+    {
+      "slug": "workbook-care-extender",
+      "source": "cracking-med-workbook",
+      "experience_type": "Community Service/Volunteer - Medical/Clinical",
+      "experience_type_as_published": "Community Service/Volunteer - Medical/Clinical",
+      "title": "Clinical Care Extender, Department Coordinator Assistant",
+      "organization": "Care Extender Program",
+      "total_hours": 500,
+      "hours_as_published": "500",
+      "is_most_meaningful": false,
+      "description": "I volunteered on multiple units in the hospital. Throughout each rotation, I assisted healthcare staff with miscellaneous tasks and interacted with patients and their families. As a DCA, I built on these responsibilities by interviewing patients, staff, and other CEs to solicit feedback on our program and the hospital. Working with disgruntled patients and care providers helped me understand that medicine is not only about treating illness but also connecting with others. Though I could not provide care or affect changes, I saw that patients often felt better after I took time to listen to them. This highlights how strong physicians must understand people just as much as medicine.",
+      "mme_remarks": null,
+      "quality_band": "solid",
+      "pillars": [
+        "clinical",
+        "service"
+      ],
+      "competencies": [
+        "Social Skills",
+        "Service Orientation",
+        "Human Behavior"
+      ],
+      "techniques": [
+        "limits-acknowledged",
+        "role-progression"
+      ],
+      "defects": [
+        "miscellaneous_tasks_vague",
+        "unexplained_acronyms"
+      ],
+      "curator_note": "'Though I could not provide care or affect changes' is a rare and valuable admission - most applicants inflate their clinical role and readers discount accordingly. Naming the limit makes the listening claim credible. Weakened by 'miscellaneous tasks' and by DCA/CE acronyms introduced without expansion.",
+      "anchor_scores": null
+    },
+    {
+      "slug": "workbook-emra-coordinator",
+      "source": "cracking-med-workbook",
+      "experience_type": "Leadership - Not Listed Elsewhere",
+      "experience_type_as_published": "Leadership - Not Listed Elsewhere",
+      "title": "Coordinator, Head Coordinator",
+      "organization": "EMRA",
+      "total_hours": 700,
+      "hours_as_published": "700",
+      "is_most_meaningful": true,
+      "description": "As a program coordinator, I manage ~40 research associates to assist with clinical trials at the hospital. One such trial is CLOVERS, which weighs the contribution of fluids vs. pressors for sepsis. My role as its study head entails drafting members' protocols, troubleshooting shift workflow, and meeting with study PIs to facilitate efforts enrolling patients. My research experience extends outside this study as I also head EMRA's Research Committee. In doing so, I prepare members for smaller projects with ER residents through biweekly journal clubs as a space for members to progress. Selected as head coordinator, I also oversee 8 coordinators to organize team efforts and projects.",
+      "mme_remarks": "This organization has been formative in shaping my ambitions to pursue medicine and clinical research. I have realized how evidence should validate and guide medical practice. For instance, many studies we assist with are interventional trials which tangibly alter patient care while others challenge existing conventions (billing practices, CT utilization) to better healthcare. Participation in this process and heading my own study have inspired a desire to incorporate clinical research into my career. I am well-equipped to do so as I have realized the logistics of conducting clinical trials.\n\nThrough EMRA, I have explored teaching and policy about health education. I spearheaded implementation of educational modules for all of our studies. By explicitly connecting study protocol information to relevant disease background, these modules ensured stronger shift performance and furthered education for our members. This connects to journal clubs as my efforts fostering discussions around topics in medicine & research have pushed the program and students to engage more actively with literature and develop as prospective physicians. As the program and its members constantly grow, I also hope to evolve as a mentor for my peers and a prospective policy leader who informs decision making with empirical evidence.",
+      "quality_band": "exemplar",
+      "pillars": [
+        "inquiry",
+        "clinical",
+        "teamwork"
+      ],
+      "competencies": [
+        "Teamwork",
+        "Scientific Inquiry",
+        "Critical Thinking",
+        "Oral Communication"
+      ],
+      "techniques": [
+        "named-trial",
+        "nested-scope",
+        "quantified-span-of-control"
+      ],
+      "defects": [
+        "ampersand_and_tilde_shorthand",
+        "dense_clause_stacking"
+      ],
+      "curator_note": "Naming the actual trial (CLOVERS, fluids vs. pressors for sepsis) is what separates this from every generic 'clinical research coordinator' entry. Scope is nested and quantified - 40 associates, 8 coordinators, one study headed - so seniority is demonstrated rather than claimed. Uses '~' and '&' to buy characters, which is a legitimate trick within AMCAS limits.",
+      "anchor_scores": {
+        "specificity": 23,
+        "quantification": 14,
+        "reflection": 2,
+        "voiceAuthenticity": 15
+      },
+      "anchor_set": "holdout",
+      "mme_anchor_set": "holdout",
+      "mme_anchor_scores": {
+        "insight": 18,
+        "evidence": 15,
+        "distinctness": 20,
+        "voice": 14
+      }
+    }
+  ]
+}

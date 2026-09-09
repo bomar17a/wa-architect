@@ -1,4 +1,5 @@
 import { Activity, ActivityStatus } from '../types';
+import { mmeOverlapRatio } from './narrativeQualityService';
 import { calcDurationMonths } from '../components/MissionFitRadar';
 
 export interface RedFlag {
@@ -6,6 +7,14 @@ export interface RedFlag {
     title: string;
     message: string;
 }
+
+// An MME below this reads as a slot spent on access rather than on meaning. The two
+// six-hour single-day MMEs in the exemplar corpus are the reference case.
+const MIN_CREDIBLE_MME_HOURS = 25;
+
+// Shared content-word fraction above which the MME is substantially its description
+// retold. Calibrated on the corpus: genuine MMEs sit at 3-7%, the clearest rehash at 17%.
+const MME_OVERLAP_FLAG = 0.15;
 
 // Matches MissionFitRadar's client-side "Impossible Hours Guard" cap (~80 hrs/week).
 const MAX_HOURS_PER_MONTH = 340;
@@ -118,6 +127,36 @@ export function runRedFlagAudit(activities: Activity[]): RedFlag[] {
                 title: 'Possible AI-sounding phrasing',
                 message: `"${activityLabel(a)}" contains phrase${hits.length > 1 ? 's' : ''} common in unedited AI writing (${hits.map(h => `"${h}"`).join(', ')}). AdComs are trained to spot this — rewrite it in your own voice.`,
             });
+        }
+    });
+
+    // 7. MME depth — an MME that mostly re-tells its own description, or that marks a
+    // handful of hours as one of only three most meaningful experiences.
+    //
+    // Both come straight from the exemplar corpus. `clinical-research-internship-neuro`
+    // spends most of its 1,325 characters restating the ODI-score story its 700 already
+    // told; `vibrant-health-shadowing` and `lawrence-memorial-shadowing` each designate a
+    // single six-hour day as Most Meaningful. Neither is detectable inside one text —
+    // the first needs both fields compared, the second needs the hours.
+    mmeActivities.forEach(a => {
+        const hours = getActivityHours(a);
+        if (hours > 0 && hours < MIN_CREDIBLE_MME_HOURS) {
+            flags.push({
+                id: `mme-thin-hours-${a.id}`,
+                title: 'A Most Meaningful Experience with very few hours',
+                message: `"${activityLabel(a)}" is marked Most Meaningful on ${hours} hour${hours === 1 ? '' : 's'}. You only get three of these, and a reader will ask what it displaced. Keep it if the hours genuinely are not the point — otherwise spend the slot on something you can talk about for ten minutes.`,
+            });
+        }
+
+        if (a.mmeEssay && a.description) {
+            const overlap = mmeOverlapRatio(a.mmeEssay, a.description);
+            if (overlap >= MME_OVERLAP_FLAG) {
+                flags.push({
+                    id: `mme-overlap-${a.id}`,
+                    title: 'MME essay repeats its own entry',
+                    message: `About ${Math.round(overlap * 100)}% of the MME essay for "${activityLabel(a)}" covers ground its 700-character entry already covers. The extra 1,325 characters are the only place to say what the experience meant — reclaim them for what the entry could not fit.`,
+                });
+            }
         }
     });
 

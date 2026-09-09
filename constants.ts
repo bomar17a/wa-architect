@@ -1,5 +1,5 @@
 
-import { Activity, ActivityStatus, DateRange } from './types';
+import { type Activity, ActivityStatus, type DateRange } from './types.ts';
 
 export const MAX_ACTIVITIES = 15;
 
