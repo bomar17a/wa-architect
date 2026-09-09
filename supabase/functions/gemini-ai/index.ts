@@ -294,11 +294,14 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any, supab
     ${typeSpecificInstruction}
     ${contrastBlock}
 
-    Your task is to provide feedback in five parts:
-    1.  **General Feedback:** A top-level comment evaluating the strength of their draft and suggesting thematic improvements.
-    2.  **'Keepers':** Bullet points of the most impactful sentences, phrases, or ideas from the draft that are essential to the story. These are the elements that "show" rather than "tell".
-    3.  **'Trimmers':** Bullet points of details, sentences, or phrases that are less critical, redundant, or could be expressed more concisely to save space.
-    4.  **'Framework Alignment':** Evaluate the draft against three core pillars:
+    Your task is to provide feedback in five parts. The entry is at most ${limit} characters,
+    so a long list of notes is not more useful than a short one — it is harder to act on. Return
+    only the highest-impact items, ranked, and stay inside the stated limits.
+
+    1.  **General Feedback:** A top-level comment evaluating the strength of their draft and suggesting thematic improvements. Two to three sentences.
+    2.  **'Keepers':** AT MOST 4 bullets, ranked by impact — the sentences, phrases, or ideas essential to the story. These are the elements that "show" rather than "tell". One line each, quoting or naming the specific phrase rather than describing it in the abstract.
+    3.  **'Trimmers':** AT MOST 4 bullets, ranked by how much space they free — details that are redundant or could be said more concisely. One line each, naming the specific text.
+    4.  **'Framework Alignment':** Evaluate the draft against three core pillars. One or two sentences per pillar.
         - **Context:** How well did they establish the "What" and their role?
         - **Impact:** How well did they "Show" their impact with metrics, outcomes, and concrete details?
         - **Reflection:** How well did they "Tell" what they learned and how it shaped their path to medicine?
@@ -311,12 +314,18 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any, supab
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
             responseMimeType: "application/json",
+            // This handler runs on flash, where output tokens cost 8.3x input
+            // ($2.50 vs $0.30 per million), so the response — not the prompt or the
+            // retrieved exemplars — is where nearly all of a call's cost sits. The
+            // caps above are the real control; this is the backstop that bounds a
+            // run-on response, sized well clear of a compliant answer.
+            maxOutputTokens: 1200,
             responseSchema: {
                 type: "OBJECT",
                 properties: {
                     generalFeedback: { type: "STRING" },
-                    keepers: { type: "ARRAY", items: { type: "STRING" } },
-                    trimmers: { type: "ARRAY", items: { type: "STRING" } },
+                    keepers: { type: "ARRAY", items: { type: "STRING" }, maxItems: 4 },
+                    trimmers: { type: "ARRAY", items: { type: "STRING" }, maxItems: 4 },
                     frameworkAlignment: {
                         type: "OBJECT",
                         properties: {

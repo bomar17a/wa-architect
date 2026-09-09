@@ -17,7 +17,9 @@
 //
 // v2: draft-analysis and narrative-quality now retrieve exemplars from wa_exemplars
 // inside the edge function. Identical drafts, different (grounded) output.
-const VERSION = 'v2';
+// v3: draft-analysis now caps keepers/trimmers at 4 ranked items and bounds each
+// field's length, so the same draft returns a shorter, differently-shaped analysis.
+const VERSION = 'v3';
 const PREFIX = 'wa-ai-cache';
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_ENTRIES = 60;
