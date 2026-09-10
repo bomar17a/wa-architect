@@ -40,6 +40,21 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
     const charCount = fullDraft.length;
     const isOverLimit = charCount > charLimit;
 
+    // Where the characters actually went. The common failure in an activity entry is
+    // spending most of the box on duties — a reader already knows what the role does —
+    // so the split is shown rather than described.
+    const blocks = [
+        { key: 'context', label: 'Context', chars: context.trim().length, tone: 'bg-slate-400' },
+        { key: 'impact', label: 'Impact', chars: impact.trim().length, tone: 'bg-brand-teal' },
+        { key: 'reflection', label: 'Reflection', chars: reflection.trim().length, tone: 'bg-brand-gold' },
+        { key: 'strengthen', label: 'Recognition', chars: strengthen.trim().length, tone: 'bg-indigo-400' },
+    ].filter(b => b.chars > 0);
+    const blockTotal = blocks.reduce((sum, b) => sum + b.chars, 0);
+    const contextShare = blockTotal > 0 ? (context.trim().length / blockTotal) : 0;
+    // Two sentences of eight should land near a fifth of the box. Half is the point at
+    // which the entry has become a job description.
+    const contextHeavy = blockTotal > 200 && contextShare > 0.5;
+
     // Animation variants
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -91,18 +106,18 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                         <div className="pl-4">
                             <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
                                 Context & Role
-                                <span className="text-[10px] font-normal text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">The "What"</span>
+                                <span className="text-[10px] font-normal text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">2 sentences</span>
                             </label>
                             <p className="text-xs text-slate-500 mb-3 flex items-center gap-1.5">
                                 <BookOpen className="w-3 h-3 text-indigo-400" />
-                                Describe what you did and why you chose this activity.
+                                Name the setting, your role, and who you served. Two sentences — the reader only needs to know where they are standing.
                             </p>
                             <textarea
                                 value={context}
                                 onChange={(e) => setContext(e.target.value)}
                                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:border-indigo-400 transition-colors resize-none"
                                 rows={3}
-                                placeholder="Example: I volunteered as a scribe at the Downtown Clinic, assisting physicians with documentation for over 50 patients a week..."
+                                placeholder="Example: Saturday clinic on the east side, uninsured patients, no appointments. I ran intake — vitals, history, and the paperwork nobody else had time for."
                             />
                         </div>
                     </motion.div>
@@ -121,18 +136,18 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                                     <div className="absolute -left-3 top-6 bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">2</div>
                                     <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
                                         Impact & Outcomes
-                                        <span className="text-[10px] font-normal text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">The "Show"</span>
+                                        <span className="text-[10px] font-normal text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">3 sentences</span>
                                     </label>
                                     <p className="text-xs text-slate-500 mb-3 flex items-center gap-1.5">
                                         <Lightbulb className="w-3 h-3 text-amber-400" />
-                                        Use numbers and specific details. Show the difference you made.
+                                        A problem you noticed, what you did about it, what moved. This is where the numbers go.
                                     </p>
                                     <textarea
                                         value={impact}
                                         onChange={(e) => setImpact(e.target.value)}
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:border-indigo-400 transition-colors resize-none"
                                         rows={3}
-                                        placeholder="Example: I reorganized the patient filing system, reducing retrieval time by 20%..."
+                                        placeholder="Example: Waits ran past two hours because vitals happened after registration. I flipped the order and trained four volunteers on it; the average wait fell from 84 minutes to 61."
                                     />
                                 </div>
                             </motion.div>
@@ -153,18 +168,18 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                                     <div className="absolute -left-3 top-6 bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">3</div>
                                     <label className="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
                                         Reflection & Growth
-                                        <span className="text-[10px] font-normal text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">The "Tell"</span>
+                                        <span className="text-[10px] font-normal text-slate-400 uppercase tracking-wider border border-slate-200 px-1.5 rounded">3 sentences</span>
                                     </label>
                                     <p className="text-xs text-slate-500 mb-3 flex items-center gap-1.5">
                                         <BookOpen className="w-3 h-3 text-indigo-400" />
-                                        What did you learn? How did this shape your view of medicine?
+                                        What you understood afterward that you did not before. One honest line only you could have written beats a paragraph of competency vocabulary.
                                     </p>
                                     <textarea
                                         value={reflection}
                                         onChange={(e) => setReflection(e.target.value)}
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:bg-white focus:outline-none focus:border-indigo-400 transition-colors resize-none"
                                         rows={3}
-                                        placeholder="Example: This taught me the importance of efficiency in patient care and solidified my desire to serve underserved populations..."
+                                        placeholder="Example: I had assumed the bottleneck was staffing. It was sequence. Access is not only whether a clinic is open, but whether someone can afford to wait for it."
                                     />
                                 </div>
                             </motion.div>
@@ -189,7 +204,7 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                                     </label>
                                     <p className="text-xs text-slate-500 mb-3 flex items-center gap-1.5">
                                         <Trophy className="w-3 h-3 text-yellow-500" />
-                                        Did you receive any formal recognition?
+                                        Any formal recognition worth a line. Skip it if there is none — an empty sentence costs you characters that reflection could use.
                                     </p>
                                     <textarea
                                         value={strengthen}
@@ -231,6 +246,39 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                         </div>
                     </div>
 
+                    {blocks.length > 0 && (
+                        <div className="mb-3">
+                            <div className="flex h-1.5 rounded-full overflow-hidden bg-slate-800 mb-2">
+                                {blocks.map(b => (
+                                    <div
+                                        key={b.key}
+                                        className={b.tone}
+                                        style={{ width: `${(b.chars / blockTotal) * 100}%` }}
+                                        title={`${b.label}: ${b.chars} characters`}
+                                    />
+                                ))}
+                            </div>
+                            <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                                {blocks.map(b => (
+                                    <li key={b.key} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                                        <span aria-hidden="true" className={`w-2 h-2 rounded-sm ${b.tone}`} />
+                                        {b.label}
+                                        <span className="tabular-nums text-slate-500">
+                                            {Math.round((b.chars / blockTotal) * 100)}%
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                            {contextHeavy && (
+                                <p className="mt-2 text-[11px] text-brand-gold leading-relaxed">
+                                    Context is taking {Math.round(contextShare * 100)}% of the entry. A reader already
+                                    knows what the role involves — the space is better spent on what changed and what
+                                    you took from it.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     <div className="relative">
                         <textarea
                             readOnly
@@ -247,7 +295,7 @@ export const FourStepWriter: React.FC<FourStepWriterProps> = ({ charLimit, onApp
                                     className="bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2"
                                 >
                                     <AlertCircle className="w-3 h-3" />
-                                    Over limit! Try shortening your 'Context' to make room for 'Reflection'.
+                                    Over the limit. Cut from Context first — it is the block a reader needs least.
                                 </motion.div>
                             </div>
                         )}

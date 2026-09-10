@@ -21,6 +21,17 @@ const ADVISOR_QUESTIONS = [
     'Could you talk about it for 10 minutes in an interview without running out of things to say?',
 ];
 
+// H-CART. The expansion is a scene, not a summary, and the two inputs below feed its
+// middle. Hook and Challenge come from the moment you pick; the Tie forward is what the
+// reflection implies rather than announces.
+const SHAPE = [
+    { letter: 'H', role: 'Hook', hint: 'a moment, not a summary' },
+    { letter: 'C', role: 'Challenge', hint: 'what made it hard' },
+    { letter: 'A', role: 'Action', hint: 'what you did about it' },
+    { letter: 'R', role: 'Reflection', hint: 'what you understood after' },
+    { letter: 'T', role: 'Tie forward', hint: 'implied, not announced' },
+];
+
 export const MMEPanel: React.FC<MMEPanelProps> = ({ description, descLimit, mmeAction, mmeResult, mmeEssay, onChange }) => {
     const [isSynthesizing, setIsSynthesizing] = useState(false);
     const { addToast } = useToast();
@@ -61,7 +72,7 @@ export const MMEPanel: React.FC<MMEPanelProps> = ({ description, descLimit, mmeA
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 text-sm">Most Meaningful Experience</h4>
-                        <p className="text-[11px] text-slate-500">1,325 characters to explain <span className="italic">why</span> this mattered — not just what happened.</p>
+                        <p className="text-[11px] text-slate-500">1,325 characters of new ground. The committee has already read the entry above it.</p>
                     </div>
                 </div>
             </div>
@@ -81,11 +92,30 @@ export const MMEPanel: React.FC<MMEPanelProps> = ({ description, descLimit, mmeA
                     </ul>
                 </div>
 
+                {/* The shape the expansion should take, in order. */}
+                <div>
+                    <h5 className="text-xs font-bold text-slate-700 mb-2.5">The shape of a strong expansion</h5>
+                    <ol className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        {SHAPE.map((s) => (
+                            <li
+                                key={s.letter}
+                                className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-center"
+                            >
+                                <span className="block font-serif text-brand-teal text-base leading-none mb-1.5">
+                                    {s.letter}
+                                </span>
+                                <span className="block text-[11px] font-bold text-slate-700 leading-tight">{s.role}</span>
+                                <span className="block text-[10px] text-slate-400 leading-snug mt-0.5">{s.hint}</span>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+
                 {/* STAR inputs */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-500 uppercase">The Pivotal Action</label>
-                        <p className="text-[11px] text-slate-400">What specific action did you take in the moment that stuck with you?</p>
+                        <p className="text-[11px] text-slate-400">Put yourself inside one moment. What was hard about it, and what did you specifically do?</p>
                         <textarea
                             value={mmeAction}
                             onChange={(e) => onChange('mmeAction', e.target.value)}
@@ -96,7 +126,7 @@ export const MMEPanel: React.FC<MMEPanelProps> = ({ description, descLimit, mmeA
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-500 uppercase">The Result &amp; Growth</label>
-                        <p className="text-[11px] text-slate-400">What changed, and how did it shape your understanding of medicine?</p>
+                        <p className="text-[11px] text-slate-400">What changed, and what you understood afterward that you could not have learned another way.</p>
                         <textarea
                             value={mmeResult}
                             onChange={(e) => onChange('mmeResult', e.target.value)}
@@ -135,7 +165,7 @@ export const MMEPanel: React.FC<MMEPanelProps> = ({ description, descLimit, mmeA
                         onChange={(e) => onChange('mmeEssay', e.target.value)}
                         rows={6}
                         className="w-full bg-white border border-slate-200 focus:border-brand-gold/40 text-slate-800 text-sm font-serif leading-relaxed rounded-lg p-4 outline-none focus:ring-4 focus:ring-brand-gold/10 transition-all resize-none"
-                        placeholder="Generate a first draft with AI above, or write your own — this is the essay AdComs will actually read."
+                        placeholder="Generate a first draft with AI above, or write your own. Open inside the moment — a reader should be able to picture the room before they know what it taught you."
                     />
                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div className={`h-full rounded-full transition-all duration-300 ${budgetColor}`} style={{ width: `${essayPct}%` }}></div>
