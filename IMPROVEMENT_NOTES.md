@@ -635,9 +635,14 @@ Three properties this is built to hold:
    school-target vectors in session 9.
 
 `supabase/migrations/20260908120000_create_wa_exemplars.sql` and
-`scripts/db/seed-exemplars.mjs` are written and dry-run clean (47 rows), **not applied and not
-deployed**. The app is correct either way. `pg` is still an unlisted dependency, same as
-`apply-migration.mjs`; the seeder imports it lazily so `--dry-run` works without it.
+`scripts/db/seed-exemplars.mjs` are **applied and seeded** (47 rows), and `gemini-ai` is deployed
+at **v38**, which also activated `narrative-quality` on flash-lite and the bounded
+`draft-analysis` output.
+
+`pg` is a normal `devDependency` now, so `npm ci` is all anyone needs — it used to be installed
+ad hoc, which meant a fresh clone hit a module-not-found on the first migration or seed with
+nothing explaining why. The seeder still imports it lazily, but for a different reason: `--dry-run`
+is the schema-drift check that runs in CI, and CI should not need a database driver to run it.
 
 ### Two small import fixes
 
@@ -812,3 +817,126 @@ lexicon.
   and a test account.
 - MME held-out bias is +4.7 — slightly generous, inside the ±8 gate but the direction to watch.
 - AACOMAS: no corpus, no MME concept, 600-character limit. Entirely uncovered.
+
+---
+
+## Session 11 — landing page rewritten around the entry itself, and six new audit rules
+
+Prompted by a third-party AMCAS Work & Activities guide (the JackWestin 2026-2027 piece). Nothing
+from it is quoted or credited on the page, and none of its hour benchmarks were adopted — those
+are advising aggregates, and this repo's rule is still that a claim has to trace to code. What was
+taken is the *structure* it argues for, most of which turned out to be implementable as rules.
+
+### The one idea worth stealing
+
+"Applicants spend 80% of their characters on duties. Duties are the least interesting part."
+
+That reframes the whole page. The old hero led with a score dial, which sells a number. The new
+one leads with a single 653-character entry broken into its three blocks — Context / Impact /
+Reflection — each labelled with its sentence count and its real character count, above a bar
+showing the split. Every number on it is computed from the strings in `landingData.ts`
+(`ANNOTATED_ENTRY`), so the counts cannot drift from the text they describe, and
+`EntryAnatomy.tsx` derives its "what the box is for" bar from the same source rather than
+hardcoding a second set of percentages.
+
+### Six new red-flag rules (`services/redFlagService.ts`, now 14 total)
+
+The valuable half of the guide is a list of failures that are only visible **across** entries.
+Proofreading one box at a time cannot catch any of these, which is the argument for the audit:
+
+| Rule | Fires when |
+|---|---|
+| `zero-hour-*` | Publications / Presentations / Honors / Conferences / Achievements carrying hours |
+| `shadowing-split` | More than 2 shadowing entries — it belongs in one entry grouped by type of care |
+| `category-mismatch-*` | A shadowing entry describing hands-on work ("drew blood", "took vitals") |
+| `repeated-opening-*` | 3+ entries whose first two words match ("as a…", "during my…") |
+| `recycled-language` | A run of 5 content words shared by 3+ entries |
+| `thin-description-*` | An entry under 60% of the character limit |
+
+`runRedFlagAudit()` takes a `descLimit` second argument now (defaulted to AMCAS 700) because the
+thin-description floor moves for AACOMAS. Both call sites pass `DESC_LIMITS[appType]`.
+
+**The cross-entry rules do not fire in the editor**, which calls the audit with a single activity.
+That is correct, not a gap — three of them are meaningless on one entry.
+
+### `scripts/audit-red-flags.ts`
+
+15 fixtures, each check pinned to a case that must trip it and a case that must not, plus an
+assertion that the seeded `DEMO_ACTIVITIES` do not trip any of the new cross-entry rules.
+
+    node --experimental-transform-types scripts/audit-red-flags.ts
+
+The `--experimental-transform-types` flag is needed here and not in `audit-exemplars.ts` because
+this one reaches `types.ts`, which has enums that strip-only mode rejects.
+
+Two false positives were caught by the harness, both in the fixtures rather than the rules, and
+both worth knowing about if you extend it:
+1. Identical filler padding across three fixture entries *is* recycled language. The check was right.
+2. The audit tokenises on letters, so `word4x0` becomes `word x` — every entry padded that way
+   shares a run. Fixture padding has to be alphabetic and distinct.
+
+### Two import fixes made on the way
+
+- `redFlagService` imported `calcDurationMonths` from **`components/MissionFitRadar.tsx`**, pulling
+  a React chart component into a pure service. It lives in `utils/missionFit.ts`; it now imports it
+  from there. This is also what makes the service runnable under Node.
+- Explicit `.ts` extensions on that chain (`redFlagService`, `utils/missionFit`), matching what
+  `narrativeQualityService` already did. Vite did not care; Node's ESM resolver does.
+
+### App prose (deliberately narrow)
+
+- **`FourStepWriter`** now states the sentence budget per block (2 / 3 / 3) and renders the live
+  character split under the draft preview, with a warning when Context passes 50% of the entry.
+  This is the only place the landing page's "shows you the split as you type" claim is cashed.
+- **`MMEPanel`** carries the H-CART shape (Hook / Challenge / Action / Reflection / Tie forward)
+  as a five-item strip above the two inputs. The inputs and the data model are unchanged — no
+  migration, no new fields — only the framing and the placeholder copy.
+
+### Claims corrected on the landing page
+
+| Was | Now |
+|---|---|
+| "AMCAS & TMDSAS" in the hero capability row | **AMCAS & AACOMAS.** TMDSAS is a filter value in the school recommender; the writing side has only ever supported the two systems in `DESC_LIMITS`. |
+| "Six checks run on your portfolio" | Fourteen. It was already wrong at eight before this session. |
+
+### Design
+
+Canvas moved from the mint (`brand.light`) to warm paper (`brand.paper` `#FAF8F3`), with the mint
+kept as an accent band behind the Most Meaningful section. New tokens: `paper`, `paper-deep`,
+`rule` (the hairline), `ink`. Headings are Lora throughout via one `SectionHeader` motif (hairline
++ small-caps eyebrow + serif heading) rather than each section inventing its own. Inter 800 and
+Lora 700 were added to the font link — `font-black` was being faux-bolded from 700.
+
+New sections: `EntryAnatomy` (the 2-3-3 budget), `MostMeaningful` (H-CART), `Checklist` (the
+pre-submission pass, **editorial only — nothing in the app tracks those boxes**, and the copy says
+so). `AnnotatedEntry` is the hero visual.
+
+### Verification
+`tsc --noEmit` clean. Playwright at 390 and 1440: no horizontal overflow, no console errors, demo
+tab arrow-keys still work after the restyle. `FourStepWriter` and `MMEPanel` were checked through
+the temporary `preview.html` pattern documented above, then deleted.
+
+### The build was broken, and it was rollup
+
+`npm run build` had been failing on every commit since rollup 4.63.1 arrived transitively.
+Nothing in this repo asked for a source phase import; 4.63.1's parser reads the
+`ImportDeclaration` `phase` field from the wrong offset in the AST buffer and invents one:
+
+    parseAst('import "x";')        -> phase: "source"
+    parseAst('import a from "x";') -> phase: "let"
+
+Rollup then rejects the import at `fetchStaticDependencies`, because a source-phase import has to
+resolve to an external module. Vite emits a bare `import "vite/modulepreload-polyfill"` into the
+generated HTML entry module whenever `build.modulePreload.polyfill` is on, so this broke **any**
+vite build on that version, not just this one.
+
+Pinned to 4.63.0 via `overrides` in `package.json` — the newest good release, and 4.63.1 is still
+the latest published, so a range would buy nothing. **Drop the override once rollup ships the
+fix**, and re-run `parseAst('import "x";')` to confirm the phase is `undefined` before you do.
+
+### Still open
+- The seeded `DEMO_ACTIVITIES` now trip `thin-description` twice on a first load, because their
+  descriptions really are ~160 characters. Accurate, and arguably a good first lesson, but if it
+  reads as noise the fix is to lengthen the demo entries rather than to soften the rule.
+- The checklist is static. Wiring it to per-entry state (ten boxes per activity, persisted) is the
+  obvious next feature and the one thing from the guide that was left on the table.
