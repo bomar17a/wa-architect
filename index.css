@@ -23,7 +23,7 @@
   .bg-grid-pattern {
     background-size: 32px 32px;
     background-image:
-      radial-gradient(circle at 1px 1px, rgba(46, 107, 107, 0.15) 1.5px, transparent 0);
+      radial-gradient(circle at 1px 1px, rgba(46, 107, 107, 0.10) 1.5px, transparent 0);
   }
 }
 

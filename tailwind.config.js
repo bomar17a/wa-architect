@@ -21,6 +21,13 @@ export default {
                     highlight: '#3B82F6', // Sky blue — AI/interactive elements
                     danger: '#DC2626',    // Red — AdCom red flags
                     success: '#059669',   // Emerald — completed/final status
+
+                    // Landing page canvas. Warm paper rather than the mint, which is now
+                    // an accent band. `rule` is the hairline used under section eyebrows.
+                    paper: '#FAF8F3',
+                    'paper-deep': '#F2EEE5',
+                    rule: '#E2DCCF',
+                    ink: '#171717',
                 }
             },
             fontFamily: {

@@ -1,16 +1,24 @@
 import React from 'react';
+import { SectionHeader } from './SectionHeader';
 import { RED_FLAGS } from './landingData';
 
 export const RedFlagSection: React.FC = () => (
-    <section className="relative z-10 py-20 sm:py-24 bg-slate-900 text-white">
+    <section className="relative z-10 py-20 sm:py-28 bg-brand-dark text-white">
         <div className="max-w-6xl mx-auto px-6">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">{RED_FLAGS.heading}</h2>
-            <p className="text-slate-400 max-w-2xl mb-12 leading-relaxed">{RED_FLAGS.intro}</p>
+            <SectionHeader
+                eyebrow={RED_FLAGS.eyebrow}
+                heading={RED_FLAGS.heading}
+                intro={RED_FLAGS.intro}
+                tone="dark"
+            />
 
-            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-9">
-                {RED_FLAGS.items.map((item) => (
-                    <li key={item.title} className="border-t border-slate-700 pt-4">
-                        <h3 className="font-bold text-white mb-2">{item.title}</h3>
+            <ul className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-8">
+                {RED_FLAGS.items.map((item, i) => (
+                    <li key={item.title} className="border-t border-white/15 pt-4">
+                        <span className="block text-[10px] font-extrabold tabular-nums text-brand-gold/70 mb-2">
+                            {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <h3 className="font-bold text-white mb-2 leading-snug">{item.title}</h3>
                         <p className="text-sm text-slate-400 leading-relaxed">{item.body}</p>
                     </li>
                 ))}

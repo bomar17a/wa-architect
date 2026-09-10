@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { DEMO, DemoTabId, SAMPLE_CAPTION } from './landingData';
+import { SectionHeader } from './SectionHeader';
 import { ScorePanel } from './panels/ScorePanel';
 import { RewritePanel } from './panels/RewritePanel';
 import { ThemesPanel } from './panels/ThemesPanel';
@@ -34,17 +35,21 @@ export const ProductFrame: React.FC = () => {
     };
 
     return (
-        <section id="demo" className="relative z-10 py-20 sm:py-24 bg-white border-y border-slate-200">
+        <section id="demo" className="relative z-10 py-20 sm:py-28 bg-white border-y border-brand-rule">
             <div className="max-w-6xl mx-auto px-6">
-                <h2 className="text-3xl sm:text-4xl font-bold text-brand-dark mb-3">{DEMO.heading}</h2>
-                <p className="text-slate-600 mb-10">{DEMO.sub}</p>
+                <SectionHeader
+                    eyebrow={DEMO.eyebrow}
+                    heading={DEMO.heading}
+                    intro={DEMO.sub}
+                    className="mb-12"
+                />
 
-                <div className="bg-brand-surface border border-slate-200 rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden shadow-sm">
+                <div className="bg-brand-paper border border-brand-rule rounded-[1.75rem] sm:rounded-[2rem] overflow-hidden">
                     <div
                         role="tablist"
                         aria-label="Product demonstrations"
                         onKeyDown={onKeyDown}
-                        className="flex gap-1 p-2 border-b border-slate-200 bg-white overflow-x-auto scrollbar-hide"
+                        className="flex gap-1 p-2 border-b border-brand-rule bg-white overflow-x-auto scrollbar-hide"
                     >
                         {DEMO.tabs.map((tab) => (
                             <button
@@ -56,7 +61,7 @@ export const ProductFrame: React.FC = () => {
                                 aria-controls={`demo-panel-${tab.id}`}
                                 tabIndex={active === tab.id ? 0 : -1}
                                 onClick={() => setActive(tab.id)}
-                                className={`shrink-0 px-4 sm:px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors ${
+                                className={`shrink-0 px-4 sm:px-5 py-2.5 rounded-full text-xs font-extrabold uppercase tracking-[0.14em] transition-colors ${
                                     active === tab.id
                                         ? 'bg-brand-teal text-white'
                                         : 'text-slate-500 hover:text-brand-dark hover:bg-slate-100'
@@ -84,7 +89,7 @@ export const ProductFrame: React.FC = () => {
                         })}
                     </div>
 
-                    <p className="px-6 sm:px-8 lg:px-10 py-4 border-t border-slate-200 text-[11px] text-slate-500">
+                    <p className="px-6 sm:px-8 lg:px-10 py-4 border-t border-brand-rule text-[11px] text-slate-500">
                         {SAMPLE_CAPTION}
                     </p>
                 </div>
