@@ -115,6 +115,70 @@ check('380 of 700 characters', [activity({ id: 1, description: 'x'.repeat(380) }
 check('650 of 700 characters', [activity({ id: 1, description: 'x'.repeat(650) })], 'thin-description', false);
 check('empty description is not a thin one', [activity({ id: 1, description: '' })], 'thin-description', false);
 
+// Firing on the right entries is only half of it. These three pin what the applicant
+// actually ends up reading, which is where all three of the defects below lived: each
+// rule detected correctly and then presented the finding in a way that misled, buried,
+// or accused. Every one of them passed a fire/no-fire check while doing it.
+console.log('\n— what the applicant actually reads ———————————');
+
+const assert = (label: string, ok: boolean, detail: string) => {
+    if (!ok) failures++;
+    console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}\n        ${detail}`);
+};
+
+// The message quotes the shared phrase back. It has to be a string the applicant can
+// find in their own entry — the stopword-stripped match key is not.
+{
+    const shared = 'Working with the patients taught me that empathy matters far more than technique.';
+    const flags = runRedFlagAudit([
+        activity({ id: 1, description: `${longText('I checked in patients at the front desk.')} ${shared}` }),
+        activity({ id: 2, description: `${longText('I transported patients between wards.')} ${shared}` }),
+        activity({ id: 3, description: `${longText('I sat with families in hospice.')} ${shared}` }),
+    ], DESC_LIMITS.AMCAS);
+    const quoted = flags.find(f => f.id === 'recycled-language')?.message.match(/"([^"]+)"/)?.[1] ?? '';
+    assert(
+        'the recycled phrase is quoted verbatim',
+        quoted.length > 0 && shared.toLowerCase().includes(quoted),
+        `quoted ${JSON.stringify(quoted)}; must appear in the entry as written`,
+    );
+}
+
+// Most entries are short drafts early on, so a per-entry flag here drowned everything else.
+{
+    const many = Array.from({ length: 15 }, (_, i) =>
+        activity({ id: i + 1, description: longText(`Short draft ${i + 1}.`).slice(0, 300) }));
+    const flags = runRedFlagAudit(many, DESC_LIMITS.AMCAS);
+    const thin = flags.filter(f => f.id.startsWith('thin-description'));
+    assert(
+        'fifteen thin entries raise one flag, not fifteen',
+        thin.length === 1 && flags.length < 6,
+        `${thin.length} thin flag(s) out of ${flags.length} total`,
+    );
+}
+
+// Every phrase on the stock list is also ordinary English. One is not evidence, and the
+// wording must not tell someone their own writing was machine-made.
+{
+    const humanWithOne = longText('I ran Western blots on knockout mice and rebuilt the lysis protocol. Furthermore, I trained two sophomores on it.');
+    const one = runRedFlagAudit([activity({ id: 1, description: humanWithOne })], DESC_LIMITS.AMCAS);
+    assert(
+        'a single stock phrase says nothing',
+        !one.some(f => f.id.startsWith('ai-prose')),
+        `flags: [${one.map(f => f.id).join(', ') || 'none'}]`,
+    );
+
+    const three = runRedFlagAudit([activity({
+        id: 1,
+        description: `${humanWithOne} Moreover, the work was a testament to my growth.`,
+    })], DESC_LIMITS.AMCAS);
+    const msg = three.find(f => f.id.startsWith('ai-prose'))?.message ?? '';
+    assert(
+        'three stock phrases do, without claiming authorship',
+        msg.length > 0 && !/\bAI\b|machine|unedited/i.test(msg),
+        msg ? `message avoids accusing: ${JSON.stringify(msg.slice(0, 60))}...` : 'did not fire',
+    );
+}
+
 console.log('\n— the demo portfolio stays quiet ——————————————');
 const { DEMO_ACTIVITIES } = await import('../constants.ts');
 const demoFlags = runRedFlagAudit(DEMO_ACTIVITIES, DESC_LIMITS.AMCAS);

@@ -61,6 +61,8 @@ const THIN_DESCRIPTION_RATIO = 0.6;
 
 // How many entries must share an opening, or a phrase, before it reads as a pattern.
 const REPEAT_THRESHOLD = 3;
+// Stock phrases only mean something in company; see the AI Prose rule for why.
+const MIN_AI_TELLS = 2;
 
 // Length of the shared content-word run that counts as recycled language. Five content
 // words in common across three separate entries is copy-paste, not coincidence.
@@ -97,12 +99,29 @@ const openingKey = (text: string): string | null => {
     return w.length >= 2 ? `${w[0]} ${w[1]}` : null;
 };
 
-/** Runs of SHINGLE_LEN content words, used to spot language moved between entries. */
+/**
+ * Runs of SHINGLE_LEN content words, used to spot language moved between entries.
+ *
+ * Returns match key -> quotable phrase. The key drops stopwords so a lightly
+ * reworded sentence still matches; the value is the original contiguous span,
+ * stopwords and all, because the message quotes it back at the applicant and a
+ * stripped key ("working patients taught empathy matters") is a string they
+ * cannot find anywhere in their own writing.
+ */
 const contentShingles = (text: string): Map<string, string> => {
-    const words = normalisedWords(text).filter(w => !STOPWORDS.has(w) && w.length > 2);
+    const words = normalisedWords(text);
+    const contentAt: number[] = [];
+    words.forEach((w, i) => {
+        if (!STOPWORDS.has(w) && w.length > 2) contentAt.push(i);
+    });
+
     const out = new Map<string, string>();
-    for (let i = 0; i + SHINGLE_LEN <= words.length; i++) {
-        out.set(words.slice(i, i + SHINGLE_LEN).join(' '), words.slice(i, i + SHINGLE_LEN).join(' '));
+    for (let i = 0; i + SHINGLE_LEN <= contentAt.length; i++) {
+        const window = contentAt.slice(i, i + SHINGLE_LEN);
+        const key = window.map(j => words[j]).join(' ');
+        if (!out.has(key)) {
+            out.set(key, words.slice(window[0], window[SHINGLE_LEN - 1] + 1).join(' '));
+        }
     }
     return out;
 };
@@ -187,11 +206,19 @@ export function runRedFlagAudit(
     filled.forEach(a => {
         const text = [a.description, a.mmeEssay].filter(Boolean).join(' ').toLowerCase();
         const hits = AI_TELL_PHRASES.filter(p => text.includes(p));
-        if (hits.length > 0) {
+        // Two, not one. Every phrase on this list is also ordinary English that people
+        // write by hand, so a single hit says nothing — "furthermore" alone was enough
+        // to tell someone their own lab-bench account looked machine-written. The other
+        // cross-entry rules all wait for three occurrences before they say anything.
+        //
+        // The wording stops short of calling it AI too: the tool cannot tell authorship,
+        // only that the phrasing is stock, and being wrongly accused of not writing your
+        // own application is a worse outcome than leaving a cliche in.
+        if (hits.length >= MIN_AI_TELLS) {
             flags.push({
                 id: `ai-prose-${a.id}`,
-                title: 'Possible AI-sounding phrasing',
-                message: `"${activityLabel(a)}" contains phrase${hits.length > 1 ? 's' : ''} common in unedited AI writing (${hits.map(h => `"${h}"`).join(', ')}). AdComs are trained to spot this — rewrite it in your own voice.`,
+                title: 'Stock admissions phrasing',
+                message: `"${activityLabel(a)}" leans on ${hits.length} phrases that turn up in almost every application (${hits.map(h => `"${h}"`).join(', ')}). They read as filler whoever wrote them — the space is better spent on something only you could say.`,
             });
         }
     });
@@ -253,17 +280,22 @@ export function runRedFlagAudit(
 
     // 11. Recycled language. The same reflection, moved between entries.
     const shingleOwners = new Map<string, Set<number>>();
+    const shinglePhrase = new Map<string, string>();
     filled.forEach(a => {
         if (!a.description) return;
-        contentShingles(a.description).forEach((_, key) => {
+        contentShingles(a.description).forEach((phrase, key) => {
             const owners = shingleOwners.get(key) || new Set<number>();
             owners.add(a.id);
             shingleOwners.set(key, owners);
+            // Quote the first entry's wording; the others are near-identical by
+            // definition, and one of them is verbatim what the reader will search for.
+            if (!shinglePhrase.has(key)) shinglePhrase.set(key, phrase);
         });
     });
     const recycled = [...shingleOwners.entries()].find(([, owners]) => owners.size >= REPEAT_THRESHOLD);
     if (recycled) {
-        const [phrase, owners] = recycled;
+        const [key, owners] = recycled;
+        const phrase = shinglePhrase.get(key) || key;
         const titles = filled.filter(a => owners.has(a.id)).map(activityLabel);
         flags.push({
             id: 'recycled-language',
@@ -274,16 +306,30 @@ export function runRedFlagAudit(
 
     // 12. Unused characters. The space is free and a thin entry spends it on nothing.
     const thinFloor = Math.round(descLimit * THIN_DESCRIPTION_RATIO);
-    filled.forEach(a => {
-        const len = (a.description || '').trim().length;
-        if (len > 0 && len < thinFloor) {
-            flags.push({
-                id: `thin-description-${a.id}`,
-                title: 'Most of the box is still empty',
-                message: `"${activityLabel(a)}" uses ${len} of ${descLimit} characters. A reader who was willing to read ${descLimit} reads ${len} as an experience you did not get much from. The room is usually in what changed and what you took from it, not in more duties.`,
-            });
-        }
-    });
+    // Aggregated into one flag rather than one per entry. Early on, most entries are
+    // short drafts, so a per-entry flag put fifteen near-identical warnings in front of
+    // the applicant and buried the findings that were actually specific to them.
+    const thin = filled
+        .map(a => ({ a, len: (a.description || '').trim().length }))
+        .filter(({ len }) => len > 0 && len < thinFloor)
+        .sort((x, y) => x.len - y.len);
+
+    if (thin.length === 1) {
+        const { a, len } = thin[0];
+        flags.push({
+            id: `thin-description-${a.id}`,
+            title: 'Most of the box is still empty',
+            message: `"${activityLabel(a)}" uses ${len} of ${descLimit} characters. A reader who was willing to read ${descLimit} reads ${len} as an experience you did not get much from. The room is usually in what changed and what you took from it, not in more duties.`,
+        });
+    } else if (thin.length > 1) {
+        const named = thin.slice(0, 3).map(({ a, len }) => `"${activityLabel(a)}" (${len})`).join(', ');
+        const rest = thin.length > 3 ? `, and ${thin.length - 3} more` : '';
+        flags.push({
+            id: 'thin-description',
+            title: `${thin.length} entries are using under ${thinFloor} of ${descLimit} characters`,
+            message: `Shortest first: ${named}${rest}. A reader who was willing to read ${descLimit} reads a half-empty box as an experience you did not get much from. The room is usually in what changed and what you took from it, not in more duties.`,
+        });
+    }
 
     // 13. MME depth — an MME that mostly re-tells its own description, or that marks a
     // handful of hours as one of only three most meaningful experiences.
