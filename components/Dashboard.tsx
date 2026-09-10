@@ -103,7 +103,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
     const [dismissedFlags, setDismissedFlags] = useState<Set<string>>(new Set());
-    const redFlags = useMemo(() => runRedFlagAudit(activities), [activities]);
+    const redFlags = useMemo(() => runRedFlagAudit(activities, DESC_LIMITS[appType]), [activities, appType]);
     const visibleFlags = useMemo(() => redFlags.filter(f => !dismissedFlags.has(f.id)), [redFlags, dismissedFlags]);
     const dismissFlag = (id: string) => setDismissedFlags(prev => new Set(prev).add(id));
 

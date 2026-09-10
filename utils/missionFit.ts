@@ -1,4 +1,4 @@
-import type { Activity } from '../types';
+import type { Activity } from '../types.ts';
 
 // --- The Mission Math Engine (v3) ---
 //

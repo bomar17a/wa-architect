@@ -1,6 +1,7 @@
-import { Activity, ActivityStatus } from '../types';
-import { mmeOverlapRatio } from './narrativeQualityService';
-import { calcDurationMonths } from '../components/MissionFitRadar';
+import { type Activity, ActivityStatus } from '../types.ts';
+import { DESC_LIMITS } from '../constants.ts';
+import { mmeOverlapRatio } from './narrativeQualityService.ts';
+import { calcDurationMonths } from '../utils/missionFit.ts';
 
 export interface RedFlag {
     id: string;
@@ -35,6 +36,45 @@ const HIGH_STATUS_TYPES = [
     'Honors/Awards/Recognitions', 'Achievements',
 ];
 
+// Categories that carry no hours on the application. Hours entered against them read as
+// padding, and they are easy to leave behind when an entry gets recategorised.
+const ZERO_HOUR_TYPES = [
+    'Publications',
+    'Presentations/Posters',
+    'Honors/Awards/Recognitions',
+    'Conferences Attended',
+    'Achievements',
+];
+
+// Hands-on work described inside an entry filed as observation. Deliberately multi-word:
+// single verbs like "performed" or "assisted" appear in perfectly honest shadowing entries.
+const HANDS_ON_MARKERS = [
+    'took vitals', 'taking vitals', 'drew blood', 'drawing blood', 'phlebotomy',
+    'started an iv', 'placed an iv', 'administered medication', 'administered vaccines',
+    'assisted in surgery', 'assisted with surgery', 'performed cpr', 'ran intake',
+    'triaged patients', 'transported patients', 'bathed patients', 'fed patients',
+    'i scribed', 'as a scribe', 'charted for', 'sutured',
+];
+
+// An entry this far under the limit is usually an entry that ran out of things to say.
+const THIN_DESCRIPTION_RATIO = 0.6;
+
+// How many entries must share an opening, or a phrase, before it reads as a pattern.
+const REPEAT_THRESHOLD = 3;
+
+// Length of the shared content-word run that counts as recycled language. Five content
+// words in common across three separate entries is copy-paste, not coincidence.
+const SHINGLE_LEN = 5;
+
+// Shadowing is conventionally one entry grouped by type of care. Two is defensible
+// (domestic and international, say); three or more is spending slots on one thing.
+const MAX_SHADOWING_ENTRIES = 2;
+
+const STOPWORDS = new Set(('a an the and or but if of to in on at for with by from as is are was were be been '
+    + 'been being i me my we our you your it its this that these those there here have has had do does did '
+    + 'not no so than then when while which who whom what how their they them he she his her also very more '
+    + 'most much many some any each other into over under about after before during through').split(' '));
+
 // Common tells of unedited AI-generated prose in personal statements / activity descriptions.
 const AI_TELL_PHRASES = [
     'furthermore', 'moreover', 'it is important to note', 'in conclusion',
@@ -48,11 +88,37 @@ const getActivityHours = (a: Activity): number =>
 
 const activityLabel = (a: Activity) => a.title || 'Untitled activity';
 
+const normalisedWords = (text: string): string[] =>
+    (text.toLowerCase().match(/[a-z][a-z'-]*/g) || []);
+
+/** First two words of a description, which is where a repeated opening shows itself. */
+const openingKey = (text: string): string | null => {
+    const w = normalisedWords(text);
+    return w.length >= 2 ? `${w[0]} ${w[1]}` : null;
+};
+
+/** Runs of SHINGLE_LEN content words, used to spot language moved between entries. */
+const contentShingles = (text: string): Map<string, string> => {
+    const words = normalisedWords(text).filter(w => !STOPWORDS.has(w) && w.length > 2);
+    const out = new Map<string, string>();
+    for (let i = 0; i + SHINGLE_LEN <= words.length; i++) {
+        out.set(words.slice(i, i + SHINGLE_LEN).join(' '), words.slice(i, i + SHINGLE_LEN).join(' '));
+    }
+    return out;
+};
+
 /**
  * Client-side, non-blocking audit of common AdCom red flags.
  * Runs against a full activity list (Dashboard) or a single activity (Editor).
+ *
+ * Several checks only mean anything across the whole list — a repeated opening, recycled
+ * phrasing, shadowing spread over four slots. Called with one activity from the editor
+ * they simply do not fire, which is the right answer rather than a missing one.
  */
-export function runRedFlagAudit(activities: Activity[]): RedFlag[] {
+export function runRedFlagAudit(
+    activities: Activity[],
+    descLimit: number = DESC_LIMITS.AMCAS,
+): RedFlag[] {
     const flags: RedFlag[] = [];
     const filled = activities.filter(a => a.status !== ActivityStatus.EMPTY && a.experienceType);
 
@@ -130,7 +196,96 @@ export function runRedFlagAudit(activities: Activity[]): RedFlag[] {
         }
     });
 
-    // 7. MME depth — an MME that mostly re-tells its own description, or that marks a
+    // 7. Zero-hour categories carrying hours. Publications, posters, honours and conferences
+    // are logged at zero; hours against them are usually a leftover from an earlier category.
+    filled.forEach(a => {
+        const hours = getActivityHours(a);
+        if (hours > 0 && ZERO_HOUR_TYPES.includes(a.experienceType)) {
+            flags.push({
+                id: `zero-hour-${a.id}`,
+                title: 'Hours logged on a zero-hour category',
+                message: `"${activityLabel(a)}" is filed as ${a.experienceType} with ${hours} hour${hours === 1 ? '' : 's'}. Publications, presentations, awards and conferences are normally submitted at zero hours — the work behind them belongs in the research or leadership entry it came from. Check this one before you submit.`,
+            });
+        }
+    });
+
+    // 8. Shadowing spread across slots. You get fifteen; one grouped entry covers it.
+    const shadowingEntries = filled.filter(a => a.experienceType === 'Physician Shadowing/Clinical Observation');
+    if (shadowingEntries.length > MAX_SHADOWING_ENTRIES) {
+        flags.push({
+            id: 'shadowing-split',
+            title: 'Shadowing is spread across several slots',
+            message: `${shadowingEntries.length} separate shadowing entries (${shadowingEntries.map(activityLabel).join(', ')}) are using ${shadowingEntries.length} of your 15 slots on one kind of experience. Combining them into a single entry — grouped by primary care, specialty care, and underserved care, each with the physician and setting named — frees ${shadowingEntries.length - 1} slot${shadowingEntries.length - 1 === 1 ? '' : 's'} for something a reader has not seen yet.`,
+        });
+    }
+
+    // 9. Category mismatch. Hands-on work described inside an observation entry.
+    shadowingEntries.forEach(a => {
+        const text = (a.description || '').toLowerCase();
+        const hits = HANDS_ON_MARKERS.filter(m => text.includes(m));
+        if (hits.length > 0) {
+            flags.push({
+                id: `category-mismatch-${a.id}`,
+                title: 'Filed as shadowing, described as hands-on',
+                message: `"${activityLabel(a)}" is categorised as Physician Shadowing but describes hands-on work (${hits.map(h => `"${h}"`).join(', ')}). If you did the work, file it as clinical employment or medical volunteering — the hours count for far more there, and a category that does not match the description is the kind of thing a reader stops on.`,
+            });
+        }
+    });
+
+    // 10. Repeated openings. Only visible across the list, never inside one box.
+    const openings = new Map<string, Activity[]>();
+    filled.forEach(a => {
+        const key = a.description ? openingKey(a.description) : null;
+        if (!key) return;
+        const group = openings.get(key) || [];
+        group.push(a);
+        openings.set(key, group);
+    });
+    openings.forEach((group, key) => {
+        if (group.length >= REPEAT_THRESHOLD) {
+            flags.push({
+                id: `repeated-opening-${key.replace(/\s+/g, '-')}`,
+                title: 'Several entries open the same way',
+                message: `${group.length} entries (${group.map(activityLabel).join(', ')}) start with "${key}...". Read together they blur into one. Lead with the setting, the population, or the problem instead — a different first move in each box is most of what makes fifteen entries feel like fifteen.`,
+            });
+        }
+    });
+
+    // 11. Recycled language. The same reflection, moved between entries.
+    const shingleOwners = new Map<string, Set<number>>();
+    filled.forEach(a => {
+        if (!a.description) return;
+        contentShingles(a.description).forEach((_, key) => {
+            const owners = shingleOwners.get(key) || new Set<number>();
+            owners.add(a.id);
+            shingleOwners.set(key, owners);
+        });
+    });
+    const recycled = [...shingleOwners.entries()].find(([, owners]) => owners.size >= REPEAT_THRESHOLD);
+    if (recycled) {
+        const [phrase, owners] = recycled;
+        const titles = filled.filter(a => owners.has(a.id)).map(activityLabel);
+        flags.push({
+            id: 'recycled-language',
+            title: 'The same phrasing in several entries',
+            message: `"${phrase}" runs through ${owners.size} entries (${titles.join(', ')}). Repeating a growth sentence across entries reads as one lesson learned rather than several — different experiences should have taught you different things, in different words.`,
+        });
+    }
+
+    // 12. Unused characters. The space is free and a thin entry spends it on nothing.
+    const thinFloor = Math.round(descLimit * THIN_DESCRIPTION_RATIO);
+    filled.forEach(a => {
+        const len = (a.description || '').trim().length;
+        if (len > 0 && len < thinFloor) {
+            flags.push({
+                id: `thin-description-${a.id}`,
+                title: 'Most of the box is still empty',
+                message: `"${activityLabel(a)}" uses ${len} of ${descLimit} characters. A reader who was willing to read ${descLimit} reads ${len} as an experience you did not get much from. The room is usually in what changed and what you took from it, not in more duties.`,
+            });
+        }
+    });
+
+    // 13. MME depth — an MME that mostly re-tells its own description, or that marks a
     // handful of hours as one of only three most meaningful experiences.
     //
     // Both come straight from the exemplar corpus. `clinical-research-internship-neuro`

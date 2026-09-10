@@ -58,7 +58,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
     } = useActivityForm(activity, onSave, onBack, appType);
 
     const experienceTypes = appType === ApplicationType.AMCAS ? AMCAS_EXPERIENCE_TYPES : AACOMAS_EXPERIENCE_TYPES;
-    const redFlags = useMemo(() => runRedFlagAudit([localActivity]), [localActivity]);
+    const redFlags = useMemo(() => runRedFlagAudit([localActivity], DESC_LIMITS[appType]), [localActivity, appType]);
 
     if (isWizardMode) {
         return (
