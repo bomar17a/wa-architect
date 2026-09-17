@@ -82,9 +82,10 @@ serve(async (req) => {
             case 'rewrite':
                 result = await handleRewrite(payload, liteModel, generateWithRetry);
                 break;
-            case 'mme-synthesis':
-                result = await handleMmeSynthesis(payload, liteModel, generateWithRetry);
-                break;
+            // `mme-synthesis` was removed in session 12. It wrote a whole Most Meaningful
+            // essay, which the AAMC's Anatomy of an Applicant rules out and the product no
+            // longer offers. Nothing calls it; do not add it back.
+            //
             // Reads one Most Meaningful draft and returns feedback only. Runs on flash:
             // the judgement it needs is the same order as draft-analysis, and the output
             // is bounded by the schema below.
@@ -386,20 +387,6 @@ async function handleRewrite(payload: any, model: any, retryFn: any) {
     }));
 
     return JSON.parse(result_raw.response.text()).suggestions || [];
-}
-
-async function handleMmeSynthesis(payload: any, model: any, retryFn: any) {
-    const { baseDescription, action: mmeAction, result: mmeResult } = payload;
-    const prompt = `You are an expert storyteller and medical school admissions advisor crafting a "Most Meaningful Experience" essay using the STAR framework.
-      CRITICAL: The final essay must be under 1325 characters.
-
-      **Situation & Task:** ${baseDescription}
-      **Action:** ${mmeAction}
-      **Result:** ${mmeResult}
-      `;
-
-    const result_raw = await retryFn(() => model.generateContent(prompt));
-    return result_raw.response.text().trim();
 }
 
 /** A strong and a weak published Most Meaningful remark, with why each lands where it does. */

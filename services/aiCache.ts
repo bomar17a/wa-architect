@@ -6,9 +6,11 @@
 // view — the same draft analyzed twice should give the same analysis, so
 // returning the stored one costs nothing in quality and saves a paid call.
 //
-// Two actions are deliberately NOT cached (see UNCACHED_ACTIONS): rewrite and
-// mme-synthesis are generative, and the user clicks them repeatedly *wanting*
-// something different. Serving those from cache would read as a broken button.
+// One action is deliberately NOT cached (see UNCACHED_ACTIONS): rewrite is
+// generative, and the user clicks it repeatedly *wanting* something different.
+// Serving that from cache would read as a broken button. `mme-review` stays
+// cached, because the same draft deserves the same read; asking again on an
+// unchanged draft passes force and skips the cache.
 
 // Bump this whenever a change to the edge function makes the SAME payload produce a
 // materially different result. The cache key hashes the payload only, so without a
@@ -25,7 +27,7 @@ const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_ENTRIES = 60;
 
 /** Generative actions where repeat clicks are the user asking for variety. */
-export const UNCACHED_ACTIONS = new Set(['rewrite', 'mme-synthesis']);
+export const UNCACHED_ACTIONS = new Set(['rewrite']);
 
 interface Entry<T> {
     v: string;
