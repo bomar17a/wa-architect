@@ -5,7 +5,7 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-09-16 (session 12). **The original backlog is empty**; sessions 8-12 cover post-backlog work.
+Last updated: 2026-09-17 (session 12). **The original backlog is empty**; sessions 8-12 cover post-backlog work.
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
@@ -1049,3 +1049,61 @@ Two layout bugs the harness caught on mobile, both worth knowing:
 - `landingData.ts`: the two strings that described the removed essay builder (the Most Meaningful
   feature card and the "Does it write my essays" FAQ) were corrected. The wider landing repositioning
   is planned separately and not applied.
+
+---
+
+## Session 12b — the AI read, in rounds (build order B, partial)
+
+Live: `mme-review` is deployed (gemini-ai **version 39**) and merged. `mme-synthesis` was
+removed in the same deploy. Still unbuilt from build order B: `mme-followups` (follow-up
+questions on the brainstorm notes) and `mme-set-review` (a read across all three).
+
+### The rule that shapes the feature
+
+A model asked for feedback drifts into supplying wording, and one pasted sentence breaks the
+product's whole claim. So the schema has no field that can hold replacement prose, and
+everything the model returns goes through `services/mmeReviewFilter.ts`:
+
+1. A line note must quote the applicant's own draft. The quote is **replaced with the exact
+   span from the draft** (matching through case, curly quotes and run-together whitespace), so
+   the UI can select it in the textarea.
+2. Any note carrying a quoted run of **six or more words** found in neither the draft nor the
+   applicant's own notes is dropped. That is the shape of a smuggled sentence; a six-word quote
+   of their own writing is normal and stays.
+3. Lengths and list sizes are capped, so a note cannot become a paragraph to copy.
+
+The edge function repeats rule 1 before returning, cheaply and without shared code. The filter
+is the authority and `scripts/audit-mme-coach.ts` is what proves it (13 checks, including
+malformed output, which must not throw).
+
+### Rounds
+
+`MmeReview` stores the draft it was written against, scores computed **locally** by
+`scoreMmeQuality` (never by the model), and a status per note. From that:
+
+- A line note whose quoted sentence is no longer in the draft counts as acted on, ticked or not
+  (`openReviewNotes`). Content notes stay until the applicant says otherwise.
+- `isReviewStale` compares the stored draft to the current one, which drives the "you have
+  edited since this read" banner and the `review` step going from done back to started.
+- `appendReview` keeps the last `MAX_MME_REVIEWS` (5).
+- Asking again on an **unchanged** draft passes `force`, skipping the cache; after an edit the
+  payload differs, so the cache misses on its own. `mme-synthesis` left `UNCACHED_ACTIONS` with
+  it, and `mme-review` is deliberately cached.
+
+The final check counts open reader notes and flags a draft that has never been read, but a read
+is **optional** — an unread draft can still be ready. That is deliberate: the rules are free and
+the read is the part that becomes paid.
+
+### Verification
+
+`tsc --noEmit`, `npm run build`, both harnesses (111 fixture checks). 52 browser checks at 1440
+and 390 through the preview harness: the round and verdict render, marking a note Done sticks
+across steps, "Find in draft" selects the quoted sentence in the textarea, editing that sentence
+marks the note changed and the round out of date, the logged-out path explains itself, and the
+empty state names the model. The deployed function was checked for the auth guard only; a real
+read has not been run against a logged-in session (still no `SUPABASE_SERVICE_ROLE_KEY`).
+
+**The first real read is worth watching.** If the model starts writing sentences for the
+applicant, the filter drops those notes silently and the round looks thin. The dropped counts go
+to the console (`MME review: dropped items that broke the feedback-only rule`); if that fires
+often, the prompt needs tightening rather than the filter loosening.
