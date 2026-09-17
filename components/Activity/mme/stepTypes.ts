@@ -11,6 +11,8 @@ export interface StepProps {
     activities: Activity[];
     psSummary: string | null;
     goTo: (step: WorkshopStep) => void;
+    /** Opens the Write step with this text selected in the draft. */
+    focusInDraft: (quote: string) => void;
 }
 
 export const STEP_LABELS: Record<WorkshopStep, string> = {
@@ -18,7 +20,8 @@ export const STEP_LABELS: Record<WorkshopStep, string> = {
     moment: 'Find the moment',
     plan: 'Plan',
     write: 'Write',
+    review: 'Get a read',
     final: 'Final check',
 };
 
-export const STEP_ORDER: WorkshopStep[] = ['choose', 'moment', 'plan', 'write', 'final'];
+export const STEP_ORDER: WorkshopStep[] = ['choose', 'moment', 'plan', 'write', 'review', 'final'];

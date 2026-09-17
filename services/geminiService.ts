@@ -1,7 +1,9 @@
 
 import { supabase, supabaseAnonKey } from "./supabase.ts";
 import { readCache, writeCache, invalidate } from "./aiCache.ts";
-import { Activity, RewriteType, ArchitectAnalysis, InterviewQuestion, StoryAnalysis, SchoolAlignment, AiNarrativeQuality } from "../types.ts";
+import { sanitizeReview, type RawReview } from "./mmeReviewFilter.ts";
+import { scoreMmeQuality } from "./narrativeQualityService.ts";
+import { Activity, RewriteType, ArchitectAnalysis, InterviewQuestion, StoryAnalysis, SchoolAlignment, AiNarrativeQuality, MmeWorkshop, MmeReview } from "../types.ts";
 import { DESC_LIMITS, MME_LIMIT, AAMC_CORE_COMPETENCIES } from "../constants.ts";
 
 export const checkUserAuth = async () => {
@@ -227,6 +229,71 @@ export const getAiNarrativeQuality = async (
     return data as AiNarrativeQuality;
   } catch (error) {
     console.error("Error scoring narrative quality:", error);
+    return rethrowWithDeployHint(error);
+  }
+};
+
+/**
+ * An advisor-style read of one Most Meaningful draft. The model returns feedback only;
+ * `sanitizeReview` drops anything that looks like wording to paste, and the scores are
+ * computed here from the draft rather than taken from the model.
+ */
+export const getMmeReview = async (
+  activity: Activity,
+  workshop: MmeWorkshop,
+  opts: { psSummary?: string | null; limit?: number; force?: boolean } = {},
+): Promise<MmeReview> => {
+  const essay = (activity.mmeEssay || '').trim();
+  const previousRound = (workshop.reviews || []).at(-1);
+
+  try {
+    const { data, error } = await invokeEdgeFunction({
+      action: 'mme-review',
+      payload: {
+        essay,
+        description: activity.description,
+        experienceType: activity.experienceType,
+        hours: activity.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0),
+        throughline: workshop.throughline || '',
+        notes: workshop.notes || {},
+        psSummary: opts.psSummary || '',
+        limit: opts.limit ?? DESC_LIMITS.AMCAS,
+        previous: previousRound
+          ? {
+            biggestIssue: previousRound.biggestIssue,
+            openNotes: [...previousRound.contentNotes, ...previousRound.lineNotes]
+              .filter(n => (previousRound.statuses[n.id] ?? 'open') === 'open')
+              .map(n => ('quote' in n ? `"${n.quote}": ${n.note}` : n.note)),
+          }
+          : null,
+      },
+    }, { force: opts.force });
+
+    await throwIfEdgeFunctionError(error);
+
+    const ownWriting = [workshop.throughline, ...Object.values(workshop.notes || {})].filter(Boolean).join('\n');
+    const { review, dropped } = sanitizeReview(data as RawReview, { draft: essay, ownWriting });
+    if (dropped.lineNotesNotInDraft || dropped.suppliedWording) {
+      console.warn('MME review: dropped items that broke the feedback-only rule', dropped);
+    }
+
+    const scores = scoreMmeQuality(essay, activity.description || '');
+    return {
+      ...review,
+      id: `review-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      draft: essay,
+      scores: {
+        insight: scores.insight,
+        evidence: scores.evidence,
+        distinctness: scores.distinctness,
+        voice: scores.voice,
+        total: scores.total,
+      },
+      statuses: {},
+    };
+  } catch (error) {
+    console.error('Error reading the Most Meaningful draft:', error);
     return rethrowWithDeployHint(error);
   }
 };

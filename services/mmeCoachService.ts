@@ -1,4 +1,4 @@
-import { type Activity, type MmeBeat, type MmeWorkshop, ApplicationType } from '../types.ts';
+import { type Activity, type MmeBeat, type MmeWorkshop, type MmeReview, ApplicationType } from '../types.ts';
 import { MME_LIMIT } from '../constants.ts';
 import {
     mmeOverlapRatio, MME_OVERLAP_NOTICE, MEANING_ASSERTIONS, SCENE_MARKERS, REFLECTION_CATEGORIES,
@@ -786,6 +786,18 @@ export function finalCheck(activity: Activity, workshop: MmeWorkshop, psSummary?
             : { id: 'open-notes', label: 'Draft notes addressed', status: 'pass' },
     );
 
+    const review = latestReview(workshop);
+    const openFromReview = openReviewNotes(review, essay);
+    items.push(
+        !review
+            ? { id: 'review-notes', label: 'Read by the AI reader', status: 'warn', detail: 'No read yet. It is optional, but it catches what the rules cannot.' }
+            : openFromReview.length > 0
+                ? { id: 'review-notes', label: 'Reader notes addressed', status: 'warn', detail: `${plural(openFromReview.length, 'note')} from round ${(workshop.reviews || []).length} still open.` }
+                : isReviewStale(review, essay)
+                    ? { id: 'review-notes', label: 'Reader notes addressed', status: 'warn', detail: 'You have edited since the last read. Ask for another round if the changes were substantial.' }
+                    : { id: 'review-notes', label: 'Reader notes addressed', status: 'pass' },
+    );
+
     items.push({
         id: 'read-aloud',
         label: 'I read it out loud once',
@@ -801,9 +813,46 @@ export function finalCheck(activity: Activity, workshop: MmeWorkshop, psSummary?
     return { items, ready, plainText };
 }
 
+// ── Review rounds ───────────────────────────────────────────────────────────
+
+/** Enough rounds to see progress, few enough to keep the row small. */
+export const MAX_MME_REVIEWS = 5;
+
+export const latestReview = (workshop: MmeWorkshop): MmeReview | undefined =>
+    (workshop.reviews || []).at(-1);
+
+/** Adds a round, keeping the most recent MAX_MME_REVIEWS. */
+export function appendReview(workshop: MmeWorkshop, review: MmeReview): MmeReview[] {
+    return [...(workshop.reviews || []), review].slice(-MAX_MME_REVIEWS);
+}
+
+/** Whether the draft has moved on since this round was written. */
+export const isReviewStale = (review: MmeReview, essay: string): boolean =>
+    trimmed(review.draft) !== trimmed(essay);
+
+/**
+ * A line note whose quoted sentence is no longer in the draft has been acted on, whether
+ * or not the applicant ticked it. Content notes stay until they say otherwise.
+ */
+export function openReviewNotes(review: MmeReview | undefined, essay: string): { id: string; label: string }[] {
+    if (!review) return [];
+    const draft = essay || '';
+    const open: { id: string; label: string }[] = [];
+
+    for (const note of review.contentNotes) {
+        if ((review.statuses[note.id] ?? 'open') === 'open') open.push({ id: note.id, label: note.note });
+    }
+    for (const note of review.lineNotes) {
+        if ((review.statuses[note.id] ?? 'open') !== 'open') continue;
+        if (!draft.includes(note.quote)) continue;
+        open.push({ id: note.id, label: note.note });
+    }
+    return open;
+}
+
 // ── Progress ────────────────────────────────────────────────────────────────
 
-export type WorkshopStep = 'choose' | 'moment' | 'plan' | 'write' | 'final';
+export type WorkshopStep = 'choose' | 'moment' | 'plan' | 'write' | 'review' | 'final';
 export type StepState = 'done' | 'started' | 'todo';
 
 export function workshopProgress(
@@ -813,14 +862,23 @@ export function workshopProgress(
 ): Record<WorkshopStep, StepState> {
     const answered = SELF_CHECKS.filter(q => workshop.selfCheck?.[q.key]).length;
     const beatsWithNotes = MME_BEATS.filter(b => trimmed(workshop.notes?.[b.beat]).length >= 15).length;
-    const essayLen = trimmed(activity.mmeEssay).length;
+    const essay = trimmed(activity.mmeEssay);
+    const essayLen = essay.length;
     const final = finalCheck(activity, workshop, psSummary);
+
+    const review = latestReview(workshop);
+    const reviewState: StepState = !review
+        ? 'todo'
+        : openReviewNotes(review, essay).length === 0 && !isReviewStale(review, essay)
+            ? 'done'
+            : 'started';
 
     return {
         choose: answered === SELF_CHECKS.length ? 'done' : answered > 0 ? 'started' : 'todo',
         moment: beatsWithNotes >= 4 ? 'done' : beatsWithNotes > 0 ? 'started' : 'todo',
         plan: trimmed(workshop.throughline).length >= 15 ? 'done' : 'todo',
         write: essayLen >= MME_SHORT_FLOOR && essayLen <= MME_LIMIT ? 'done' : essayLen > 0 ? 'started' : 'todo',
+        review: reviewState,
         final: final.ready ? 'done' : (workshop.final?.readAloud || workshop.final?.tenMinutes) ? 'started' : 'todo',
     };
 }

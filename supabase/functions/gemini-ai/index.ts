@@ -85,6 +85,12 @@ serve(async (req) => {
             case 'mme-synthesis':
                 result = await handleMmeSynthesis(payload, liteModel, generateWithRetry);
                 break;
+            // Reads one Most Meaningful draft and returns feedback only. Runs on flash:
+            // the judgement it needs is the same order as draft-analysis, and the output
+            // is bounded by the schema below.
+            case 'mme-review':
+                result = await handleMmeReview(payload, flashModel, generateWithRetry, supabaseAdmin);
+                break;
             case 'parse-resume':
                 result = await handleParseResume(payload, flashModel, generateWithRetry);
                 break;
@@ -166,12 +172,15 @@ const EXEMPLAR_COLUMNS =
  */
 async function fetchExemplars(
     supabaseAdmin: any,
-    opts: { experienceType?: string; bands?: string[]; anchorsOnly?: boolean; anchorSets?: string[]; limit: number },
+    opts: { experienceType?: string; bands?: string[]; anchorsOnly?: boolean; anchorSets?: string[]; mmeOnly?: boolean; limit: number },
 ): Promise<Exemplar[]> {
     try {
         const base = () => {
             let q = supabaseAdmin.from('wa_exemplars').select(EXEMPLAR_COLUMNS);
             if (opts.anchorsOnly) q = q.not('anchor_specificity', 'is', null);
+            // Only 14 of the 47 entries carry a published Most Meaningful remark, and an
+            // entry without one teaches nothing about this box.
+            if (opts.mmeOnly) q = q.not('mme_remarks', 'is', null);
             // Holdout entries are scored but reserved for evaluation. Showing one to
             // the model turns a measurement of calibration into a measurement of
             // recall, so callers that build prompts must name the sets they want.
@@ -391,6 +400,144 @@ async function handleMmeSynthesis(payload: any, model: any, retryFn: any) {
 
     const result_raw = await retryFn(() => model.generateContent(prompt));
     return result_raw.response.text().trim();
+}
+
+/** A strong and a weak published Most Meaningful remark, with why each lands where it does. */
+function renderMmeContrastBlock(rows: Exemplar[]): string {
+    const withRemarks = rows.filter(r => r.mme_remarks);
+    const strong = withRemarks.find(r => r.quality_band === 'exemplar');
+    const weak = withRemarks.find(r => r.quality_band === 'weak' || r.quality_band === 'counter_example');
+    if (!strong && !weak) return '';
+
+    const one = (r: Exemplar, label: string) =>
+        `${label} (${r.experience_type})\nWhy it lands there: ${r.curator_note}\nRemark: ${r.mme_remarks}`;
+
+    return `
+    For your own calibration, here is how published Most Meaningful remarks actually read:
+
+    ${[strong ? one(strong, 'A STRONG published remark') : '', weak ? one(weak, 'A WEAK published remark') : ''].filter(Boolean).join('\n\n')}
+
+    Hard rules about the above: they are a standard of comparison and nothing else. Never quote
+    them, never paraphrase their sentences into your feedback, and never tell the applicant to
+    write something because an example did.
+    `;
+}
+
+async function handleMmeReview(payload: any, model: any, retryFn: any, supabaseAdmin?: any) {
+    const { essay, description, experienceType, hours, throughline, notes, psSummary, previous, limit } = payload;
+
+    const contrastBlock = supabaseAdmin
+        ? renderMmeContrastBlock(await fetchExemplars(supabaseAdmin, {
+            experienceType,
+            mmeOnly: true,
+            bands: ['exemplar', 'weak', 'counter_example'],
+            limit: 4,
+        }))
+        : '';
+
+    const notesBlock = notes && Object.keys(notes).length
+        ? `The applicant's own brainstorming notes, in their words:\n${Object.entries(notes)
+            .filter(([, v]) => typeof v === 'string' && v.trim())
+            .map(([k, v]) => `- ${k}: ${v}`).join('\n')}`
+        : '';
+
+    const previousBlock = previous
+        ? `A previous round of feedback on an earlier draft said the biggest issue was: "${previous.biggestIssue}". Notes still open then: ${(previous.openNotes || []).join('; ') || 'none'}.`
+        : '';
+
+    const prompt = `You are an experienced medical school admissions advisor reading ONE Most Meaningful Experience remark on an AMCAS application. The applicant wrote it. Your job is feedback, and only feedback.
+
+    HARD RULES
+    - Never supply replacement wording, example sentences, openers, or any phrasing the applicant could paste into their essay. When you are tempted to write a sentence for them, write the question that would get them there instead.
+    - Every quote in lineNotes must be copied verbatim from the draft below, exactly as it appears. Quote nothing else.
+    - Address the applicant as "you". Be plain and specific. No praise padding, no encouragement filler.
+
+    WHAT MATTERS, IN THIS ORDER
+    1. Does it say what changed in them? AMCAS asks for the transformative nature of the experience, the impact they made, and the personal growth they experienced.
+    2. Is this new ground, or a longer retelling of the ${limit || 700}-character entry the reader has just read?
+    3. Is there one specific moment, with enough detail to believe?
+    4. Only then, line-level problems: vague phrases, listed traits, clichés, passive voice, overstated claims, jargon, or clinicians crowding out patients.
+
+    THE ENTRY (${experienceType || 'unspecified type'}${hours ? `, ${hours} hours` : ''})
+    Their ${limit || 700}-character description:
+    ---
+    ${description || '(none written)'}
+    ---
+
+    THE DRAFT TO REVIEW (1,325 characters maximum, currently ${String(essay || '').length}):
+    ---
+    ${essay}
+    ---
+
+    ${throughline ? `What the applicant says this essay should show about them: "${throughline}"` : ''}
+    ${notesBlock}
+    ${psSummary ? `Their personal statement is about: "${psSummary}". The same activity is fine; the same scene or lesson twice is not.` : ''}
+    ${previousBlock}
+    ${contrastBlock}
+
+    Return JSON only:
+    - strongest: one sentence on the strongest thing about this draft.
+    - biggestIssue: one sentence naming the single biggest problem.
+    - contentNotes: at most 3, ranked, about the essay as a whole. Each has a category, a note saying what is wrong and why a reader cares, and a question the applicant should answer for themselves.
+    - lineNotes: at most 6. Each has a quote taken verbatim from the draft, a category, and a one-line note.
+    - throughline: lands ("yes", "partly" or "no") and one line, judged against what they said the essay should show. Omit when they gave none.
+    - fromYourNotes: at most 2 things their brainstorming notes contain that the draft leaves out, referring to their own words. Omit when there are no notes.
+    - interviewQuestions: at most 2 questions an interviewer could ask about this entry.
+    ${previous ? '- roundChange: one line on what improved since the previous round and what did not.' : ''}`;
+
+    const result_raw = await retryFn(() => model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: 'application/json',
+            // Output tokens are where the cost sits on flash. The caps in the prompt are the
+            // real control; this bounds a run-on response, sized clear of a compliant answer.
+            maxOutputTokens: 1400,
+            responseSchema: {
+                type: 'OBJECT',
+                properties: {
+                    strongest: { type: 'STRING' },
+                    biggestIssue: { type: 'STRING' },
+                    contentNotes: {
+                        type: 'ARRAY', maxItems: 3,
+                        items: {
+                            type: 'OBJECT',
+                            properties: { category: { type: 'STRING' }, note: { type: 'STRING' }, question: { type: 'STRING' } },
+                            required: ['category', 'note', 'question'],
+                        },
+                    },
+                    lineNotes: {
+                        type: 'ARRAY', maxItems: 6,
+                        items: {
+                            type: 'OBJECT',
+                            properties: { quote: { type: 'STRING' }, category: { type: 'STRING' }, note: { type: 'STRING' } },
+                            required: ['quote', 'category', 'note'],
+                        },
+                    },
+                    throughline: {
+                        type: 'OBJECT',
+                        properties: { lands: { type: 'STRING' }, note: { type: 'STRING' } },
+                    },
+                    fromYourNotes: { type: 'ARRAY', maxItems: 2, items: { type: 'STRING' } },
+                    interviewQuestions: { type: 'ARRAY', maxItems: 2, items: { type: 'STRING' } },
+                    roundChange: { type: 'STRING' },
+                },
+                required: ['strongest', 'biggestIssue', 'contentNotes', 'lineNotes'],
+            },
+        },
+    }));
+
+    const parsed = JSON.parse(result_raw.response.text());
+
+    // The client sanitises this properly (services/mmeReviewFilter.ts, which is what the
+    // fixture harness tests). This is the same rule applied once more before the model's
+    // output leaves the server: a line note has to quote the applicant's own draft.
+    const haystack = String(essay || '').toLowerCase().replace(/\s+/g, ' ');
+    if (Array.isArray(parsed.lineNotes)) {
+        parsed.lineNotes = parsed.lineNotes.filter((n: any) =>
+            typeof n?.quote === 'string' && haystack.includes(n.quote.toLowerCase().replace(/\s+/g, ' ').trim()));
+    }
+
+    return parsed;
 }
 
 async function handleParseResume(payload: any, model: any, retryFn: any) {

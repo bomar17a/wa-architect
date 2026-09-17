@@ -11,6 +11,7 @@ import { ChooseStep } from './ChooseStep';
 import { MomentStep } from './MomentStep';
 import { PlanStep } from './PlanStep';
 import { WriteStep } from './WriteStep';
+import { ReviewStep } from './ReviewStep';
 import { FinalStep } from './FinalStep';
 import { STEP_LABELS, STEP_ORDER, type StepProps } from './stepTypes';
 
@@ -49,6 +50,8 @@ export const MmeWorkshop: React.FC<MmeWorkshopProps> = ({ activity, activities, 
     const progress = useMemo(() => workshopProgress(activity, workshop, psSummary), [activity, workshop, psSummary]);
 
     const [step, setStep] = useState<WorkshopStep>(() => initialStep ?? nextStep(progress));
+    // Set when a review note asks to be shown in the draft; the Write step consumes it.
+    const [pendingQuote, setPendingQuote] = useState<string | null>(null);
     const mainRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -73,7 +76,12 @@ export const MmeWorkshop: React.FC<MmeWorkshopProps> = ({ activity, activities, 
         onChanges({ mmeWorkshop: next, ...('notes' in patch ? legacyFieldsFrom(next) : {}) });
     };
 
-    const stepProps: StepProps = { activity, workshop, updateWorkshop, activities: portfolio, psSummary, goTo };
+    const focusInDraft = (quote: string) => {
+        setPendingQuote(quote);
+        goTo('write');
+    };
+
+    const stepProps: StepProps = { activity, workshop, updateWorkshop, activities: portfolio, psSummary, goTo, focusInDraft };
     const title = activity.title?.trim() || 'Untitled activity';
 
     return (
@@ -136,7 +144,15 @@ export const MmeWorkshop: React.FC<MmeWorkshopProps> = ({ activity, activities, 
                     {step === 'choose' && <ChooseStep {...stepProps} />}
                     {step === 'moment' && <MomentStep {...stepProps} />}
                     {step === 'plan' && <PlanStep {...stepProps} />}
-                    {step === 'write' && <WriteStep {...stepProps} onEssayChange={text => onChanges({ mmeEssay: text })} />}
+                    {step === 'write' && (
+                        <WriteStep
+                            {...stepProps}
+                            onEssayChange={text => onChanges({ mmeEssay: text })}
+                            focusQuote={pendingQuote}
+                            onQuoteFocused={() => setPendingQuote(null)}
+                        />
+                    )}
+                    {step === 'review' && <ReviewStep {...stepProps} />}
                     {step === 'final' && <FinalStep {...stepProps} />}
                 </main>
             </div>

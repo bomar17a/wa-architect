@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useMemo, useRef, useState } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { MME_LIMIT } from '../../../constants';
 import { draftNotes } from '../../../services/mmeCoachService';
@@ -11,6 +11,9 @@ import type { StepProps } from './stepTypes';
 
 interface WriteStepProps extends StepProps {
     onEssayChange: (text: string) => void;
+    /** A sentence a review note pointed at, to select on arrival. */
+    focusQuote?: string | null;
+    onQuoteFocused?: () => void;
 }
 
 const Disclosure: React.FC<{ title: string; defaultOpen?: boolean; children: React.ReactNode }> = ({ title, defaultOpen, children }) => {
@@ -31,7 +34,7 @@ const Disclosure: React.FC<{ title: string; defaultOpen?: boolean; children: Rea
     );
 };
 
-export const WriteStep: React.FC<WriteStepProps> = ({ activity, workshop, psSummary, goTo, onEssayChange }) => {
+export const WriteStep: React.FC<WriteStepProps> = ({ activity, workshop, psSummary, goTo, onEssayChange, focusQuote, onQuoteFocused }) => {
     const essay = activity.mmeEssay || '';
     const deferred = useDeferredValue(essay);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -50,6 +53,14 @@ export const WriteStep: React.FC<WriteStepProps> = ({ activity, workshop, psSumm
         el.focus();
         el.setSelectionRange(start, start + quote.length);
     };
+
+    useEffect(() => {
+        if (!focusQuote) return;
+        showQuote(focusQuote);
+        onQuoteFocused?.();
+        // showQuote reads the current essay through a ref, so it does not belong in the deps.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [focusQuote]);
 
     const plan = workshop.notes || {};
 
