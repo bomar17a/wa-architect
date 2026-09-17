@@ -21,6 +21,23 @@ export interface DateRange {
   isAnticipated?: boolean;
 }
 
+/** The five parts of a Most Meaningful expansion, in reading order (H-CART). */
+export type MmeBeat = 'moment' | 'challenge' | 'action' | 'change' | 'forward';
+
+export type MmeSelfCheckKey = 'notJustImpressive' | 'specificMoment' | 'changedYou' | 'tenMinutes';
+export type MmeSelfCheckAnswer = 'yes' | 'unsure' | 'no';
+
+/**
+ * Private working state behind one Most Meaningful essay. None of it is exported or
+ * pasted into AMCAS; it is the applicant's own brainstorming, in their own words.
+ */
+export interface MmeWorkshop {
+  selfCheck?: Partial<Record<MmeSelfCheckKey, MmeSelfCheckAnswer>>;
+  throughline?: string;
+  notes?: Partial<Record<MmeBeat, string>>;
+  final?: { readAloud?: boolean; tenMinutes?: boolean };
+}
+
 export interface Activity {
   id: number;
   title: string;
@@ -39,6 +56,7 @@ export interface Activity {
   mmeAction: string;
   mmeResult: string;
   mmeEssay: string;
+  mmeWorkshop?: MmeWorkshop;
   competencies: string[];
   dueDate?: string; // ISO Date string YYYY-MM-DD
   tags?: string[];
@@ -85,6 +103,8 @@ export interface Profile {
   mcatRange: string | null;
   northStarArchetypes: string[];
   targetSchoolIds: string[];
+  /** One line on the personal statement's main story, used to spot an MME that repeats it. */
+  psSummary: string | null;
 }
 
 export interface SchoolAlignment {

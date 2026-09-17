@@ -11,6 +11,7 @@ import { ProfileProvider, useProfile } from './contexts/ProfileContext.tsx';
 import { Activity, ApplicationType, View, ActivityStatus } from './types.ts';
 import { Loader2 } from 'lucide-react';
 import { activityService } from './services/activityService.ts';
+import { canMarkMostMeaningful } from './services/mmeCoachService.ts';
 
 const AppContent: React.FC = () => {
   const { session, user, loading: authLoading } = useAuth();
@@ -186,15 +187,16 @@ const AppContent: React.FC = () => {
     const activityToToggle = activities.find(a => a.id === activityId);
     if (!activityToToggle) return;
 
-    if (appType === ApplicationType.AACOMAS) {
-      alert("Most Meaningful Experiences are an AMCAS-specific designation.");
+    const decision = canMarkMostMeaningful(activityToToggle, activities, appType);
+    if (!decision.ok) {
+      alert(decision.reason);
       return;
     }
-
-    const mmeCount = activities.filter(a => a.isMostMeaningful).length;
-    if (!activityToToggle.isMostMeaningful && mmeCount >= 3) {
-      alert("You can select a maximum of 3 Most Meaningful Experiences for AMCAS.");
-      return;
+    if (activityToToggle.isMostMeaningful && activityToToggle.mmeEssay?.trim()) {
+      const proceed = window.confirm(
+        'Unmark this as Most Meaningful? Your essay stays saved here. In AMCAS itself, removing the designation deletes the essay, so copy it first if you change it there.',
+      );
+      if (!proceed) return;
     }
 
     const updated = { ...activityToToggle, isMostMeaningful: !activityToToggle.isMostMeaningful };
@@ -288,6 +290,7 @@ const AppContent: React.FC = () => {
             appType={appType}
             onAppTypeChange={setAppType}
             onToggleMME={handleToggleMME}
+            onSaveActivity={handleSaveActivity}
             onDeleteActivity={handleDeleteActivity}
             onReorderActivities={handleReorderActivities}
             onImportActivities={handleImportActivities}
@@ -296,6 +299,7 @@ const AppContent: React.FC = () => {
           selectedActivity && (
             <ActivityEditor
               activity={selectedActivity}
+              activities={activities}
               onSave={handleSaveActivity}
               onBack={handleBackToDashboard}
               appType={appType}

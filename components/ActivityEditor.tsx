@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Activity, ApplicationType, ActivityStatus } from '../types.ts';
 import { AMCAS_EXPERIENCE_TYPES, AACOMAS_EXPERIENCE_TYPES, DESC_LIMITS, MONTHS, getYears, AAMC_CORE_COMPETENCIES } from '../constants.ts';
 import { useActivityForm } from '../hooks/useActivityForm.ts';
@@ -17,7 +17,10 @@ import {
 import { CharacterCounter } from './Activity/CharacterCounter.tsx';
 import { CoPilotEditor } from './Activity/CoPilotEditor.tsx';
 import { DateSelect } from './Activity/DateSelect.tsx';
-import { MMEPanel } from './Activity/MMEPanel.tsx';
+import { MmeCard } from './Activity/mme/MmeCard.tsx';
+import { MmeWorkshop } from './Activity/mme/MmeWorkshop.tsx';
+import { canMarkMostMeaningful, type WorkshopStep } from '../services/mmeCoachService.ts';
+import { useToast } from '../contexts/ToastContext.tsx';
 import { NarrativeQualityBreakdown } from './Activity/NarrativeQualityBreakdown.tsx';
 import { InterviewPrepPanel } from './Activity/InterviewPrepPanel.tsx';
 import { SchoolTargetingPanel } from './Activity/SchoolTargetingPanel.tsx';
@@ -28,6 +31,8 @@ const YEARS = getYears();
 
 interface ActivityEditorProps {
     activity: Activity;
+    /** The full list, so Most Meaningful picks can be checked against the others. */
+    activities: Activity[];
     onSave: (activity: Activity) => void;
     onBack: () => void;
     appType: ApplicationType;
@@ -35,10 +40,11 @@ interface ActivityEditorProps {
 
 // --- Main Component ---
 
-export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave, onBack, appType }) => {
+export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, activities, onSave, onBack, appType }) => {
     const {
         localActivity,
         handleChange,
+        handleChanges,
         saveStatus,
         isWizardMode,
         setIsWizardMode,
@@ -59,6 +65,39 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
 
     const experienceTypes = appType === ApplicationType.AMCAS ? AMCAS_EXPERIENCE_TYPES : AACOMAS_EXPERIENCE_TYPES;
     const redFlags = useMemo(() => runRedFlagAudit([localActivity], DESC_LIMITS[appType]), [localActivity, appType]);
+    const { addToast } = useToast();
+    const [mmeWorkshopStep, setMmeWorkshopStep] = useState<WorkshopStep | null>(null);
+
+    // The cap and the anticipated-experience rule used to be enforced only on a dashboard
+    // toggle nothing called, so this checkbox let any number of entries through.
+    const handleMostMeaningfulToggle = (checked: boolean) => {
+        if (checked) {
+            const decision = canMarkMostMeaningful(localActivity, activities, appType);
+            if (!decision.ok) {
+                addToast(decision.reason!, 'info');
+                return;
+            }
+        } else if (localActivity.mmeEssay?.trim()) {
+            const proceed = window.confirm(
+                'Unmark this as Most Meaningful? Your essay stays saved here. In AMCAS itself, removing the designation deletes the essay, so copy it first if you change it there.',
+            );
+            if (!proceed) return;
+        }
+        handleChange('isMostMeaningful', checked);
+    };
+
+    if (mmeWorkshopStep) {
+        return (
+            <MmeWorkshop
+                activity={localActivity}
+                activities={activities}
+                saveStatus={saveStatus}
+                onChanges={handleChanges}
+                onClose={() => setMmeWorkshopStep(null)}
+                initialStep={mmeWorkshopStep}
+            />
+        );
+    }
 
     if (isWizardMode) {
         return (
@@ -148,7 +187,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                                 <div className="flex flex-col text-left">
                                     <span className={`text-xs font-bold uppercase tracking-wide ${localActivity.isMostMeaningful ? 'text-amber-800' : 'text-slate-600'}`}>Most Meaningful</span>
                                 </div>
-                                <input type="checkbox" className="hidden" checked={localActivity.isMostMeaningful} onChange={(e) => handleChange('isMostMeaningful', e.target.checked)} />
+                                <input type="checkbox" className="hidden" checked={localActivity.isMostMeaningful} onChange={(e) => handleMostMeaningfulToggle(e.target.checked)} />
                             </label>
                         )}
                     </div>
@@ -299,14 +338,7 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, onSave
                     </div>
 
                     {appType === ApplicationType.AMCAS && localActivity.isMostMeaningful && (
-                        <MMEPanel
-                            description={localActivity.description}
-                            descLimit={DESC_LIMITS[appType]}
-                            mmeAction={localActivity.mmeAction}
-                            mmeResult={localActivity.mmeResult}
-                            mmeEssay={localActivity.mmeEssay}
-                            onChange={handleChange}
-                        />
+                        <MmeCard activity={localActivity} onOpen={setMmeWorkshopStep} />
                     )}
 
                     <SchoolTargetingPanel activity={localActivity} />

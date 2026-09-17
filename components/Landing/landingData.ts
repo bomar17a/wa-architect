@@ -271,7 +271,7 @@ export const FEATURES = {
     heading: 'All of it free, including the AI',
     items: [
         { title: 'Description wizard', body: 'Context, impact, reflection, recognition — one block at a time, with the character split shown as you type.' },
-        { title: 'Most Meaningful coach', body: 'Three questions to test whether an entry belongs in your top three, then a builder for the 1,325-character expansion.' },
+        { title: 'Most Meaningful coach', body: 'A self-check for choosing your three, brainstorming questions, a plan, and notes on your draft. You write the essay.' },
         { title: 'School recommender', body: '175 MD programs ranked against your profile. Filter by state, degree, application system.' },
         { title: 'Export', body: 'AMCAS-safe plain text with smart quotes and markdown stripped. Also .csv, .doc, and print.' },
         { title: 'Interview prep', body: 'Five questions an interviewer could ask about any entry, and why they would ask. Notes are not saved.' },
@@ -329,7 +329,7 @@ export const FAQ = {
         },
         {
             q: 'Does it write my essays for me?',
-            a: 'No. It scores drafts, rewrites a sentence you select, and builds a Most Meaningful expansion from answers you type in. The words stay yours to approve — and interviewers will ask you about them.',
+            a: 'No. It scores drafts and can rewrite a sentence you select. For Most Meaningful essays it asks questions and leaves notes on what you wrote, and it never drafts one. The words stay yours to approve, and interviewers will ask you about them.',
         },
         {
             q: 'Will schools know I used AI?',

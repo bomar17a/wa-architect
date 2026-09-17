@@ -1,5 +1,5 @@
-import { Activity, ApplicationType } from '../types';
-import { DESC_LIMITS, MME_LIMIT } from '../constants';
+import { type Activity, ApplicationType } from '../types.ts';
+import { DESC_LIMITS, MME_LIMIT } from '../constants.ts';
 
 /**
  * AMCAS strips all formatting from pasted text. Scrub markdown artifacts and

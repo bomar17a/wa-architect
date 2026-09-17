@@ -54,6 +54,18 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
         });
     }, [triggerSave]);
 
+    /** Several fields in one update, so one save covers them all. */
+    const handleChanges = useCallback((patch: Partial<Activity>) => {
+        setLocalActivity(prev => {
+            const status = 'status' in patch
+                ? patch.status!
+                : prev.status === ActivityStatus.EMPTY ? ActivityStatus.DRAFT : prev.status;
+            const updated = { ...prev, ...patch, status };
+            triggerSave(updated, setSaveStatus);
+            return updated;
+        });
+    }, [triggerSave]);
+
     const completedRanges = localActivity.dateRanges.filter(r => !r.isAnticipated);
     const anticipatedRange = localActivity.dateRanges.find(r => r.isAnticipated);
     const isRepeated = completedRanges.length > 1;
@@ -121,6 +133,7 @@ export const useActivityForm = (activity: Activity, onSave: (activity: Activity)
     return {
         localActivity,
         handleChange,
+        handleChanges,
         saveStatus,
         isWizardMode,
         setIsWizardMode,

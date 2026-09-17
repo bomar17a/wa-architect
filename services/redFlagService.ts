@@ -11,7 +11,7 @@ export interface RedFlag {
 
 // An MME below this reads as a slot spent on access rather than on meaning. The two
 // six-hour single-day MMEs in the exemplar corpus are the reference case.
-const MIN_CREDIBLE_MME_HOURS = 25;
+export const MIN_CREDIBLE_MME_HOURS = 25;
 
 // Shared content-word fraction above which the MME is substantially its description
 // retold. Calibrated on the corpus: genuine MMEs sit at 3-7%, the clearest rehash at 17%.
@@ -31,7 +31,7 @@ const CLINICAL_OR_SHADOWING_TYPES = [
     'Physician Shadowing/Clinical Observation',
 ];
 
-const HIGH_STATUS_TYPES = [
+export const HIGH_STATUS_TYPES = [
     'Research/Lab', 'Research', 'Publications', 'Presentations/Posters',
     'Honors/Awards/Recognitions', 'Achievements',
 ];
@@ -78,14 +78,14 @@ const STOPWORDS = new Set(('a an the and or but if of to in on at for with by fr
     + 'most much many some any each other into over under about after before during through').split(' '));
 
 // Common tells of unedited AI-generated prose in personal statements / activity descriptions.
-const AI_TELL_PHRASES = [
+export const AI_TELL_PHRASES = [
     'furthermore', 'moreover', 'it is important to note', 'in conclusion',
     "in today's society", 'delve into', 'tapestry', 'testament to',
     'plays a pivotal role', 'plays a crucial role', 'underscores the',
     'in the realm of', 'navigate the complexities', 'a myriad of', 'boasts a',
 ];
 
-const getActivityHours = (a: Activity): number =>
+export const getActivityHours = (a: Activity): number =>
     a.dateRanges.reduce((sum, r) => sum + (parseInt(r.hours) || 0), 0);
 
 const activityLabel = (a: Activity) => a.title || 'Untitled activity';
@@ -108,7 +108,7 @@ const openingKey = (text: string): string | null => {
  * stripped key ("working patients taught empathy matters") is a string they
  * cannot find anywhere in their own writing.
  */
-const contentShingles = (text: string): Map<string, string> => {
+export const contentShingles = (text: string): Map<string, string> => {
     const words = normalisedWords(text);
     const contentAt: number[] = [];
     words.forEach((w, i) => {

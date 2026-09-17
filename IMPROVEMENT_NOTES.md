@@ -5,7 +5,7 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-09-08 (session 9). **The original backlog is empty**; sessions 8-9 cover post-backlog work.
+Last updated: 2026-09-16 (session 12). **The original backlog is empty**; sessions 8-12 cover post-backlog work.
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
@@ -940,3 +940,105 @@ fix**, and re-run `parseAst('import "x";')` to confirm the phase is `undefined` 
   reads as noise the fix is to lengthen the demo entries rather than to soften the rule.
 - The checklist is static. Wiring it to per-entry state (ten boxes per activity, persisted) is the
   obvious next feature and the one thing from the guide that was left on the table.
+
+---
+
+## Session 12 — the Most Meaningful coach: advice, not ghostwriting
+
+The Most Meaningful panel had a button, "Synthesize Essay with AI", that wrote a full 1,325-character
+essay into the field with no confirmation (and wrote the error string there when the call failed).
+The AMCAS certification allows AI only "for brainstorming, proofreading, or editing", and the AAMC's
+*Anatomy of an Applicant* (© 2026) goes further: descriptions "should not be the product of
+artificial intelligence." The button is gone. In its place is a workshop that runs the process paid
+consultants sell for MMEs (selection, brainstorm, plan, draft, content feedback, final check), where
+every output is a question, a note on the applicant's own sentence, or a check.
+
+**Build order A (this session) is rule-based and needs no edge deploy.** Build order B, the AI
+coaching (follow-up questions, a reader's-notes review with rounds, a set review), is not built yet.
+The `mme-synthesis` edge action still exists; nothing calls it. Remove it in the same deploy that
+adds the B actions.
+
+### What was built
+
+- `services/mmeCoachService.ts` — pure. `canMarkMostMeaningful`, `candidateNotes`, `setNotes`,
+  `planNotes`, `draftNotes`, `finalCheck`, `workshopProgress`. Every note is `{ level, title, body,
+  question?, quote?, source? }`. No function returns replacement text.
+- `services/mmeQuestionBank.ts` — the brainstorm questions per H-CART beat, the four self-check
+  questions, and every source with its URL. **Only AAMC wording checked against the live page is in
+  quotation marks**; consultant and advising-office advice is paraphrased and credited.
+- `components/Activity/mme/*` — `MmeCard` (inline in the editor, replaces `MMEPanel`) and a
+  full-screen `MmeWorkshop` with five steps: Is it one of your three? / Find the moment / Plan /
+  Write / Final check. Steps are suggested, not enforced.
+- `components/Dashboard/MmePlanner.tsx` — "Your Most Meaningful three", opened from the activity list
+  header. Set-level checks, a self-check on any entry (marked or not), mark/unmark.
+- `PsSummaryField` — an optional one-line personal statement summary on the profile, used only to warn
+  when an MME retells the same scene or lesson.
+
+### Two bugs that were live
+
+1. **The 3-MME cap was never enforced.** `App.handleToggleMME` checked it, but `Dashboard` received
+   `onToggleMME` and never called it; the only way to mark an MME was the editor checkbox, which
+   called `handleChange` directly. Both paths now go through `canMarkMostMeaningful`.
+2. **Anticipated experiences could be marked Most Meaningful.** AMCAS forbids it ("An anticipated
+   experience cannot be a most meaningful experience", 2027 W&A Guide). Blocked when every date range
+   is anticipated; completed hours plus anticipated hours is allowed.
+
+### Data — migration written, NOT applied
+
+`supabase/migrations/20260916120000_add_mme_workshop.sql` adds `activities.mme_workshop JSONB NOT
+NULL DEFAULT '{}'` and `profiles.ps_summary TEXT`. Additive and idempotent.
+
+**Apply it before this frontend reaches production.** Until then:
+- `activityService.saveActivity` catches PGRST204 naming `mme_workshop`, retries without the column,
+  and keeps the workshop in memory, so saves don't fail on a preview deploy. Workshop state will not
+  persist across reloads until the column exists.
+- Saving the personal-statement line fails with a toast.
+
+`mmeAction` / `mmeResult` are still written, mirrored from the Action and Change notes, because
+`utils/adcomScore.ts` and `utils/missionFit.ts` scan them. Old values seed those notes on first open.
+
+### Calibration
+
+`node --experimental-transform-types scripts/audit-mme-coach.ts` — 97 checks. Every draft check is
+pinned to a fixture that must trip it and one that must not, then run over the 14 published MMEs:
+strong essays average 0.58 cautions; the known rehash (`clinical-research-internship-neuro`, reader
+distinctness 7/25) trips both "retells your entry" and "opens by announcing the meaning"; the two
+six-hour counter-examples trip thin hours and over-limit.
+
+`MME_OVERLAP_NOTICE` (0.12) moved from `MmeQualityBreakdown.tsx` into `narrativeQualityService.ts`
+and was **not retuned**. `workbook-emra-coordinator` sits at 12.5% with a human distinctness of 20,
+a mild false positive — but it is a holdout entry, and tuning on it would spend the holdout.
+
+Helpers exported for reuse rather than copied: `REFLECTION_CATEGORIES`, `BOILERPLATE`,
+`SCENE_MARKERS`, `MEANING_ASSERTIONS`, `countPhrases`, `sentences`, `distinctProperNouns`,
+`quantifyingNumbers`, `contentWords` (narrativeQualityService); `MIN_CREDIBLE_MME_HOURS`,
+`HIGH_STATUS_TYPES`, `AI_TELL_PHRASES`, `getActivityHours`, `contentShingles` (redFlagService).
+`exportService.ts` imports gained `.ts` extensions and a `type` import so Node can load it.
+
+### Verification
+
+`tsc --noEmit` (only the pre-existing `temp_skills/` errors), `npm run build`, all three audit
+harnesses. Playwright through the preview harness at 1440 and 390: 46 checks — every step renders
+without horizontal overflow, self-check answers persist, legacy fields seed the notes, the expected
+draft notes appear, "Show in draft" selects the quoted text, editing a flagged line clears its note,
+the final step reaches done, the planner blocks an anticipated entry and saves a self-check, and the
+editor refuses a fourth MME. Preview files deleted.
+
+Two layout bugs the harness caught on mobile, both worth knowing:
+- A single-column grid with no explicit `grid-cols` sizes its implicit column to content, so a strip
+  of `whitespace-nowrap` tabs pushed the workshop 316px sideways. `grid-cols-[minmax(0,1fr)]`.
+- `sr-only` spans are `position: absolute`. Inside a horizontally scrolling strip with no positioned
+  ancestor they attach to the dialog and widen *its* scroll area (another 186px). `relative` on the
+  tab buttons contains them.
+
+### Still open
+
+- **Apply the migration** (needs `SUPABASE_DB_PASSWORD`; production database, confirm first).
+- **Build order B**: `mme-followups`, `mme-review` (anchored line notes; server drops any quote not in
+  the draft and any novel 6+ word quoted span), `mme-set-review`, then remove `mme-synthesis`.
+- The weak-verb suggestions in `staticAnalysisService.ts` recommend "facilitated, assisted" — the
+  corporate phrasing advisors flag in AI-written entries. Not used by the MME checks; worth revisiting
+  for the description editor.
+- `landingData.ts`: the two strings that described the removed essay builder (the Most Meaningful
+  feature card and the "Does it write my essays" FAQ) were corrected. The wider landing repositioning
+  is planned separately and not applied.

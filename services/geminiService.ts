@@ -129,21 +129,6 @@ export const getRewriteSuggestions = async (sentence: string, rewriteType: Rewri
   }
 };
 
-export const synthesizeMmeEssay = async (baseDescription: string, action: string, result: string): Promise<string> => {
-  try {
-    const { data, error } = await invokeEdgeFunction({
-      action: 'mme-synthesis',
-      payload: { baseDescription, action, result }
-    });
-
-    await throwIfEdgeFunctionError(error);
-    return data as string;
-  } catch (error) {
-    console.error("Error synthesizing MME essay:", error);
-    return "There was an error generating the essay. Please try again.";
-  }
-};
-
 /**
  * The deployed edge function rejects unknown actions with "Unknown action: <name>".
  * Until `supabase functions deploy gemini-ai` is run with the newer actions, surface

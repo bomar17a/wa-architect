@@ -1,12 +1,14 @@
 import React from 'react';
 import { Gauge, Copy } from 'lucide-react';
-import { scoreMmeQuality, mmeOverlapRatio, narrativeQualityTier } from '../../services/narrativeQualityService';
+import { scoreMmeQuality, mmeOverlapRatio, narrativeQualityTier, MME_OVERLAP_NOTICE } from '../../services/narrativeQualityService';
 
 interface MmeQualityBreakdownProps {
     /** The 1,325-character MME remark. */
     mmeEssay: string;
     /** The same activity's 700-character description — distinctness is measured against it. */
     description: string;
+    /** Off where a coaching note already reports the same overlap. */
+    showOverlapNotice?: boolean;
 }
 
 const SUB_SCORES: { key: 'insight' | 'evidence' | 'distinctness' | 'voice'; label: string; hint: string }[] = [
@@ -28,13 +30,7 @@ const barClasses: Record<'green' | 'amber' | 'red', string> = {
     red: 'bg-rose-400',
 };
 
-// Below this the two texts just share the vocabulary of one activity, which is normal —
-// genuinely distinct MMEs in the exemplar corpus sit at 3-7%. Set above the corpus's
-// most distinct-but-wordy entry so the notice stays rare enough to mean something.
-// redFlagService uses a higher bar (0.15) for the dashboard-level flag.
-const OVERLAP_NOTICE = 0.12;
-
-export const MmeQualityBreakdown: React.FC<MmeQualityBreakdownProps> = ({ mmeEssay, description }) => {
+export const MmeQualityBreakdown: React.FC<MmeQualityBreakdownProps> = ({ mmeEssay, description, showOverlapNotice = true }) => {
     // Too short to say anything useful about, and a red score on two sentences would
     // just be discouraging noise while someone is still typing.
     if (!mmeEssay || mmeEssay.trim().length < 200) return null;
@@ -67,7 +63,7 @@ export const MmeQualityBreakdown: React.FC<MmeQualityBreakdownProps> = ({ mmeEss
 
             {/* The overlap number is the actionable part — a lowered bar alone does not
                 tell anyone what to cut. */}
-            {overlap >= OVERLAP_NOTICE && (
+            {showOverlapNotice && overlap >= MME_OVERLAP_NOTICE && (
                 <p className="flex items-start gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-2 leading-relaxed">
                     <Copy className="w-3.5 h-3.5 flex-shrink-0 mt-px" />
                     <span>

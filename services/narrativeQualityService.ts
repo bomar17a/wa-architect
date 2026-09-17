@@ -83,7 +83,7 @@ const MEASUREMENT_TERMS = [
  * version paid 9 points per hit from one flat list, so three uses of "learned" maxed
  * it out and genuine reflection phrased differently scored zero.
  */
-const REFLECTION_CATEGORIES: Record<string, string[]> = {
+export const REFLECTION_CATEGORIES: Record<string, string[]> = {
     // Named an actual lesson.
     learning: [
         'i learned', 'i realized', 'i understood', 'i discovered', 'taught me', 'showed me',
@@ -139,7 +139,7 @@ const REFLECTION_CATEGORIES: Record<string, string[]> = {
 };
 
 /** Stock admissions phrasing. Heaviest voice penalty — it is the sound of a template. */
-const BOILERPLATE = [
+export const BOILERPLATE = [
     'i had the pleasure', 'i had the opportunity', 'i had the wonderful opportunity',
     'i was fortunate', 'i was lucky enough', 'invaluable experience', 'rewarding experience',
     'eye-opening', 'life-changing', 'passion for medicine', 'aspiring physician',
@@ -171,14 +171,14 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  * single word "samples" — three separate false positives that pushed entries with no
  * numbers in them to 12/25 on quantification.
  */
-const countPhrases = (lower: string, terms: string[]): number =>
+export const countPhrases = (lower: string, terms: string[]): number =>
     terms.reduce((n, t) => n + (new RegExp(`\\b${escapeRe(t)}\\b`).test(lower) ? 1 : 0), 0);
 
 /** Total occurrences, not just presence — repetition is the point for padding. */
 const countOccurrences = (lower: string, terms: string[]): number =>
     terms.reduce((n, t) => n + (lower.match(new RegExp(`\\b${escapeRe(t)}\\b`, 'g')) || []).length, 0);
 
-const sentences = (text: string): string[] =>
+export const sentences = (text: string): string[] =>
     text.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(s => s.length > 0);
 
 const words = (text: string): string[] => text.match(/[A-Za-z][A-Za-z'-]*/g) || [];
@@ -189,7 +189,7 @@ const words = (text: string): string[] => text.match(/[A-Za-z][A-Za-z'-]*/g) || 
  * collected full marks. Distinct also stops an entry that repeats one doctor's name
  * six times from reading as six specifics.
  */
-function distinctProperNouns(text: string): number {
+export function distinctProperNouns(text: string): number {
     const found = new Set<string>();
     for (const s of sentences(text)) {
         const toks = s.match(/\b[A-Z][a-zA-Z'-]+/g) || [];
@@ -213,7 +213,7 @@ const distinctAcronyms = (text: string): number =>
  * is a date, not a measured outcome. Comma-grouped figures collapse to one number so
  * "$20,000" counts once rather than twice.
  */
-function quantifyingNumbers(text: string): number {
+export function quantifyingNumbers(text: string): number {
     const raw = text.match(/\$?\d[\d,]*(?:\.\d+)?%?/g) || [];
     const kept = new Set<string>();
     for (const r of raw) {
@@ -400,7 +400,7 @@ export interface MmeQualityScore {
 const EMPTY_MME: MmeQualityScore = { total: 0, insight: 0, evidence: 0, distinctness: 0, voice: 0 };
 
 /** Markers that a writer is about to narrate something specific rather than summarise. */
-const SCENE_MARKERS = [
+export const SCENE_MARKERS = [
     'i remember', 'one instance', 'one such', 'for example', 'for instance', 'that day',
     'one afternoon', 'one morning', 'one night', 'there was a', 'i recall', 'the moment',
     'once, ', 'on one occasion', 'i met', 'a patient named', 'she told me', 'he told me',
@@ -412,7 +412,7 @@ const SCENE_MARKERS = [
  * experience was meaningful because I was able to..." has spent its first sentence
  * on nothing, and it is the single most common MME opener in the corpus.
  */
-const MEANING_ASSERTIONS = [
+export const MEANING_ASSERTIONS = [
     'this experience was meaningful because', 'this experience was extremely special',
     'was an incredibly gratifying experience', 'has been formative in shaping',
     'this experience taught me', 'was truly memorable', 'this really was a lesson',
@@ -438,7 +438,7 @@ const DOMAIN_COMMON = new Set(('patient patients medical medicine physician phys
     'hospital clinic clinical care experience experiences work working time people person ' +
     'health healthcare students student').split(' '));
 
-const contentWords = (text: string): Set<string> =>
+export const contentWords = (text: string): Set<string> =>
     new Set(normaliseWords(text).filter(w => w.length >= 3 && !STOPWORDS.has(w) && !DOMAIN_COMMON.has(w)));
 
 /**
@@ -625,6 +625,12 @@ export function scoreMmeQuality(mme: string, description = ''): MmeQualityScore 
     };
     return { ...parts, total: parts.insight + parts.evidence + parts.distinctness + parts.voice };
 }
+
+// Below this the two texts just share the vocabulary of one activity, which is normal —
+// genuinely distinct MMEs in the exemplar corpus sit at 3-7%. Set above the corpus's
+// most distinct-but-wordy entry so the notice stays rare enough to mean something.
+// redFlagService uses a higher bar (0.15) for the dashboard-level flag.
+export const MME_OVERLAP_NOTICE = 0.12;
 
 /**
  * How much of the MME is the description retold, 0-1. Exported so the UI can say

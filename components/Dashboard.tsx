@@ -25,6 +25,7 @@ interface DashboardProps {
     appType: ApplicationType;
     onAppTypeChange: (appType: ApplicationType) => void;
     onToggleMME: (activityId: number) => void;
+    onSaveActivity: (activity: Activity) => void;
     onDeleteActivity: (activityId: number) => void;
     onReorderActivities: (orderedIds: number[]) => void;
     onImportActivities: (activities: Activity[]) => void;
@@ -56,6 +57,7 @@ import { ResumeReviewModal } from './ResumeReviewModal.tsx';
 import { SettingsModal } from './Dashboard/SettingsModal.tsx';
 import { ExportModal } from './Dashboard/ExportModal.tsx';
 import { StoryAnalysisModal } from './Dashboard/StoryAnalysisModal.tsx';
+import { MmePlanner } from './Dashboard/MmePlanner.tsx';
 import { ScoreDial } from './Dashboard/ScoreDial.tsx';
 import { motion } from 'framer-motion';
 import { runRedFlagAudit } from '../services/redFlagService.ts';
@@ -63,7 +65,7 @@ import { scoreNarrativeQuality, narrativeQualityTier } from '../services/narrati
 
 // --- Main Dashboard Component ---
 
-export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onDeleteActivity, onImportActivities, onReorderActivities }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivity, appType, onAppTypeChange, onToggleMME, onSaveActivity, onDeleteActivity, onImportActivities, onReorderActivities }) => {
     const { user, signOut } = useAuth();
     const {
         activeTab,
@@ -102,6 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
 
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+    const [isMmePlannerOpen, setIsMmePlannerOpen] = useState(false);
     const [dismissedFlags, setDismissedFlags] = useState<Set<string>>(new Set());
     const redFlags = useMemo(() => runRedFlagAudit(activities, DESC_LIMITS[appType]), [activities, appType]);
     const visibleFlags = useMemo(() => redFlags.filter(f => !dismissedFlags.has(f.id)), [redFlags, dismissedFlags]);
@@ -392,6 +395,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                                         {/* The ResumeUploader was moved from here to the header */}
                                         <button onClick={() => onAppTypeChange(ApplicationType.AMCAS)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${appType === ApplicationType.AMCAS ? 'bg-brand-dark text-white shadow-md' : 'bg-white text-slate-500 border border-slate-100'}`}>AMCAS</button>
                                         <button onClick={() => onAppTypeChange(ApplicationType.AACOMAS)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${appType === ApplicationType.AACOMAS ? 'bg-brand-dark text-white shadow-md' : 'bg-white text-slate-500 border border-slate-100'}`}>AACOMAS</button>
+                                        {appType === ApplicationType.AMCAS && (
+                                            <button
+                                                onClick={() => setIsMmePlannerOpen(true)}
+                                                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-100 hover:border-brand-gold/40 hover:text-amber-700 transition-colors"
+                                            >
+                                                <Award className="w-3.5 h-3.5" /> Most Meaningful ({activities.filter(a => a.isMostMeaningful).length}/3)
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => setIsExportModalOpen(true)}
                                             disabled={filledActivities.length === 0}
@@ -539,6 +550,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                     activities={activities}
                     appType={appType}
                     onClose={() => setIsExportModalOpen(false)}
+                />
+            )}
+
+            {isMmePlannerOpen && (
+                <MmePlanner
+                    activities={activities}
+                    appType={appType}
+                    onToggleMME={onToggleMME}
+                    onSaveActivity={onSaveActivity}
+                    onOpenActivity={(id) => { setIsMmePlannerOpen(false); onSelectActivity(id); }}
+                    onClose={() => setIsMmePlannerOpen(false)}
                 />
             )}
 

@@ -11,6 +11,7 @@ const fromDb = (row: any): Profile => ({
     mcatRange: row.mcat_range ?? null,
     northStarArchetypes: row.north_star_archetypes ?? [],
     targetSchoolIds: row.target_school_ids ?? [],
+    psSummary: row.ps_summary ?? null,
 });
 
 // Only maps keys actually present in the patch, so a partial update never
@@ -25,6 +26,7 @@ const toDb = (patch: Partial<Profile>) => {
     if ('mcatRange' in patch) row.mcat_range = patch.mcatRange;
     if ('northStarArchetypes' in patch) row.north_star_archetypes = patch.northStarArchetypes;
     if ('targetSchoolIds' in patch) row.target_school_ids = patch.targetSchoolIds;
+    if ('psSummary' in patch) row.ps_summary = patch.psSummary;
     return row;
 };
 

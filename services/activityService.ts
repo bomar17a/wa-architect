@@ -23,6 +23,7 @@ const toDb = (activity: Activity, userId: string) => {
         mme_action: activity.mmeAction,
         mme_result: activity.mmeResult,
         mme_essay: activity.mmeEssay,
+        mme_workshop: activity.mmeWorkshop ?? {},
         competencies: activity.competencies,
         due_date: activity.dueDate || null,
         sort_order: activity.sortOrder ?? null,
@@ -49,11 +50,16 @@ const fromDb = (row: any): Activity => {
         mmeAction: row.mme_action || '',
         mmeResult: row.mme_result || '',
         mmeEssay: row.mme_essay || '',
+        mmeWorkshop: row.mme_workshop ?? {},
         competencies: row.competencies || [],
         dueDate: row.due_date || undefined,
         sortOrder: row.sort_order ?? null,
     };
 };
+
+/** PostgREST reports an unknown column as PGRST204 and names it in the message. */
+const isMissingColumn = (error: { code?: string; message?: string }, column: string) =>
+    error.code === 'PGRST204' && (error.message || '').includes(column);
 
 export const activityService = {
     async fetchActivities() {
@@ -75,13 +81,26 @@ export const activityService = {
 
         const payload = toDb(activity, user.id);
 
-
-
         const { data, error } = await supabase
             .from('activities')
             .upsert(payload)
             .select()
             .single();
+
+        // Preview deploys share the production database, so the frontend can reach a
+        // database that does not have the workshop column yet. Save the entry without it
+        // rather than failing the whole save, and keep the workshop state in memory.
+        if (error && isMissingColumn(error, 'mme_workshop')) {
+            console.warn('activities.mme_workshop is missing; apply 20260916120000_add_mme_workshop.sql');
+            const { mme_workshop: _omitted, ...withoutWorkshop } = payload;
+            const retry = await supabase
+                .from('activities')
+                .upsert(withoutWorkshop)
+                .select()
+                .single();
+            if (retry.error) throw retry.error;
+            return { ...fromDb(retry.data), mmeWorkshop: activity.mmeWorkshop };
+        }
 
         if (error) throw error;
         return fromDb(data);
