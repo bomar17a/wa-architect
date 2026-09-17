@@ -953,7 +953,8 @@ artificial intelligence." The button is gone. In its place is a workshop that ru
 consultants sell for MMEs (selection, brainstorm, plan, draft, content feedback, final check), where
 every output is a question, a note on the applicant's own sentence, or a check.
 
-**Build order A (this session) is rule-based and needs no edge deploy.** Build order B, the AI
+**Build order A (this session) is rule-based, needed no edge deploy, and is live on production**
+(merged to `main` at `7216fbc`). Build order B, the AI
 coaching (follow-up questions, a reader's-notes review with rounds, a set review), is not built yet.
 The `mme-synthesis` edge action still exists; nothing calls it. Remove it in the same deploy that
 adds the B actions.
@@ -983,16 +984,19 @@ adds the B actions.
    experience cannot be a most meaningful experience", 2027 W&A Guide). Blocked when every date range
    is anticipated; completed hours plus anticipated hours is allowed.
 
-### Data — migration written, NOT applied
+### Data — migration applied 2026-09-17
 
 `supabase/migrations/20260916120000_add_mme_workshop.sql` adds `activities.mme_workshop JSONB NOT
 NULL DEFAULT '{}'` and `profiles.ps_summary TEXT`. Additive and idempotent.
 
-**Apply it before this frontend reaches production.** Until then:
-- `activityService.saveActivity` catches PGRST204 naming `mme_workshop`, retries without the column,
-  and keeps the workshop in memory, so saves don't fail on a preview deploy. Workshop state will not
-  persist across reloads until the column exists.
-- Saving the personal-statement line fails with a toast.
+Applied to production with `scripts/db/apply-migration.mjs` (version `20260916120000` recorded)
+before the frontend merged. Verified afterwards: both columns present with the right types, RLS still
+enabled on both tables, all 15 existing activity rows defaulted to `{}`, and PostgREST selects both
+columns with the anon key (empty result under RLS, not a missing-column error).
+
+`activityService.saveActivity` still catches PGRST204 naming `mme_workshop` and retries without the
+column, keeping the workshop in memory. It no longer fires in production; it stays for any database
+that has not had the migration (a fresh project, a restored backup).
 
 `mmeAction` / `mmeResult` are still written, mirrored from the Action and Change notes, because
 `utils/adcomScore.ts` and `utils/missionFit.ts` scan them. Old values seed those notes on first open.
@@ -1033,7 +1037,10 @@ Two layout bugs the harness caught on mobile, both worth knowing:
 
 ### Still open
 
-- **Apply the migration** (needs `SUPABASE_DB_PASSWORD`; production database, confirm first).
+- **Authenticated smoke test not run.** `scripts/db/auth-smoke.mjs` needs `SUPABASE_SERVICE_ROLE_KEY`,
+  which was not set. The workshop was verified in the preview harness, not against a logged-in session
+  on the live database. First real check: mark an entry Most Meaningful on production, add notes,
+  reload, and confirm they persist.
 - **Build order B**: `mme-followups`, `mme-review` (anchored line notes; server drops any quote not in
   the draft and any novel 6+ word quoted span), `mme-set-review`, then remove `mme-synthesis`.
 - The weak-verb suggestions in `staticAnalysisService.ts` recommend "facilitated, assisted" — the
