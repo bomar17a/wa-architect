@@ -5,7 +5,7 @@ review doc (pasted into chat, not stored as a file in-repo). Picking this back u
 file first, then re-open the todo list in the same conversation (or recreate it from the
 "Remaining Backlog" section below) and continue in priority order.
 
-Last updated: 2026-09-17 (session 12). **The original backlog is empty**; sessions 8-12 cover post-backlog work.
+Last updated: 2026-09-18 (session 13). **The original backlog is empty**; sessions 8-13 cover post-backlog work.
 
 > ## ✅ Nothing is blocked
 > - `gemini-ai` edge function deployed **v33** — Interview Prep and Story Analysis are live.
@@ -525,6 +525,10 @@ and that is correct; they separate on the readiness score (86 vs 93), not on mat
 target vector + emphasis tags into `school_targets.json` (reviewable; records the matched terms
 per pillar). `scripts/build-school-targets-migration.mjs` turns that into
 `supabase/migrations/20260908000000_add_school_target_vectors.sql`.
+
+> **Correction (session 13):** it has been applied. A read of production on 2026-09-18 found
+> target vectors and `emphasis_tags` on all 175 rows. The paragraph below describes the state
+> when session 9 ended.
 
 **The migration has not been applied.** `schoolTargets()` falls back to the archetype baseline
 whenever the columns are absent or null, which is the state of the live table today — so the app
@@ -1107,3 +1111,98 @@ read has not been run against a logged-in session (still no `SUPABASE_SERVICE_RO
 applicant, the filter drops those notes silently and the round looks thin. The dropped counts go
 to the console (`MME review: dropped items that broke the feedback-only rule`); if that fires
 often, the prompt needs tightening rather than the filter loosening.
+
+---
+
+## Session 13 — residency, ties, and a "why this school" breakdown
+
+Branch `feat/school-residency`. The plan (competitor workflows, risks, schema, the score) is in
+`~/.claude/plans/context-objective-staged-pascal.md`. What shipped against it:
+
+### The score, in one line
+
+    priority = E · M · (0.9 + 0.1·Θ) · A
+
+`M` is `computeMatch`, untouched; it is still the headline percentage and `calibrate-scoring.ts`
+did not move. `Θ` is theme overlap: the same tag labels `derive-school-targets.ts` reads out of
+mission statements, now read out of the applicant's entries (`utils/themes.ts`). `A` is residency
+access from AAMC FACTS Table A-1 (`utils/residency.ts`). `E` is 0 only when a school policy,
+checked on the school's own page, rules the applicant out. `utils/schoolFit.ts` composes them and
+writes every reason the drawer shows; none of that text comes from a model.
+
+`node scripts/audit-school-fit.ts` is the acceptance test (36 checks on synthetic schools, plus 4
+in a real-data section that runs only where the gitignored AAMC files exist). It is in CI.
+
+### The data, and where it deliberately is not
+
+- **A-1 is read from AAMC's own .xlsx**, three cycles (2023-24 to 2025-26), by
+  `scripts/data/read-aamc-a1.mjs`. Each file checks against its Total row: application and
+  matriculant sums match exactly, and the weighted in-state share within 0.3 points.
+- **The numbers are not in this repo.** A-1 is licensed "for educational, noncommercial purposes
+  only" (the notice is in each file's page footer) and the repo is public. `data/sources/` is
+  gitignored; `data/source-manifest.json` records each file's URL and sha256, and
+  `scripts/db/seed-residency.mjs` refuses a file that does not match. Every A-1 row in
+  `data_sources` is `commercial_use = 'restricted'`, so paid features can exclude it.
+- **`data/school-registry.json`** gives all 175 rows a slug, state and country, plus every
+  spelling A-1 uses ("Alabama-Heersink", and both names of schools renamed between cycles). It
+  replaces name-matching through `utils/schoolStates.ts`, which had three schools as "Unknown".
+- **Policies** (`data/school-policies.json`): only UW's WWAMI rule so far, read through the
+  search index because uwmedicine.org refuses automated requests. Open the page once by hand.
+
+### Found in the data
+
+- **Two Texas A&M rows.** "Texas A&M University School of Medicine" carries a mission statement
+  that reads as a model-written summary; "Texas A&M School of Medicine" carries the verbatim text
+  and gets the A-1 data. The first is slugged `texas-and-m-duplicate-row`. Delete it once nothing
+  references it (check `profiles.target_school_ids` first).
+- **No University of Kentucky row.** A-1 has it; the original MSAR parse dropped it.
+- **Texas public schools look ordinary out-of-state** (about 1 in 46 per application, national
+  average about 1 in 45) even though state law caps non-residents at 10%. Few non-Texans apply, so
+  the per-application rate hides the cap. This is why the UI puts the share of seats that went to
+  residents (84–95% at Texas publics) next to the rates, and never calls either "your chances".
+- **Bands are terciles** of the in-state advantage: 3.6× and 11.2× across 159 schools. A verified
+  "prefers residents" policy triggers the ties warning even when the numbers alone would not: AAMC
+  counts UW's four compact states as out-of-state, so UW's own figures look moderate.
+
+### UI
+
+- Onboarding has a fourth step (state of legal residence, ties, optional citizenship status);
+  Settings has the same form for users who onboarded before it existed. Step 4's copy no longer
+  claims North Star "biases school recommendations" — it never did.
+- Recommender: sorts by priority by default (toggle for mission fit), chips the top tier of
+  in-state-preferring schools, asks before targeting one with no tie, and hides Canadian schools
+  unless "U.S. + Canada" or "Canada" is chosen. With no A-1 figures they ranked as if residency
+  cost nothing, and they topped the list for a U.S. applicant.
+- Scores no longer refetch all 175 schools whenever a pillar moves; they load once and rescore in
+  `useMemo`.
+- The activity editor has a State field for U.S. entries. That is how a tie becomes visible to a
+  school, and the "your entries don't show this tie" warning reads it.
+
+### Applying it (in this order)
+
+    node scripts/db/apply-migration.mjs supabase/migrations/20260919000000_school_provenance_and_residency.sql 20260919000000
+    node scripts/db/apply-migration.mjs supabase/migrations/20260919000500_school_registry_backfill.sql 20260919000500
+    node scripts/db/apply-migration.mjs supabase/migrations/20260919010000_applicant_residency_and_ties.sql 20260919010000
+    node scripts/db/seed-residency.mjs
+    SUPABASE_SERVICE_ROLE_KEY=... node scripts/db/auth-smoke.mjs
+
+The frontend degrades without them (missing columns are dropped and retried, a missing ties table
+reads as empty, missing residency figures leave `A = 1`), but apply them before merging.
+
+### Verification this session
+
+`tsc --noEmit`, `npm run build`, every harness. Browser checks at 1440 and 390 through a
+throwaway harness that stubbed the profile context and served residency rows from the local A-1
+files (deleted afterwards): chips, drawer reasons and sources, the confirm on star, Idaho at UW
+as regional, a Colorado tie with no Colorado entry, the no-state prompt, the wizard step, Settings,
+no horizontal overflow, no console errors. The seed has run as `--dry-run` only (472 rows) and the
+new `auth-smoke.mjs` checks have not run; both need the migrations applied first.
+
+### Still open
+
+- Apply, seed, run `auth-smoke.mjs`; delete the Texas A&M duplicate; add a Kentucky row.
+- Phase 2 in the plan: `applicant_school_list`, AAFP family-medicine outcomes and BRIMR funding
+  ("says vs. does"), curriculum facts verified on school sites, DO schools, and removing
+  `suggestedSentence` and its Copy button from School Targeting (pasteable text, against the
+  coaching rule).
+- A legal read on AAMC-derived data before billing ships.
