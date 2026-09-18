@@ -1,0 +1,14 @@
+{
+  "note": "Residency and eligibility policy per school, keyed by slug (data/school-registry.json). An entry goes in only after its rule was read on the school's own admissions page, and source_url must point there. Anything absent stays 'unknown' in medical_schools, and the app makes no eligibility claim about it. Paraphrase policy_note; do not paste the school's wording.",
+  "policies": {
+    "u-washington": {
+      "residency_policy": "prefers_in_state",
+      "regional_states": ["WA", "WY", "AK", "MT", "ID"],
+      "accepts_international": "unknown",
+      "policy_note": "A five-state regional school: residents of Washington, Wyoming, Alaska, Montana and Idaho apply into their state's cohort. Out-of-region applicants are considered only with ties to a WWAMI state and a disadvantaged background or a record of serving underserved communities.",
+      "source_url": "https://www.uwmedicine.org/school-of-medicine/md-program/admissions/state-eligibility",
+      "verified": "2026-09-18",
+      "verified_how": "Read through the search index of that page. The page itself refuses automated requests, so open it by hand once to confirm."
+    }
+  }
+}

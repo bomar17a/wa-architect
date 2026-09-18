@@ -34,3 +34,7 @@ supabase/.temp/
 
 # Bundle-analyzer output from rollup-plugin-visualizer (regenerated on every build)
 stats.html
+
+# Downloaded source files behind school facts (see data/source-manifest.json). Kept out of
+# this public repo: AAMC licenses FACTS tables for noncommercial use only.
+data/sources/

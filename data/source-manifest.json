@@ -1,0 +1,44 @@
+{
+  "note": "Every downloaded file a school fact comes from. The files themselves live in data/sources/ and are gitignored: this repo is public, and AAMC licenses FACTS tables for noncommercial use only. To rebuild, download each url to its file path; scripts/db/seed-residency.mjs refuses a file whose sha256 does not match. Each entry becomes a row in public.data_sources, and the licence notice stored there is read from the file itself.",
+  "sources": [
+    {
+      "slug": "aamc-facts-a1-2023",
+      "reader": "aamc-a1",
+      "publisher": "AAMC",
+      "title": "FACTS Table A-1: U.S. MD-Granting Medical School Applications and Matriculants by School, State of Legal Residence, and Gender, 2023-2024",
+      "page": "https://www.aamc.org/data-reports/data/2023-facts",
+      "url": "https://www.aamc.org/media/35686/download?attachment",
+      "file": "data/sources/aamc/facts-a1-2023.xlsx",
+      "sha256": "63e3f1056833ab55e4b4f15f786c9533e20e8403bac77dcfbe7ef6f3208aa74e",
+      "data_year": 2023,
+      "retrieved_at": "2026-09-18",
+      "commercial_use": "restricted"
+    },
+    {
+      "slug": "aamc-facts-a1-2024",
+      "reader": "aamc-a1",
+      "publisher": "AAMC",
+      "title": "FACTS Table A-1: U.S. MD-Granting Medical School Applications and Matriculants by School, State of Legal Residence, and Gender, 2024-2025",
+      "page": "https://www.aamc.org/data-reports/data/2024-facts",
+      "url": "https://www.aamc.org/media/79766/download?attachment",
+      "file": "data/sources/aamc/facts-a1-2024.xlsx",
+      "sha256": "41e6a6806a6e1c420614bb70feb21c90291401d351ec6a909898a3ddbcc5ff2c",
+      "data_year": 2024,
+      "retrieved_at": "2026-09-18",
+      "commercial_use": "restricted"
+    },
+    {
+      "slug": "aamc-facts-a1-2025",
+      "reader": "aamc-a1",
+      "publisher": "AAMC",
+      "title": "FACTS Table A-1: U.S. MD-Granting Medical School Applications and Matriculants by School, State of Legal Residence, and Gender, 2025-2026",
+      "page": "https://www.aamc.org/data-reports/students-residents/data/facts-applicants-and-matriculants",
+      "url": "https://www.aamc.org/media/86591/download?attachment",
+      "file": "data/sources/aamc/facts-a1-2025.xlsx",
+      "sha256": "b4eadd22d96ea8a7558d44ef255fcdfc9e1d4eb7b5c35d90adb61a9dd10a8cf7",
+      "data_year": 2025,
+      "retrieved_at": "2026-09-18",
+      "commercial_use": "restricted"
+    }
+  ]
+}
