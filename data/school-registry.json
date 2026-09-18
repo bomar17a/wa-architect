@@ -6,7 +6,7 @@
     }
   },
   "notes": {
-    "texas-and-m-duplicate-row": "medical_schools holds two Texas A&M rows. This one carries a mission statement that reads as a model-written summary. The other (\"Texas A&M School of Medicine\") carries the verbatim text and gets the A-1 data. Delete this row once nothing references it."
+    "texas-a-and-m-vashisht": "medical_schools used to hold a second Texas A&M row with a model-written mission statement. It was deleted by 20260919020000_delete_texas_am_duplicate.sql; this is the row that remains."
   },
   "schools": [
     {
@@ -1410,13 +1410,6 @@
           "Texas A&M-Vashisht"
         ]
       }
-    },
-    {
-      "school_name": "Texas A&M University School of Medicine",
-      "slug": "texas-and-m-duplicate-row",
-      "state": "TX",
-      "country": "US",
-      "aliases": {}
     },
     {
       "school_name": "Texas Tech University Health Sciences Center School of Medicine",

@@ -1206,8 +1206,12 @@ isolation, the cascade on user delete); the one failure was `draft-analysis`, be
 
 ### Still open
 
-- Delete the Texas A&M duplicate (nothing references it as of 2026-09-18); add a Kentucky row.
-- Deploy `gemini-ai` for the draft-analysis fix below, then re-run `auth-smoke.mjs`.
+- Add a University of Kentucky row (in A-1, missing from medical_schools).
+- ~~Delete the Texas A&M duplicate~~ Done: `20260919020000_delete_texas_am_duplicate.sql`, applied
+  2026-09-18 with the user's go-ahead. 174 schools. The registry builder now refuses to rewrite the
+  applied `20260919000500`; later registry changes go in a new migration via `--out`.
+- ~~Deploy `gemini-ai`~~ Done: v40, 2026-09-18. `auth-smoke.mjs` 32/32, and `draft-analysis` 3 for 3
+  after the fix against 0 for 3 before it.
 - Phase 2 in the plan: `applicant_school_list`, AAFP family-medicine outcomes and BRIMR funding
   ("says vs. does"), curriculum facts verified on school sites, DO schools, and removing
   `suggestedSentence` and its Copy button from School Targeting (pasteable text, against the
@@ -1226,5 +1230,5 @@ off; a truncation at 174 characters means about 1,150 of the 1,200 tokens went t
 Both now pass `thinkingConfig: { thinkingBudget: 0 }`. The edge function's SDK
 (`@google/generative-ai` 0.24.1) sends `generationConfig` through `JSON.stringify` unchanged, so
 the field reaches the API. `auth-smoke.mjs` now covers `mme-review` and prints the error text when
-`draft-analysis` fails. **Not live until the function is deployed.** The aiCache version is not
+`draft-analysis` fails. Deployed as v40 on 2026-09-18. The aiCache version is not
 bumped: failed calls were never cached, and earlier successful analyses are still valid.

@@ -2,7 +2,12 @@
  * Writes the migration that gives every medical_schools row its identity and, where
  * one has been verified, its residency policy.
  *
- *   node scripts/data/build-registry-migration.mjs
+ *   node scripts/data/build-registry-migration.mjs [--out supabase/migrations/<new>.sql]
+ *
+ * 20260919000500 is already applied to production. The script will not overwrite it
+ * with different SQL: after editing the registry or the policies, pass --out with a new
+ * migration file. Every statement is idempotent, so the new file can simply restate all
+ * of it.
  *
  * Reads data/school-registry.json (slug, state, country, dataset spellings) and
  * data/school-policies.json (policies checked on the school's own page). Regenerate
@@ -11,9 +16,11 @@
  * Contains no AAMC numbers, only names, so it is safe in this public repo. The A-1
  * figures are seeded separately by scripts/db/seed-residency.mjs.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-const OUT = 'supabase/migrations/20260919000500_school_registry_backfill.sql';
+const APPLIED = 'supabase/migrations/20260919000500_school_registry_backfill.sql';
+const outArg = process.argv.indexOf('--out');
+const OUT = outArg > -1 ? process.argv[outArg + 1] : APPLIED;
 const registry = JSON.parse(readFileSync('data/school-registry.json', 'utf8'));
 const { policies } = JSON.parse(readFileSync('data/school-policies.json', 'utf8'));
 
@@ -82,6 +89,14 @@ lines.push(
   'END $$;',
   '',
 );
+
+// Everything but the date line has to match what production already ran.
+const body = s => s.replace(/^-- Generated .*$/m, '');
+if (OUT === APPLIED && existsSync(APPLIED) && body(readFileSync(APPLIED, 'utf8')) !== body(lines.join('\n'))) {
+  console.error(`${APPLIED} is applied and this would change it.`);
+  console.error('Write the new state to a new migration instead: --out supabase/migrations/<timestamp>_school_registry_update.sql');
+  process.exit(1);
+}
 
 writeFileSync(OUT, lines.join('\n'));
 const aliasCount = registry.schools.reduce((n, s) => n + Object.values(s.aliases).flat().length, 0);
