@@ -94,6 +94,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
 
     const { addToast } = useToast();
 
+    // Lets the School Recommender open Settings at the residency section.
+    const [settingsSection, setSettingsSection] = useState<'residency' | null>(null);
+
     const {
         isProcessing: isResumeProcessing,
         error: resumeError,
@@ -518,7 +521,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                         </div>
                     ) : (
                         <div className="animate-fade-in pt-4 sm:h-full flex flex-col">
-                            <SchoolRecommender activities={activities} />
+                            <SchoolRecommender
+                                activities={activities}
+                                onOpenResidencySettings={() => { setSettingsSection('residency'); setIsSettingsModalOpen(true); }}
+                            />
                         </div>
                     )}
                 </div>
@@ -541,7 +547,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ activities, onSelectActivi
                     onAppTypeChange={onAppTypeChange}
                     cycleYear={cycleYear}
                     onCycleYearChange={setCycleYear}
-                    onClose={() => setIsSettingsModalOpen(false)}
+                    focusSection={settingsSection}
+                    onClose={() => { setIsSettingsModalOpen(false); setSettingsSection(null); }}
                 />
             )}
 
