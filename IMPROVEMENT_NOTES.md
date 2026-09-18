@@ -1195,12 +1195,19 @@ reads as empty, missing residency figures leave `A = 1`), but apply them before 
 throwaway harness that stubbed the profile context and served residency rows from the local A-1
 files (deleted afterwards): chips, drawer reasons and sources, the confirm on star, Idaho at UW
 as regional, a Colorado tie with no Colorado entry, the no-state prompt, the wizard step, Settings,
-no horizontal overflow, no console errors. The seed has run as `--dry-run` only (472 rows) and the
-new `auth-smoke.mjs` checks have not run; both need the migrations applied first.
+no horizontal overflow, no console errors.
+
+**Applied to production 2026-09-18**, all three migrations through `apply-migration.mjs` (versions
+recorded), then the seed: 472 rows (156 / 157 / 159 by cycle). Verified afterwards: RLS on for all
+new tables; anonymous reads of `school_residency_stats`, `applicant_ties` and `data_sources` return
+`[]`; every `medical_schools` row has a slug and state; UW's policy is set with its source URL; all
+three A-1 sources are `restricted`. `auth-smoke.mjs`: every new check passed (residency, ties, RLS
+isolation, the cascade on user delete); the one failure was `draft-analysis`, below.
 
 ### Still open
 
-- Apply, seed, run `auth-smoke.mjs`; delete the Texas A&M duplicate; add a Kentucky row.
+- Delete the Texas A&M duplicate (nothing references it as of 2026-09-18); add a Kentucky row.
+- Deploy `gemini-ai` for the draft-analysis fix below, then re-run `auth-smoke.mjs`.
 - Phase 2 in the plan: `applicant_school_list`, AAFP family-medicine outcomes and BRIMR funding
   ("says vs. does"), curriculum facts verified on school sites, DO schools, and removing
   `suggestedSentence` and its Copy button from School Targeting (pasteable text, against the
