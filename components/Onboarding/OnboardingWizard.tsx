@@ -5,6 +5,7 @@ import { SCHOOL_ARCHETYPES } from '../MissionFitRadar';
 import { useResumeProcessor } from '../../hooks/useResumeProcessor';
 import { useToast } from '../../contexts/ToastContext';
 import { useProfile } from '../../contexts/ProfileContext';
+import { ResidencyTiesForm, type ResidencyTiesValue } from './ResidencyTiesForm';
 
 interface OnboardingWizardProps {
     appType: ApplicationType;
@@ -19,9 +20,11 @@ const currentYear = new Date().getFullYear();
 const GPA_RANGES = ['< 3.0', '3.0 - 3.4', '3.5 - 3.7', '3.8 - 4.0'];
 const MCAT_RANGES = ['< 494', '494 - 503', '504 - 511', '512+'];
 
+const STEP_COUNT = 4;
+
 const StepDots: React.FC<{ step: number }> = ({ step }) => (
     <div className="flex items-center gap-2 justify-center mb-8">
-        {[1, 2, 3].map(n => (
+        {Array.from({ length: STEP_COUNT }, (_, i) => i + 1).map(n => (
             <div key={n} className={`h-1.5 rounded-full transition-all ${n === step ? 'w-8 bg-brand-teal' : n < step ? 'w-4 bg-brand-teal/40' : 'w-4 bg-slate-200'}`} />
         ))}
     </div>
@@ -36,9 +39,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
 
     const [resumeText, setResumeText] = useState('');
     const [selectedArchetypes, setSelectedArchetypes] = useState<string[]>([]);
+    const [residency, setResidency] = useState<ResidencyTiesValue>({ legalState: null, status: null, ties: [] });
 
     const { addToast } = useToast();
-    const { updateProfile } = useProfile();
+    const { updateProfile, saveTies } = useProfile();
     const [isSaving, setIsSaving] = useState(false);
     const { isProcessing, parsedActivities, processResumeText, error } = useResumeProcessor();
     const [importedCount, setImportedCount] = useState<number | null>(null);
@@ -53,7 +57,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
                 gpaRange: gpaRange || null,
                 mcatRange: mcatRange || null,
                 northStarArchetypes: selectedArchetypes,
+                legalResidenceState: residency.legalState,
+                residencyStatus: residency.status,
             });
+            if (residency.ties.length) await saveTies(residency.ties);
         } catch {
             // Saving preferences failed, but they're all recoverable from Settings —
             // don't trap the user in the wizard over it.
@@ -155,6 +162,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
                     {step === 2 && (
                         <div className="space-y-6 animate-fade-in">
                             <div>
+                                <h2 className="text-2xl font-serif font-bold text-brand-dark mb-1">Where are you applying from?</h2>
+                                <p className="text-slate-500 text-sm">Public medical schools give most of their seats to their own state's residents. This lets the School Recommender show which schools that affects for you.</p>
+                            </div>
+                            <ResidencyTiesForm value={residency} onChange={setResidency} />
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-6 animate-fade-in">
+                            <div>
                                 <h2 className="text-2xl font-serif font-bold text-brand-dark mb-1">Quick activity inventory</h2>
                                 <p className="text-slate-500 text-sm">List everything you've done — paste your resume or just a rough list. We'll organize it into slots you can refine later.</p>
                             </div>
@@ -194,11 +211,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
                         </div>
                     )}
 
-                    {step === 3 && (
+                    {step === 4 && (
                         <div className="space-y-6 animate-fade-in">
                             <div>
                                 <h2 className="text-2xl font-serif font-bold text-brand-dark mb-1">What kind of doctor do you want to be?</h2>
-                                <p className="text-slate-500 text-sm">Pick 1-2 archetypes. This sets your default comparison in Mission Fit Radar and biases school recommendations.</p>
+                                <p className="text-slate-500 text-sm">Pick 1-2 archetypes. The first one becomes the comparison Mission Fit Radar opens on.</p>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {SCHOOL_ARCHETYPES.map(arch => {
@@ -229,7 +246,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
                     >
                         <ArrowLeft className="w-4 h-4" /> Back
                     </button>
-                    {step < 3 ? (
+                    {step < STEP_COUNT ? (
                         <button
                             onClick={() => setStep(s => s + 1)}
                             className="flex items-center gap-2 px-6 py-3 bg-brand-teal hover:bg-brand-teal-hover text-white text-sm font-bold rounded-xl shadow-md transition-all"

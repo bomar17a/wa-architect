@@ -1,18 +1,67 @@
-import React from 'react';
-import { X, Mail, Calendar, LogOut, Settings as SettingsIcon } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Mail, Calendar, LogOut, Loader2, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useProfile } from '../../contexts/ProfileContext';
+import { useToast } from '../../contexts/ToastContext';
 import { ApplicationType } from '../../types';
+import { ResidencyTiesForm, type ResidencyTiesValue } from '../Onboarding/ResidencyTiesForm';
+
+/** Residency and ties, saved on demand rather than per keystroke: ties are rows, not a field. */
+const ResidencySection: React.FC = () => {
+    const { profile, updateProfile, ties, saveTies } = useProfile();
+    const { addToast } = useToast();
+    const [value, setValue] = useState<ResidencyTiesValue>({ legalState: null, status: null, ties: [] });
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        setValue({ legalState: profile?.legalResidenceState ?? null, status: profile?.residencyStatus ?? null, ties });
+    }, [profile?.legalResidenceState, profile?.residencyStatus, ties]);
+
+    const save = async () => {
+        setSaving(true);
+        try {
+            await updateProfile({ legalResidenceState: value.legalState, residencyStatus: value.status });
+            await saveTies(value.ties);
+            addToast('Saved. The School Recommender now uses it.', 'success');
+        } catch {
+            addToast("Couldn't save residency and ties.", 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Residency &amp; Ties</h3>
+            <p className="text-xs text-slate-500 mb-5">Public medical schools give most of their seats to their own state's residents. The School Recommender uses this to show which schools that affects for you.</p>
+            <ResidencyTiesForm value={value} onChange={setValue} />
+            <button
+                onClick={save}
+                disabled={saving}
+                className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-dark text-white font-bold text-sm rounded-xl disabled:opacity-60"
+            >
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />} Save residency &amp; ties
+            </button>
+        </div>
+    );
+};
 
 interface SettingsModalProps {
     appType: ApplicationType;
     onAppTypeChange: (appType: ApplicationType) => void;
     cycleYear?: number | 'auto';
     onCycleYearChange?: (year: number | 'auto') => void;
+    /** Scrolls to a section on open. */
+    focusSection?: 'residency' | null;
     onClose: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ appType, onAppTypeChange, cycleYear, onCycleYearChange, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ appType, onAppTypeChange, cycleYear, onCycleYearChange, focusSection, onClose }) => {
     const { user, signOut } = useAuth();
+
+    useEffect(() => {
+        if (focusSection === 'residency') document.getElementById('settings-residency')?.scrollIntoView({ block: 'start' });
+    }, [focusSection]);
     const memberSince = user?.created_at
         ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         : null;
@@ -105,6 +154,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ appType, onAppType
                             <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">AMCAS typically certifies applications ~4 weeks after submission.</p>
                         </div>
                     )}
+
+                    <div id="settings-residency">
+                        <ResidencySection />
+                    </div>
 
                     {/* Sign out */}
                     <button

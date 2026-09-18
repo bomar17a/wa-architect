@@ -1,3 +1,6 @@
+import type { ResidencyStatus } from './utils/residency';
+
+export type { ApplicantTie, ResidencyStatus, TieType } from './utils/residency';
 
 export enum ApplicationType {
   AMCAS = 'AMCAS',
@@ -90,6 +93,8 @@ export interface Activity {
   organization: string;
   experienceType: string;
   city: string;
+  /** Two-letter US state, when the activity took place in the US. */
+  state?: string;
   country: string;
   dateRanges: DateRange[];
   contactName: string;
@@ -151,6 +156,10 @@ export interface Profile {
   targetSchoolIds: string[];
   /** One line on the personal statement's main story, used to spot an MME that repeats it. */
   psSummary: string | null;
+  /** Two-letter state AMCAS will list as legal residence. */
+  legalResidenceState: string | null;
+  /** Optional; only used to check a school's published eligibility policy. */
+  residencyStatus: ResidencyStatus | null;
 }
 
 export interface SchoolAlignment {

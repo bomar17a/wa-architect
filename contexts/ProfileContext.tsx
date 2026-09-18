@@ -1,18 +1,24 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { Profile, ApplicationType } from '../types';
+import { Profile, ApplicationType, type ApplicantTie } from '../types';
 import { profileService } from '../services/profileService';
+import { tiesService } from '../services/tiesService';
 import { useAuth } from './AuthContext';
 
 interface ProfileContextValue {
     profile: Profile | null;
     loading: boolean;
     updateProfile: (patch: Partial<Profile>) => Promise<void>;
+    /** States the applicant has a connection to besides legal residence. */
+    ties: ApplicantTie[];
+    saveTies: (ties: ApplicantTie[]) => Promise<void>;
 }
 
 const ProfileContext = createContext<ProfileContextValue>({
     profile: null,
     loading: true,
     updateProfile: async () => { },
+    ties: [],
+    saveTies: async () => { },
 });
 
 export const useProfile = () => useContext(ProfileContext);
@@ -71,6 +77,7 @@ const buildLegacyPatch = (userId: string): Partial<Profile> | null => {
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [ties, setTies] = useState<ApplicantTie[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -79,10 +86,15 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const load = async () => {
             if (!user) {
                 setProfile(null);
+                setTies([]);
                 setLoading(false);
                 return;
             }
             setLoading(true);
+            // Ties are secondary: a failure there must not cost the user their profile.
+            tiesService.fetchTies()
+                .then(t => { if (!cancelled) setTies(t); })
+                .catch(e => console.error('Failed to load ties:', e));
             try {
                 let p = await profileService.fetchProfile();
 
@@ -118,8 +130,20 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }, [profile]);
 
+    const saveTies = useCallback(async (next: ApplicantTie[]) => {
+        const previous = ties;
+        setTies(next);
+        try {
+            setTies(await tiesService.saveTies(next));
+        } catch (e) {
+            console.error('Failed to save ties:', e);
+            setTies(previous);
+            throw e;
+        }
+    }, [ties]);
+
     return (
-        <ProfileContext.Provider value={{ profile, loading, updateProfile }}>
+        <ProfileContext.Provider value={{ profile, loading, updateProfile, ties, saveTies }}>
             {children}
         </ProfileContext.Provider>
     );

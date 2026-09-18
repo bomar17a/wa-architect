@@ -141,6 +141,60 @@ try {
     check('can create own activity (sort_order accepted)', act.status === 201 && actRow?.sort_order === 0,
         `status ${act.status} ${JSON.stringify(act.json)?.slice(0, 160)}`);
 
+    // ---- 8b. residency, ties, and the school fact tables (20260919*) ----
+    const res = await req(`/rest/v1/profiles?id=eq.${userId}`, {
+        method: 'PATCH', token,
+        headers: { Prefer: 'return=representation' },
+        body: { legal_residence_state: 'OH', residency_status: 'us_citizen_or_pr' },
+    });
+    const resRow = Array.isArray(res.json) ? res.json[0] : null;
+    check('legal residence and status persist', res.status === 200 && resRow?.legal_residence_state === 'OH' && resRow?.residency_status === 'us_citizen_or_pr',
+        `status ${res.status} ${JSON.stringify(res.json)?.slice(0, 160)}`);
+
+    const badState = await req(`/rest/v1/profiles?id=eq.${userId}`, { method: 'PATCH', token, body: { legal_residence_state: 'Ohio' } });
+    check('legal residence must be a two-letter code', badState.status >= 400, `status ${badState.status}`);
+
+    const tie = await req('/rest/v1/applicant_ties', {
+        method: 'POST', token, headers: { Prefer: 'return=representation' },
+        body: { user_id: userId, state: 'WA', tie_type: 'undergrad' },
+    });
+    check('can add own tie', tie.status === 201, `status ${tie.status} ${JSON.stringify(tie.json)?.slice(0, 160)}`);
+    const dupTie = await req('/rest/v1/applicant_ties', { method: 'POST', token, body: { user_id: userId, state: 'WA', tie_type: 'undergrad' } });
+    check('duplicate tie is rejected', dupTie.status === 409, `status ${dupTie.status}`);
+    const foreignTie = await req('/rest/v1/applicant_ties', {
+        method: 'POST', token, body: { user_id: '00000000-0000-0000-0000-000000000000', state: 'WA', tie_type: 'family' },
+    });
+    check('RLS: cannot add a tie for another user', foreignTie.status >= 400, `status ${foreignTie.status}`);
+    const myTies = await req('/rest/v1/applicant_ties?select=state,tie_type,user_id', { token });
+    check('RLS: sees only own ties', myTies.status === 200 && myTies.json?.length === 1 && myTies.json[0].user_id === userId,
+        `saw ${myTies.json?.length} rows`);
+
+    const anonTies = await req('/rest/v1/applicant_ties?select=state');
+    check('RLS: anonymous reads no ties', anonTies.status === 200 && Array.isArray(anonTies.json) && anonTies.json.length === 0,
+        `status ${anonTies.status} rows ${anonTies.json?.length}`);
+    const anonStats = await req('/rest/v1/school_residency_stats?select=school_id&limit=1');
+    check('RLS: anonymous reads no residency figures', anonStats.status === 200 && Array.isArray(anonStats.json) && anonStats.json.length === 0,
+        `status ${anonStats.status} rows ${anonStats.json?.length}`);
+    const stats = await req('/rest/v1/school_residency_stats?select=school_id,cycle_year&limit=1', { token });
+    check('signed-in user reads residency figures', stats.status === 200 && stats.json?.length === 1, `status ${stats.status} rows ${stats.json?.length}`);
+    const sources = await req('/rest/v1/data_sources?select=slug,commercial_use', { token });
+    check('A-1 sources are marked restricted',
+        sources.status === 200 && sources.json?.length > 0 && sources.json.filter(s => s.slug.startsWith('aamc-')).every(s => s.commercial_use === 'restricted'),
+        `status ${sources.status} ${JSON.stringify(sources.json)?.slice(0, 160)}`);
+
+    if (actRow?.id) {
+        const actState = await req(`/rest/v1/activities?id=eq.${actRow.id}`, {
+            method: 'PATCH', token, headers: { Prefer: 'return=representation' }, body: { state: 'OH' },
+        });
+        check('activity state persists', actState.status === 200 && actState.json?.[0]?.state === 'OH', `status ${actState.status}`);
+    }
+
+    const delTie = await req('/rest/v1/applicant_ties?state=eq.WA&tie_type=eq.undergrad', { method: 'DELETE', token });
+    const afterDel = await req('/rest/v1/applicant_ties?select=state', { token });
+    check('can remove own tie', delTie.status === 204 && afterDel.json?.length === 0, `status ${delTie.status} left ${afterDel.json?.length}`);
+    // Leave one tie behind so cleanup proves the cascade.
+    await req('/rest/v1/applicant_ties', { method: 'POST', token, body: { user_id: userId, state: 'MT', tie_type: 'family' } });
+
     // ---- 9. AI edge function actions ----
     const ai = async (action, payload) => {
         const r = await fetch(`${BASE}/functions/v1/gemini-ai`, {
@@ -194,6 +248,9 @@ try {
     if (userId && !KEEP) {
         const del = await req(`/auth/v1/admin/users/${userId}`, { method: 'DELETE', key: SERVICE });
         console.log(`\ncleanup: deleted test user (status ${del.status})`);
+        // Account deletion must take the user's ties with it (ON DELETE CASCADE).
+        const leftover = await req(`/rest/v1/applicant_ties?select=id&user_id=eq.${userId}`, { key: SERVICE });
+        check('deleting the user removes their ties', leftover.status === 200 && leftover.json?.length === 0, `left ${leftover.json?.length}`);
     } else if (userId) {
         console.log(`\ncleanup SKIPPED (--keep). Test user email: ${EMAIL}`);
     }

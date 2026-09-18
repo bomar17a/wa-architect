@@ -3,6 +3,7 @@ import { Activity, ApplicationType, ActivityStatus } from '../types.ts';
 import { AMCAS_EXPERIENCE_TYPES, AACOMAS_EXPERIENCE_TYPES, DESC_LIMITS, MONTHS, getYears, AAMC_CORE_COMPETENCIES } from '../constants.ts';
 import { useActivityForm } from '../hooks/useActivityForm.ts';
 import { getDateError } from '../utils/validation.ts';
+import { RESIDENCE_STATES, isUsCountry } from '../utils/schoolStates.ts';
 import { runRedFlagAudit } from '../services/redFlagService.ts';
 import { FourStepWriter } from './FourStepWriter.tsx';
 import { SparklesIcon } from './icons/SparklesIcon.tsx';
@@ -223,9 +224,21 @@ export const ActivityEditor: React.FC<ActivityEditorProps> = ({ activity, activi
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-4">
                                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2"><MapPin className="w-4 h-4 text-brand-teal" /> Location</h3>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <input value={localActivity.city} onChange={(e) => handleChange('city', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="City" />
-                                    <input value={localActivity.country} onChange={(e) => handleChange('country', e.target.value)} className="w-full bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Country" />
+                                <div className={`grid gap-3 ${isUsCountry(localActivity.country) ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                                    <input value={localActivity.city} onChange={(e) => handleChange('city', e.target.value)} className="w-full min-w-0 bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="City" />
+                                    {isUsCountry(localActivity.country) && (
+                                        // Where a school that weighs state ties can see one.
+                                        <select
+                                            aria-label="State"
+                                            value={localActivity.state || ''}
+                                            onChange={(e) => handleChange('state', e.target.value)}
+                                            className="w-full min-w-0 bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20"
+                                        >
+                                            <option value="">State</option>
+                                            {Object.keys(RESIDENCE_STATES).sort().map(code => <option key={code} value={code}>{code}</option>)}
+                                        </select>
+                                    )}
+                                    <input value={localActivity.country} onChange={(e) => handleChange('country', e.target.value)} className="w-full min-w-0 bg-slate-50 border-none rounded-md text-base md:text-sm p-2 focus:ring-2 focus:ring-brand-teal/20" placeholder="Country" />
                                 </div>
                             </div>
                             <div className="space-y-4">

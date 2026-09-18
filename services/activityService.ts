@@ -10,6 +10,7 @@ const toDb = (activity: Activity, userId: string) => {
         title: activity.title,
         organization: activity.organization,
         city: activity.city,
+        state: activity.state || null,
         country: activity.country,
         experience_type: activity.experienceType,
         date_ranges: activity.dateRanges,
@@ -37,6 +38,7 @@ const fromDb = (row: any): Activity => {
         title: row.title || '',
         organization: row.organization || '',
         city: row.city || '',
+        state: row.state || '',
         country: row.country || '',
         experienceType: row.experience_type || '',
         dateRanges: (row.date_ranges as DateRange[]) || [],
@@ -57,9 +59,18 @@ const fromDb = (row: any): Activity => {
     };
 };
 
-/** PostgREST reports an unknown column as PGRST204 and names it in the message. */
-const isMissingColumn = (error: { code?: string; message?: string }, column: string) =>
-    error.code === 'PGRST204' && (error.message || '').includes(column);
+/** PostgREST reports an unknown column as PGRST204 and names it, quoted, in the message. */
+export const isMissingColumn = (error: { code?: string; message?: string }, column: string) =>
+    error.code === 'PGRST204' && (error.message || '').includes(`'${column}'`);
+
+// Columns added after the table shipped, and the migration that adds each. Preview
+// deploys share the production database, so the frontend can reach a database that
+// does not have one yet. The entry is saved without it rather than failing the whole
+// save, and the field is kept in memory.
+const LATER_COLUMNS: Record<string, string> = {
+    mme_workshop: '20260916120000_add_mme_workshop.sql',
+    state: '20260919010000_applicant_residency_and_ties.sql',
+};
 
 export const activityService = {
     async fetchActivities() {
@@ -79,31 +90,30 @@ export const activityService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("User not authenticated");
 
-        const payload = toDb(activity, user.id);
+        let payload: Record<string, unknown> = toDb(activity, user.id);
+        const dropped = new Set<string>();
 
-        const { data, error } = await supabase
-            .from('activities')
-            .upsert(payload)
-            .select()
-            .single();
-
-        // Preview deploys share the production database, so the frontend can reach a
-        // database that does not have the workshop column yet. Save the entry without it
-        // rather than failing the whole save, and keep the workshop state in memory.
-        if (error && isMissingColumn(error, 'mme_workshop')) {
-            console.warn('activities.mme_workshop is missing; apply 20260916120000_add_mme_workshop.sql');
-            const { mme_workshop: _omitted, ...withoutWorkshop } = payload;
-            const retry = await supabase
+        for (;;) {
+            const { data, error } = await supabase
                 .from('activities')
-                .upsert(withoutWorkshop)
+                .upsert(payload)
                 .select()
                 .single();
-            if (retry.error) throw retry.error;
-            return { ...fromDb(retry.data), mmeWorkshop: activity.mmeWorkshop };
-        }
 
-        if (error) throw error;
-        return fromDb(data);
+            if (!error) {
+                const saved = fromDb(data);
+                if (dropped.has('mme_workshop')) saved.mmeWorkshop = activity.mmeWorkshop;
+                if (dropped.has('state')) saved.state = activity.state;
+                return saved;
+            }
+
+            const missing = Object.keys(LATER_COLUMNS).find(c => c in payload && isMissingColumn(error, c));
+            if (!missing) throw error;
+            console.warn(`activities.${missing} is missing; apply ${LATER_COLUMNS[missing]}`);
+            const { [missing]: _omitted, ...rest } = payload;
+            payload = rest;
+            dropped.add(missing);
+        }
     },
 
     /**
