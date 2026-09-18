@@ -189,6 +189,33 @@ try {
         check('activity state persists', actState.status === 200 && actState.json?.[0]?.state === 'OH', `status ${actState.status}`);
     }
 
+    // ---- 8c. apply_tie_changes (20260920000000): one save, one transaction ----
+    // Stored going in: WA/undergrad, from 8b.
+    const tieRpc = (add, remove, opts = { token }) =>
+        req('/rest/v1/rpc/apply_tie_changes', { method: 'POST', ...opts, body: { p_add: add, p_remove: remove } });
+    const states = r => (Array.isArray(r.json) ? r.json.map(t => t.state).sort().join(',') : JSON.stringify(r.json)?.slice(0, 160));
+
+    const rAdd = await tieRpc([{ state: 'ID', tie_type: 'family' }], []);
+    check('ties RPC adds and returns what is stored', rAdd.status === 200 && states(rAdd) === 'ID,WA', `status ${rAdd.status} ${states(rAdd)}`);
+
+    // What Settings sends when its ties failed to load: an empty baseline, plus a tie that
+    // is already stored. Before this function, that save deleted every tie.
+    const rStale = await tieRpc([{ state: 'WA', tie_type: 'undergrad' }, { state: 'OR', tie_type: 'work' }], []);
+    check('ties RPC with an empty baseline removes nothing, and re-adding is not a 409',
+        rStale.status === 200 && states(rStale) === 'ID,OR,WA', `status ${rStale.status} ${states(rStale)}`);
+
+    const rRemove = await tieRpc([], [{ state: 'ID', tie_type: 'family' }, { state: 'OR', tie_type: 'work' }]);
+    check('ties RPC removes only what was removed', rRemove.status === 200 && states(rRemove) === 'WA', `status ${rRemove.status} ${states(rRemove)}`);
+
+    // A bad row fails the CHECK on state; the removal in the same call must roll back with it.
+    const rBad = await tieRpc([{ state: 'Washington', tie_type: 'work' }], [{ state: 'WA', tie_type: 'undergrad' }]);
+    const afterBad = await req('/rest/v1/applicant_ties?select=state', { token });
+    check('ties RPC is atomic: a rejected add rolls back the remove',
+        rBad.status >= 400 && states(afterBad) === 'WA', `status ${rBad.status}, stored ${states(afterBad)}`);
+
+    const rAnon = await tieRpc([], [], {});
+    check('ties RPC refuses anonymous callers', rAnon.status === 401 || rAnon.status === 403, `status ${rAnon.status}`);
+
     const delTie = await req('/rest/v1/applicant_ties?state=eq.WA&tie_type=eq.undergrad', { method: 'DELETE', token });
     const afterDel = await req('/rest/v1/applicant_ties?select=state', { token });
     check('can remove own tie', delTie.status === 204 && afterDel.json?.length === 0, `status ${delTie.status} left ${afterDel.json?.length}`);

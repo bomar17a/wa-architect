@@ -3,7 +3,7 @@ import { X, Mail, Calendar, LogOut, Loader2, Settings as SettingsIcon } from 'lu
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useToast } from '../../contexts/ToastContext';
-import { ApplicationType } from '../../types';
+import { ApplicationType, type ApplicantTie } from '../../types';
 import { ResidencyTiesForm, type ResidencyTiesValue } from '../Onboarding/ResidencyTiesForm';
 
 /** Residency and ties, saved on demand rather than per keystroke: ties are rows, not a field. */
@@ -11,17 +11,29 @@ const ResidencySection: React.FC = () => {
     const { profile, updateProfile, ties, saveTies } = useProfile();
     const { addToast } = useToast();
     const [value, setValue] = useState<ResidencyTiesValue>({ legalState: null, status: null, ties: [] });
+    // The ties the form was filled from. A save sends only the difference from these.
+    const [loadedTies, setLoadedTies] = useState<ApplicantTie[]>([]);
+    // Set by the first edit, so a background refetch cannot reset the form under the user.
+    const [dirty, setDirty] = useState(false);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
+        if (dirty) return;
         setValue({ legalState: profile?.legalResidenceState ?? null, status: profile?.residencyStatus ?? null, ties });
-    }, [profile?.legalResidenceState, profile?.residencyStatus, ties]);
+        setLoadedTies(ties);
+    }, [profile?.legalResidenceState, profile?.residencyStatus, ties, dirty]);
+
+    const edit = (next: ResidencyTiesValue) => {
+        setDirty(true);
+        setValue(next);
+    };
 
     const save = async () => {
         setSaving(true);
         try {
             await updateProfile({ legalResidenceState: value.legalState, residencyStatus: value.status });
-            await saveTies(value.ties);
+            await saveTies(value.ties, loadedTies);
+            setDirty(false);
             addToast('Saved. The School Recommender now uses it.', 'success');
         } catch {
             addToast("Couldn't save residency and ties.", 'error');
@@ -34,7 +46,7 @@ const ResidencySection: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Residency &amp; Ties</h3>
             <p className="text-xs text-slate-500 mb-5">Public medical schools give most of their seats to their own state's residents. The School Recommender uses this to show which schools that affects for you.</p>
-            <ResidencyTiesForm value={value} onChange={setValue} />
+            <ResidencyTiesForm value={value} onChange={edit} />
             <button
                 onClick={save}
                 disabled={saving}

@@ -1,7 +1,11 @@
 import { supabase } from './supabase';
 import type { ApplicantTie, TieType } from '../types';
+import { tieChanges } from '../utils/residency';
 
-const key = (t: ApplicantTie) => `${t.state}:${t.tieType}`;
+type TieRow = { state: string; tie_type: TieType };
+
+const toRow = (t: ApplicantTie): TieRow => ({ state: t.state, tie_type: t.tieType });
+const fromRow = (r: TieRow): ApplicantTie => ({ state: r.state, tieType: r.tie_type });
 
 /**
  * PostgREST answers PGRST205 when a table is not in its schema cache, which is what a
@@ -22,34 +26,27 @@ export const tiesService = {
             }
             throw error;
         }
-        return (data || []).map(r => ({ state: r.state as string, tieType: r.tie_type as TieType }));
+        return (data || []).map(fromRow);
     },
 
-    /** Makes the stored ties equal `next`, touching only the rows that changed. */
-    async saveTies(next: ApplicantTie[]): Promise<ApplicantTie[]> {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
+    /**
+     * Saves the ties the user added or removed since `loaded`, in one transaction, and
+     * returns what is stored. Null when nothing changed. Diffing against `loaded` rather
+     * than the database is what keeps a form that failed to load from deleting ties.
+     */
+    async saveTies(next: ApplicantTie[], loaded: ApplicantTie[]): Promise<ApplicantTie[] | null> {
+        const { add, remove } = tieChanges(next, loaded);
+        if (!add.length && !remove.length) return null;
 
-        const current = await this.fetchTies();
-        const wanted = new Map(next.map(t => [key(t), t]));
-        const have = new Set(current.map(key));
-
-        for (const t of current.filter(t => !wanted.has(key(t)))) {
-            const { error } = await supabase
-                .from('applicant_ties')
-                .delete()
-                .eq('state', t.state)
-                .eq('tie_type', t.tieType);
-            if (error) throw error;
+        const { data, error } = await supabase.rpc('apply_tie_changes', {
+            p_add: add.map(toRow),
+            p_remove: remove.map(toRow),
+        });
+        if (error) {
+            // PGRST202: PostgREST has no function by that name.
+            if (error.code === 'PGRST202') console.warn('apply_tie_changes is missing; apply 20260920000000_apply_tie_changes.sql');
+            throw error;
         }
-
-        const added = [...wanted.values()].filter(t => !have.has(key(t)));
-        if (added.length) {
-            const { error } = await supabase
-                .from('applicant_ties')
-                .insert(added.map(t => ({ user_id: user.id, state: t.state, tie_type: t.tieType })));
-            if (error) throw error;
-        }
-        return [...wanted.values()];
+        return ((data as TieRow[] | null) || []).map(fromRow);
     },
 };

@@ -47,6 +47,21 @@ export interface ApplicantTie {
   tieType: TieType;
 }
 
+const tieKey = (t: ApplicantTie) => `${t.state}:${t.tieType}`;
+
+/**
+ * What a save changes, measured against the ties the form loaded rather than against the
+ * database. A form whose ties failed to load loaded nothing, so it can add but never remove.
+ */
+export function tieChanges(next: ApplicantTie[], loaded: ApplicantTie[]): { add: ApplicantTie[]; remove: ApplicantTie[] } {
+  const had = new Set(loaded.map(tieKey));
+  const want = new Set(next.map(tieKey));
+  return {
+    add: next.filter(t => !had.has(tieKey(t))),
+    remove: loaded.filter(t => !want.has(tieKey(t))),
+  };
+}
+
 export interface ApplicantResidency {
   legalState: string | null;
   status: ResidencyStatus | null;

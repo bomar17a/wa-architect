@@ -60,7 +60,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ appType, onA
                 legalResidenceState: residency.legalState,
                 residencyStatus: residency.status,
             });
-            if (residency.ties.length) await saveTies(residency.ties);
+            // The wizard's form starts empty, so it can add ties but never remove one.
+            await saveTies(residency.ties, []);
         } catch {
             // Saving preferences failed, but they're all recoverable from Settings —
             // don't trap the user in the wizard over it.

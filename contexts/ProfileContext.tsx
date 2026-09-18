@@ -10,7 +10,11 @@ interface ProfileContextValue {
     updateProfile: (patch: Partial<Profile>) => Promise<void>;
     /** States the applicant has a connection to besides legal residence. */
     ties: ApplicantTie[];
-    saveTies: (ties: ApplicantTie[]) => Promise<void>;
+    /**
+     * Saves `next`, sending only what changed since `loaded`: the ties the form was
+     * filled from. Pass [] when the form started empty.
+     */
+    saveTies: (next: ApplicantTie[], loaded: ApplicantTie[]) => Promise<void>;
 }
 
 const ProfileContext = createContext<ProfileContextValue>({
@@ -130,17 +134,17 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }, [profile]);
 
-    const saveTies = useCallback(async (next: ApplicantTie[]) => {
-        const previous = ties;
-        setTies(next);
+    // Not optimistic. The save is one transaction, so after a failure the stored ties are
+    // exactly what they were, and after a success the database's answer is what we show.
+    const saveTies = useCallback(async (next: ApplicantTie[], loaded: ApplicantTie[]) => {
         try {
-            setTies(await tiesService.saveTies(next));
+            const stored = await tiesService.saveTies(next, loaded);
+            if (stored) setTies(stored);
         } catch (e) {
             console.error('Failed to save ties:', e);
-            setTies(previous);
             throw e;
         }
-    }, [ties]);
+    }, []);
 
     return (
         <ProfileContext.Provider value={{ profile, loading, updateProfile, ties, saveTies }}>
