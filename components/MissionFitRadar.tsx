@@ -19,6 +19,7 @@ import {
   computeMatch,
   bestFitArchetype,
   hoursToReach,
+  PILLAR_HOURS_LABEL,
   SCHOOL_ARCHETYPES,
   type Pillar,
 } from '../utils/missionFit';
@@ -55,12 +56,6 @@ const HERO_TARGET = {
   targets: { Inquiry: 6.5, Service: 6.5, Teamwork: 6.5, Clinical: 7 },
 };
 
-const GAP_TIPS: Record<Pillar, string> = {
-  Inquiry: 'research or lab hours',
-  Service: 'community service hours',
-  Teamwork: 'leadership, teaching, or team hours',
-  Clinical: 'hands-on clinical hours',
-};
 
 // --- 3. The Component ---
 export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, variant = 'default', onNavigateToRecommender }) => {
@@ -185,7 +180,7 @@ export const MissionFitRadar: React.FC<MissionFitRadarProps> = ({ activities, va
     .map(p => {
       const need = activeArchetype.targets[p] - studentScores[p];
       const hoursNeeded = Math.max(0, hoursToReach(p, activeArchetype.targets[p]) - Math.round(pillarHours[p]));
-      return { subject: p, need, hoursNeeded, tip: GAP_TIPS[p] };
+      return { subject: p, need, hoursNeeded, tip: PILLAR_HOURS_LABEL[p] };
     })
     .filter(g => g.need > 0)
     .sort((a, b) => b.need - a.need);

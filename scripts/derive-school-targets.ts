@@ -19,6 +19,7 @@
 import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
 import { SCHOOL_ARCHETYPES, PILLARS, type Pillar, type PillarScores } from '../utils/missionFit.ts';
+import { TAG_TERMS } from '../utils/themes.ts';
 
 const url = process.env.VITE_SUPABASE_URL;
 const key = process.env.VITE_SUPABASE_ANON_KEY;
@@ -58,29 +59,10 @@ const LEXICON: Record<Pillar, [string, number][]> = {
     ],
 };
 
-/** Human-readable tags for the school drawer, strongest first. */
-const TAG_TERMS: [string, string][] = [
-    ['physician-scientist', 'physician-scientist training'],
-    ['md-phd', 'physician-scientist training'],
-    ['primary care', 'primary care'],
-    ['rural', 'rural health'],
-    ['underserved', 'underserved communities'],
-    ['health equity', 'health equity'],
-    ['health disparities', 'health disparities'],
-    ['social justice', 'social justice'],
-    ['public health', 'public health'],
-    ['community health', 'community health'],
-    ['health policy', 'health policy'],
-    ['interprofessional', 'interprofessional care'],
-    ['entrepreneur', 'entrepreneurship'],
-    ['innovation', 'innovation'],
-    ['translational', 'translational research'],
-    ['basic science', 'basic science'],
-    ['research', 'research'],
-    ['leadership', 'leadership'],
-    ['global health', 'global health'],
-    ['whole health', 'whole-person care'],
-];
+// Human-readable tags for the school drawer, strongest first: TAG_TERMS now lives in
+// utils/themes.ts, where the applicant's entries are read for the same labels. It is
+// matched here with includes(), as it always was, so regenerating does not move any
+// school's tags. (The applicant side matches on word boundaries.)
 
 /** How far a mission statement may pull a pillar off its archetype baseline. */
 const MAX_SHIFT = 1.5;

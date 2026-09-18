@@ -35,6 +35,11 @@ jobs:
       - name: Scoring calibration
         run: node scripts/calibrate-scoring.ts
 
+      # Residency access, the ties warning, and theme overlap, on synthetic schools.
+      # The real-data section skips itself: the AAMC files are gitignored.
+      - name: School fit
+        run: node scripts/audit-school-fit.ts
+
       - name: AI cache correctness
         run: node scripts/verify-ai-cache.ts
 

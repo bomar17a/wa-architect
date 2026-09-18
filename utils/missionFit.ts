@@ -67,6 +67,14 @@ export const PILLAR_CURVES: Record<Pillar, Breakpoints> = {
   Teamwork: [[0, 0], [75, 1.5], [150, 3], [300, 4.5], [500, 6], [800, 7.5], [1200, 9], [1800, 10]],
 };
 
+/** What a pillar's hours are, in the words an applicant would log them under. */
+export const PILLAR_HOURS_LABEL: Record<Pillar, string> = {
+  Inquiry: 'research or lab hours',
+  Service: 'community service hours',
+  Teamwork: 'leadership, teaching, or team hours',
+  Clinical: 'hands-on clinical hours',
+};
+
 /** Score ceiling by how many distinct activities support the pillar. */
 const EVIDENCE_CEILINGS = [0, 6.5, 8.5, 10];
 /** Above this, a pillar also needs a distinction signal, not just volume. */

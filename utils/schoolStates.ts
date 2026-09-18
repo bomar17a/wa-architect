@@ -182,6 +182,43 @@ export function getSchoolState(schoolName: string): string {
     return SCHOOL_STATES[schoolName] || "Unknown";
 }
 
+/**
+ * The school's state from its own row, falling back to the name map above for a
+ * database that has not had 20260919000500_school_registry_backfill.sql applied.
+ */
+export function schoolStateOf(school: { state?: string | null; school_name: string }): string {
+    return school.state || getSchoolState(school.school_name);
+}
+
+/**
+ * Every place an applicant can list as legal residence, including the states with no
+ * MD school of their own (US_STATES below only lists states that have one).
+ */
+export const RESIDENCE_STATES: Record<string, string> = {
+    AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+    CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia",
+    FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois",
+    IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana",
+    ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan", MN: "Minnesota",
+    MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada",
+    NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
+    NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon",
+    PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota",
+    TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia",
+    WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+    PR: "Puerto Rico", GU: "Guam", VI: "U.S. Virgin Islands",
+};
+
+export function stateName(code: string): string {
+    return RESIDENCE_STATES[code] ?? code;
+}
+
+/** Activity country is free text; blank counts as the US, the common case. */
+export function isUsCountry(country: string | null | undefined): boolean {
+    const c = (country ?? '').trim().toLowerCase().replace(/\./g, '');
+    return c === '' || c === 'us' || c === 'usa' || c === 'united states' || c === 'united states of america';
+}
+
 export const US_STATES = [
     "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "FL", "GA", "HI", "IA", "IL", "IN", 
     "KS", "KY", "LA", "MA", "MD", "MI", "MN", "MO", "MS", "NC", "ND", "NE", "NH", 
