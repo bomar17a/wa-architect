@@ -1232,3 +1232,57 @@ Both now pass `thinkingConfig: { thinkingBudget: 0 }`. The edge function's SDK
 the field reaches the API. `auth-smoke.mjs` now covers `mme-review` and prints the error text when
 `draft-analysis` fails. Deployed as v40 on 2026-09-18. The aiCache version is not
 bumped: failed calls were never cached, and earlier successful analyses are still valid.
+
+---
+
+## Session 14 — audit of session 13, and the ties save
+
+An adversarial review of session 13 and the edge function it touched. Twelve findings; the two
+below are fixed, the rest are listed under "Still open" in the order they should be done.
+
+### The ties save could delete every tie (fixed)
+
+`tiesService.saveTies(next)` made the table equal `next`: it read the stored ties and deleted
+every row missing from the list. `ProfileContext` swallows a failed `fetchTies()` and leaves
+`ties = []`, and Settings fills its form from that. So one failed load followed by a Save that
+only changed legal residence deleted all of the user's ties, and the toast said "Saved." The
+deletes were also one request per tie with the insert after them, no transaction, so a dropped
+connection left a half-applied save and two saves at once hit the unique key.
+
+Now a save sends only what changed since the form loaded (`tieChanges` in `utils/residency.ts`),
+and `apply_tie_changes(p_add, p_remove)` applies it in one transaction
+(`20260920000000_apply_tie_changes.sql`). A form that loaded nothing can add but never remove;
+adding a stored tie is a no-op. The function is `SECURITY INVOKER`, so RLS still applies, and
+it filters on `auth.uid()` as well. `ProfileContext.saveTies` is no longer optimistic, and the
+Settings form stops re-syncing once the user edits, so a background refetch cannot reset it.
+
+Applied to production 2026-09-18 (version recorded). Verified afterwards: `anon` has no
+EXECUTE, `authenticated` does, `prosecdef` false, `search_path` empty. `auth-smoke.mjs` 37/37,
+including five new checks: an empty baseline removes nothing, re-adding is not a 409, removes
+are exact, a rejected add rolls back the remove, anonymous callers are refused. Production had
+0 rows in `applicant_ties` at the time, so no real user lost ties.
+
+### Still open, from the audit
+
+1. **No per-user AI quota or payload cap on `gemini-ai`.** The aiCache is client-side; a direct
+   POST with any user's JWT skips it. One account can loop large drafts at flash, and drain the
+   shared Gemini quota for everyone. `parse-msar` has no caller and is still reachable.
+2. **Model failures reach users raw.** Every error returns 400 with `error.message`, which the
+   toasts show ("Unterminated string in JSON…", "API_KEY is not set"). No timeout on the Gemini
+   call or on the client fetch, `finishReason` never checked, 503 not retried.
+3. **Residency figures query has no limit or order.** Supabase caps responses at 1,000 rows by
+   default; at about 159 rows per A-1 cycle, the seventh cycle crosses it and rows drop silently.
+   Fix with a `security_invoker` view of the latest three cycles per school.
+4. **Auth events reload profile, ties and activities.** The effects in `ProfileContext` and
+   `App.tsx` depend on the `user` object, which is new on every token refresh. Depend on
+   `user?.id`. (The Settings form reset half is fixed above.)
+5. **Recommender refetches about 160 KB per tab switch** (`select('*')`, mission statements it
+   only shows in the drawer), and a failed load has no retry and names RLS to the user.
+6. **`target_school_ids` can point at deleted schools.** The id still counts toward the cap of 5
+   but has no card to un-star. A `BEFORE DELETE` trigger on `medical_schools` that strips it.
+7. **`activities.state` has no format CHECK**, unlike the other two state columns.
+8. **`applicant_ties_user_id_idx` is redundant** with the unique key's index.
+9. **`policy_source_url` and `data_sources.url` go into `href` unchecked.** Service-role writes
+   only, so a hardening CHECK (`^https://`), not an exploit.
+10. **`vite.config.ts` defines `process.env.API_KEY` from `GEMINI_API_KEY`.** Nothing reads it,
+    but the first client file that does ships the key. Delete the `define` block.
