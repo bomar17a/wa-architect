@@ -334,6 +334,12 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any, supab
             // caps above are the real control; this is the backstop that bounds a
             // run-on response, sized well clear of a compliant answer.
             maxOutputTokens: 1200,
+            // 2.5 Flash thinks by default, and thinking tokens count against
+            // maxOutputTokens. With thinking on, the cap above cut the JSON off
+            // mid-string ("Unterminated string ... at position 174" on 2026-09-18),
+            // so every analysis that thought for long failed with a 400. Thinking
+            // off is also cheaper: those tokens bill as output.
+            thinkingConfig: { thinkingBudget: 0 },
             responseSchema: {
                 type: "OBJECT",
                 properties: {
@@ -479,6 +485,9 @@ async function handleMmeReview(payload: any, model: any, retryFn: any, supabaseA
             // Output tokens are where the cost sits on flash. The caps in the prompt are the
             // real control; this bounds a run-on response, sized clear of a compliant answer.
             maxOutputTokens: 1400,
+            // Same failure as draft-analysis: thinking tokens count against the cap above
+            // and can leave the JSON truncated. See the note there.
+            thinkingConfig: { thinkingBudget: 0 },
             responseSchema: {
                 type: 'OBJECT',
                 properties: {

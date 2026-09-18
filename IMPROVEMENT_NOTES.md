@@ -1206,3 +1206,18 @@ new `auth-smoke.mjs` checks have not run; both need the migrations applied first
   `suggestedSentence` and its Copy button from School Targeting (pasteable text, against the
   coaching rule).
 - A legal read on AAMC-derived data before billing ships.
+
+### Found while verifying: draft-analysis was failing in production
+
+`auth-smoke.mjs` failed `draft-analysis` with a 400, twice in a row: "Unterminated string in JSON
+at position 966", then "at position 174". Unrelated to this session's work. The handler runs on
+`gemini-2.5-flash` with `maxOutputTokens: 1200` (added in 6e90695, deployed in v38). 2.5 Flash
+thinks by default and thinking tokens count against that cap, so a long think leaves the JSON cut
+off; a truncation at 174 characters means about 1,150 of the 1,200 tokens went to thinking.
+`mme-review` has the same setup (flash, cap 1,400).
+
+Both now pass `thinkingConfig: { thinkingBudget: 0 }`. The edge function's SDK
+(`@google/generative-ai` 0.24.1) sends `generationConfig` through `JSON.stringify` unchanged, so
+the field reaches the API. `auth-smoke.mjs` now covers `mme-review` and prints the error text when
+`draft-analysis` fails. **Not live until the function is deployed.** The aiCache version is not
+bumped: failed calls were never cached, and earlier successful analyses are still valid.

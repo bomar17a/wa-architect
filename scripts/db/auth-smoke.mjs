@@ -209,7 +209,8 @@ try {
     const DESC = 'I volunteered 180 hours in the emergency department, assisting nurses with patient turnover and comforting families during crises. It taught me that presence matters as much as procedure.';
 
     const dq = await ai('draft-analysis', { draft: DESC, limit: 700, experienceType: 'Community Service/Volunteer - Medical/Clinical' });
-    check('AI: draft-analysis (pre-existing action)', dq.status === 200 && !!dq.json?.generalFeedback, `status ${dq.status}`);
+    check('AI: draft-analysis (pre-existing action)', dq.status === 200 && !!dq.json?.generalFeedback,
+        `status ${dq.status} ${dq.status !== 200 ? JSON.stringify(dq.json)?.slice(0, 160) : ''}`);
 
     const iq = await ai('interview-questions', { title: 'ED Volunteer', organization: 'City General', experienceType: 'Community Service/Volunteer - Medical/Clinical', description: DESC, isMostMeaningful: true });
     check('AI: interview-questions returns 5', iq.status === 200 && iq.json?.questions?.length === 5,
@@ -225,6 +226,12 @@ try {
     check('AI: school-alignment returns per-school fit',
         al.status === 200 && al.json?.alignments?.length === 2 && ['strong', 'moderate', 'weak'].includes(firstAl?.fit),
         `status ${al.status} fit=${firstAl?.fit} n=${al.json?.alignments?.length}`);
+
+    // Runs on flash with an output cap, the same setup that truncated draft-analysis.
+    const MME = 'The night a patient\'s daughter asked me whether her father would wake up, I had no answer and no role that allowed one. I stayed with her until the nurse came. Over the next months I learned to notice who in a waiting room was alone, and to sit with them before they asked. It changed what I think a physician owes a family: attention before explanation.';
+    const mr = await ai('mme-review', { essay: MME, description: DESC, experienceType: 'Community Service/Volunteer - Medical/Clinical', hours: 180, limit: 1325 });
+    check('AI: mme-review returns a read', mr.status === 200 && !!mr.json?.strongest && Array.isArray(mr.json?.contentNotes),
+        `status ${mr.status} ${mr.status !== 200 ? JSON.stringify(mr.json)?.slice(0, 160) : ''}`);
 
     const nq = await ai('narrative-quality', { description: DESC, experienceType: 'Research/Lab', limit: 700 });
     const sum = ['specificity', 'quantification', 'reflection', 'voiceAuthenticity']
