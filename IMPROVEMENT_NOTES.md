@@ -1348,9 +1348,16 @@ the deployed `API_KEY` belongs to and whether billing is on for that project.
    rows, same as the table; `anon` has no grant. `auth-smoke.mjs` 47/47, with two new checks:
    anonymous reads nothing from the view, and the view comes back whole (`count=exact` total
    equals rows returned), covers every school with figures, and never has more than three cycles.
-4. **Auth events reload profile, ties and activities.** The effects in `ProfileContext` and
-   `App.tsx` depend on the `user` object, which is new on every token refresh. Depend on
-   `user?.id`. (The Settings form reset half is fixed above.)
+4. ~~Auth events reload profile, ties and activities.~~ Done 2026-09-19, and it was worse than
+   filed: the **idle auto-logout never fired on a foreground tab**. Its effect in `AuthContext`
+   depended on the `session` object; tokens here last 60 minutes and supabase-js refreshes 90
+   seconds before expiry, so each refresh (at about 58.5 minutes) re-ran the effect and restarted
+   the 60-minute timer just before it would fire. It, `ProfileContext`'s load and `App.tsx`'s
+   activity load now key on the user id. Measured with Playwright against the dev server, a
+   throwaway user whose stored session was set to expire in 150 s so the app's own auto-refresh
+   ran: old code fetched profile, ties and activities **4 times each** on sign-in (supabase-js
+   emits several auth events at startup) and again after the refresh, and re-armed the idle timer
+   on the refresh; new code fetches each once and does nothing on the refresh.
 5. **Recommender refetches about 160 KB per tab switch** (`select('*')`, mission statements it
    only shows in the drawer), and a failed load has no retry and names RLS to the user.
 6. **`target_school_ids` can point at deleted schools.** The id still counts toward the cap of 5
