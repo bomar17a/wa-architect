@@ -1294,12 +1294,44 @@ Two runs came back 43/44, each with a different flash action failing: `story-ana
 429s from Gemini, on the paid tier). Three direct `story-analysis` calls between them all passed.
 Both are upstream, and they are the failure path open item 2 below is about.
 
+### Model failures in plain sentences (fixed)
+
+Every error used to come back as a 400 carrying `error.message`, and the toasts showed it:
+"Unterminated string in JSON at position 174", "Max retries exceeded…", and it would have shown
+"API_KEY is not set". Now (gemini-ai **v43**):
+
+- `generateWithRetry` retries Gemini's 429 and 503 with backoff (1 s, 2 s), not after the last
+  attempt, and turns every failure into an `UpstreamError` of one kind: `busy` (503), `timeout`
+  (504), `bad_output` (502), `failed` (502). Anything else is a bug and gets a 500. Each kind has
+  one sentence in `FAILURE`; that sentence is all the user sees. The detail goes to the logs.
+- `parseModelJson` checks `finishReason` before trusting the text (the SDK's `text()` does not
+  throw on `MAX_TOKENS`) and turns a parse failure into `bad_output`. All eight handlers use it.
+- Both models get a 90-second timeout per call; a timeout is not retried.
+- `parse-resume` no longer answers an unparseable reply with an empty list (the app then said
+  "the resume format might be tricky") and no longer logs the raw reply, which is the resume.
+- The error body carries Gemini's status as a bare number (`upstream: 429`), for diagnosis.
+- Client (`geminiService.ts`): a 120-second `AbortSignal.timeout` on the fetch, plain sentences
+  for a timeout or a network failure, a guarded `response.json()`, and only the function's own
+  `{ error }` sentence reaches a toast; a gateway page or platform error is logged and replaced.
+
+`auth-smoke.mjs` gained a check that a server-side bug (a `draft-analysis` call with no draft)
+returns 500 and the generic sentence, never "Cannot read properties of undefined". It passes.
+
+### Found: gemini-2.5-flash is answering 429 (open, needs the Google AI Studio account)
+
+From 2026-09-18 late evening, flash calls fail with Gemini **429** after all three attempts,
+while flash-lite calls succeed. It is not a burst of ours: a `draft-analysis` after 65 idle
+seconds still got 429, and `mme-review` passed and failed minutes apart. That pattern fits a
+quota on the flash model (per day, or a low per-minute cap) rather than overload, which would be
+503. `draft-analysis`, `mme-review`, `story-analysis` and `parse-resume` run on flash, so users
+get "The AI service is busy" on those. Check the key's tier and per-model limits in Google AI
+Studio (the memory says paid tier as of 2026-09-16). The full 429 text, with the quota metric's
+name, is in the function logs in the Supabase dashboard.
+
 ### Still open, from the audit
 
 1. ~~No per-user AI quota or payload cap on `gemini-ai`.~~ Done, above.
-2. **Model failures reach users raw.** Every error returns 400 with `error.message`, which the
-   toasts show ("Unterminated string in JSON…", "API_KEY is not set"). No timeout on the Gemini
-   call or on the client fetch, `finishReason` never checked, 503 not retried.
+2. ~~Model failures reach users raw.~~ Done, above.
 3. **Residency figures query has no limit or order.** Supabase caps responses at 1,000 rows by
    default; at about 159 rows per A-1 cycle, the seventh cycle crosses it and rows drop silently.
    Fix with a `security_invoker` view of the latest three cycles per school.
