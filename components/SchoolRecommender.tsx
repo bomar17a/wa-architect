@@ -112,7 +112,10 @@ export const SchoolRecommender: React.FC<SchoolRecommenderProps> = ({ activities
             setErrorMsg(null);
             const [schoolsRes, statsRes] = await Promise.all([
                 supabase.from('medical_schools').select('*'),
-                supabase.from('school_residency_stats')
+                // The latest three cycles per school, which is all poolResidency uses. The whole
+                // table would pass PostgREST's 1,000-row cap by the seventh A-1 cycle, and rows past
+                // the cap are dropped silently (20260920000200_school_residency_recent.sql).
+                supabase.from('school_residency_recent')
                     .select('school_id, cycle_year, applications, apps_in_state_pct, matriculants, mat_in_state_pct'),
             ]);
             if (cancelled) return;

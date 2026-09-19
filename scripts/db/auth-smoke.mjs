@@ -177,6 +177,27 @@ try {
         `status ${anonStats.status} rows ${anonStats.json?.length}`);
     const stats = await req('/rest/v1/school_residency_stats?select=school_id,cycle_year&limit=1', { token });
     check('signed-in user reads residency figures', stats.status === 200 && stats.json?.length === 1, `status ${stats.status} rows ${stats.json?.length}`);
+
+    // school_residency_recent (20260920000200): what the Recommender reads.
+    const anonRecent = await req('/rest/v1/school_residency_recent?select=school_id&limit=1');
+    check('RLS: anonymous reads nothing from the recent-cycles view', anonRecent.status >= 400 || (Array.isArray(anonRecent.json) && anonRecent.json.length === 0),
+        `status ${anonRecent.status} rows ${anonRecent.json?.length}`);
+    // count=exact puts the true total in Content-Range, so a response cut at max_rows shows up.
+    const recentRes = await fetch(`${BASE}/rest/v1/school_residency_recent?select=school_id,cycle_year`, {
+        headers: { apikey: ANON, Authorization: `Bearer ${token}`, Prefer: 'count=exact' },
+    });
+    const recentRows = recentRes.ok ? await recentRes.json() : [];
+    const recentTotal = Number((recentRes.headers.get('content-range') || '').split('/')[1]);
+    const perSchool = {};
+    for (const r of recentRows) perSchool[r.school_id] = (perSchool[r.school_id] || 0) + 1;
+    const schoolsSeen = Object.keys(perSchool).length;
+    const maxCycles = Math.max(0, ...Object.values(perSchool));
+    // Counted from medical_schools (under 200 rows), so this check is not itself cut by the cap.
+    const withData = await req('/rest/v1/medical_schools?select=id,school_residency_stats!inner(cycle_year)&school_residency_stats.limit=1', { key: SERVICE });
+    const schoolsWithData = Array.isArray(withData.json) ? withData.json.length : -1;
+    check('recent-cycles view: returned whole, every school with figures, at most three cycles each',
+        recentRes.status === 200 && recentRows.length === recentTotal && schoolsSeen === schoolsWithData && schoolsSeen > 0 && maxCycles <= 3,
+        `status ${recentRes.status} rows ${recentRows.length}/${recentTotal} schools ${schoolsSeen}/${schoolsWithData} max ${maxCycles}`);
     const sources = await req('/rest/v1/data_sources?select=slug,commercial_use', { token });
     check('A-1 sources are marked restricted',
         sources.status === 200 && sources.json?.length > 0 && sources.json.filter(s => s.slug.startsWith('aamc-')).every(s => s.commercial_use === 'restricted'),
