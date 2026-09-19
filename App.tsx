@@ -31,9 +31,11 @@ const AppContent: React.FC = () => {
     }
   }, [session]);
 
-  // Load activities when session is available
+  // Load activities when someone signs in. Keyed on the id, not the user object, which is
+  // replaced on every token refresh and refetched the whole list about once an hour.
+  const userId = user?.id ?? null;
   useEffect(() => {
-    if (user) {
+    if (userId) {
       setDataLoading(true);
       activityService.fetchActivities()
         .then(data => setActivities(data))
@@ -42,7 +44,7 @@ const AppContent: React.FC = () => {
     } else {
       setActivities([]);
     }
-  }, [user]);
+  }, [userId]);
 
   // Show the wizard only to genuinely new users: no profile row marking them
   // onboarded, and no existing activities. Waits for BOTH loads so it can't flash

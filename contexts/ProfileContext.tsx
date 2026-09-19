@@ -80,6 +80,9 @@ const buildLegacyPatch = (userId: string): Partial<Profile> | null => {
 
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
+    // The load below keys on the id: the user object is replaced on every token refresh, which
+    // reloaded the profile and ties about once an hour.
+    const userId = user?.id ?? null;
     const [profile, setProfile] = useState<Profile | null>(null);
     const [ties, setTies] = useState<ApplicantTie[]>([]);
     const [loading, setLoading] = useState(true);
@@ -88,7 +91,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         let cancelled = false;
 
         const load = async () => {
-            if (!user) {
+            if (!userId) {
                 setProfile(null);
                 setTies([]);
                 setLoading(false);
@@ -103,7 +106,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 let p = await profileService.fetchProfile();
 
                 if (!p) {
-                    const legacy = buildLegacyPatch(user.id);
+                    const legacy = buildLegacyPatch(userId);
                     if (legacy) p = await profileService.upsertProfile(legacy);
                 }
 
@@ -118,7 +121,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         load();
         return () => { cancelled = true; };
-    }, [user]);
+    }, [userId]);
 
     const updateProfile = useCallback(async (patch: Partial<Profile>) => {
         const previous = profile;

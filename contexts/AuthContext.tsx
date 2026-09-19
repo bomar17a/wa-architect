@@ -36,9 +36,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => subscription.unsubscribe();
     }, []);
 
+    // Keyed on who is signed in, not on the session object. supabase-js swaps in a new session
+    // object on every token refresh (at about 58.5 minutes, for this project's 60-minute tokens),
+    // which re-ran this effect and restarted the timer just before it fired: an idle tab left in
+    // the foreground was never logged out.
+    const signedInUserId = session?.user?.id ?? null;
+
     // Session Idle Timeout Logic (Auto-logout after 60 minutes of inactivity)
     useEffect(() => {
-        if (!session) return;
+        if (!signedInUserId) return;
 
         let timeoutId: NodeJS.Timeout;
         const TIMEOUT_DURATION_MS = 60 * 60 * 1000; // 60 minutes
@@ -62,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearTimeout(timeoutId);
             events.forEach(event => document.removeEventListener(event, resetTimer));
         };
-    }, [session]);
+    }, [signedInUserId]);
 
     const signOut = async () => {
         // Cached AI results are per-user, but don't leave them on a shared browser.
