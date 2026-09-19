@@ -1262,11 +1262,41 @@ including five new checks: an empty baseline removes nothing, re-adding is not a
 are exact, a rejected add rolls back the remove, anonymous callers are refused. Production had
 0 rows in `applicant_ties` at the time, so no real user lost ties.
 
+### A daily AI quota per user (fixed)
+
+`gemini-ai` only checked that a request carried a real user's token. The aiCache is client-side,
+so a direct POST with any user's JWT skipped it, and one account could loop large drafts at flash
+with no ceiling. Now, before any model call:
+
+- A body over 100,000 characters gets a 413. The largest real payload in production was 3.4k
+  (2 users, 13 entries at most); the cap is sized for a long resume or a full list of drafts.
+- Only the eight actions the app calls are accepted. `parse-msar` had no caller and is removed,
+  handler and all. The "Unknown action" wording is unchanged because the client matches on it.
+- `consume_ai_call(user, 100)` counts the call in `ai_usage` (one row per user per UTC day) or
+  returns NULL at the limit, and the user gets a 429 naming the limit and the reset. One
+  statement, so two concurrent calls cannot both take the last slot. If the count fails, the
+  call fails with a 503 instead of reaching the model.
+
+Only `service_role` can execute the function or touch the table (grants revoked from `anon` and
+`authenticated`, RLS on with no policies), so no user can read, reset, or spend another's count.
+Refused requests are not counted; failed model calls are. `DAILY_AI_CALLS` is a placeholder until
+the paid tier sets its own.
+
+Migration `20260920000100` applied 2026-09-18, then `gemini-ai` **v41** deployed with
+`--no-verify-jwt` (the CLI defaults it to true without a `config.toml`, and v40 had it false).
+The migration has to go first: the check fails closed, so v41 without the table refuses every
+call. `auth-smoke.mjs` has seven new checks, all passing: 413, `parse-msar` refused, exactly six
+calls counted, users cannot call the function or read the table, 429 at the limit with the count
+unchanged, and usage rows cascade on user delete.
+
+Two runs came back 43/44, each with a different flash action failing: `story-analysis` with a bare
+400, then `mme-review` with "Max retries exceeded for AI generation due to rate limiting" (three
+429s from Gemini, on the paid tier). Three direct `story-analysis` calls between them all passed.
+Both are upstream, and they are the failure path open item 2 below is about.
+
 ### Still open, from the audit
 
-1. **No per-user AI quota or payload cap on `gemini-ai`.** The aiCache is client-side; a direct
-   POST with any user's JWT skips it. One account can loop large drafts at flash, and drain the
-   shared Gemini quota for everyone. `parse-msar` has no caller and is still reachable.
+1. ~~No per-user AI quota or payload cap on `gemini-ai`.~~ Done, above.
 2. **Model failures reach users raw.** Every error returns 400 with `error.message`, which the
    toasts show ("Unterminated string in JSON…", "API_KEY is not set"). No timeout on the Gemini
    call or on the client fetch, `finishReason` never checked, 503 not retried.
