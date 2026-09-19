@@ -1328,6 +1328,14 @@ get "The AI service is busy" on those. Check the key's tier and per-model limits
 Studio (the memory says paid tier as of 2026-09-16). The full 429 text, with the quota metric's
 name, is in the function logs in the Supabase dashboard.
 
+On 2026-09-19 the quota had reset: `auth-smoke.mjs` **45/45**, every flash action passing. So
+it was a limit on a window, most likely daily. About 20 flash calls had succeeded on 09-18
+before the wall (smoke runs and diagnostics), with scattered 429s before that when calls
+clustered. A cap that low looks like the free tier, not a paid one, whose daily limits run to
+thousands. That matters beyond reliability: the privacy page's claim that prompts are not used
+to improve Google's products holds only on the paid tier. Confirm in AI Studio which project
+the deployed `API_KEY` belongs to and whether billing is on for that project.
+
 ### Still open, from the audit
 
 1. ~~No per-user AI quota or payload cap on `gemini-ai`.~~ Done, above.
