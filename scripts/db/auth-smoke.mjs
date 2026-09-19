@@ -246,7 +246,8 @@ try {
 
     const sa = await ai('story-analysis', { activities: [{ id: 1, title: 'ED Volunteer', experienceType: 'Community Service/Volunteer - Medical/Clinical', description: DESC, isMostMeaningful: true, totalHours: 180 }] });
     check('AI: story-analysis returns archetype + narrative',
-        sa.status === 200 && !!sa.json?.applicationArchetype && !!sa.json?.coreNarrative, `status ${sa.status}`);
+        sa.status === 200 && !!sa.json?.applicationArchetype && !!sa.json?.coreNarrative,
+        `status ${sa.status} ${sa.status !== 200 ? JSON.stringify(sa.json)?.slice(0, 160) : ''}`);
 
     const al = await ai('school-alignment', { description: DESC, experienceType: 'Community Service/Volunteer - Medical/Clinical', schools: (schools.json || []) });
     const firstAl = al.json?.alignments?.[0];
@@ -267,6 +268,31 @@ try {
         nq.status === 200 && sum > 0 && sum <= 100 && !!nq.json?.topFix,
         `status ${nq.status} total=${sum}`);
 
+    // ---- 9b. request checks and the daily AI quota (20260920000100) ----
+    // Both refusals happen before the quota is counted, so neither costs anything.
+    const big = await ai('narrative-quality', { description: 'x'.repeat(100_001), experienceType: 'Research/Lab', limit: 700 });
+    check('AI: an oversized request is refused (413)', big.status === 413, `status ${big.status}`);
+    const msar = await ai('parse-msar', { text: 'x' });
+    check('AI: the removed parse-msar action is refused', msar.status === 400 && /Unknown action/.test(msar.json?.error ?? ''),
+        `status ${msar.status} ${JSON.stringify(msar.json)?.slice(0, 160)}`);
+
+    const usage = async () => (await req(`/rest/v1/ai_usage?select=calls&user_id=eq.${userId}`, { key: SERVICE })).json?.[0]?.calls ?? 0;
+    const counted = await usage();
+    check('quota counted the six model calls above, and not the refused ones', counted === 6, `calls ${counted}`);
+
+    const selfRpc = await req('/rest/v1/rpc/consume_ai_call', { method: 'POST', token, body: { p_user: userId, p_limit: 1000 } });
+    check('users cannot call consume_ai_call', selfRpc.status === 401 || selfRpc.status === 403, `status ${selfRpc.status}`);
+    const selfRead = await req('/rest/v1/ai_usage?select=calls', { token });
+    check('users cannot read ai_usage', selfRead.status === 401 || selfRead.status === 403, `status ${selfRead.status}`);
+
+    // Well past any DAILY_AI_CALLS, so this does not need to know the edge function's limit.
+    await req(`/rest/v1/ai_usage?user_id=eq.${userId}`, { method: 'PATCH', key: SERVICE, body: { calls: 1_000_000 } });
+    const capped = await ai('narrative-quality', { description: DESC, experienceType: 'Research/Lab', limit: 700 });
+    const afterCap = await usage();
+    check('AI: a user at the daily limit gets 429, and the count does not move',
+        capped.status === 429 && /today's limit/.test(capped.json?.error ?? '') && afterCap === 1_000_000,
+        `status ${capped.status} calls ${afterCap} ${JSON.stringify(capped.json)?.slice(0, 160)}`);
+
     // ---- 10. unauthenticated calls are still rejected ----
     const noAuth = await fetch(`${BASE}/functions/v1/gemini-ai`, {
         method: 'POST',
@@ -285,6 +311,8 @@ try {
         // Account deletion must take the user's ties with it (ON DELETE CASCADE).
         const leftover = await req(`/rest/v1/applicant_ties?select=id&user_id=eq.${userId}`, { key: SERVICE });
         check('deleting the user removes their ties', leftover.status === 200 && leftover.json?.length === 0, `left ${leftover.json?.length}`);
+        const leftoverUsage = await req(`/rest/v1/ai_usage?select=day&user_id=eq.${userId}`, { key: SERVICE });
+        check('deleting the user removes their AI usage', leftoverUsage.status === 200 && leftoverUsage.json?.length === 0, `left ${leftoverUsage.json?.length}`);
     } else if (userId) {
         console.log(`\ncleanup SKIPPED (--keep). Test user email: ${EMAIL}`);
     }

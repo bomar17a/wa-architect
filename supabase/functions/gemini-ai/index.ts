@@ -8,6 +8,25 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
 }
 
+const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status });
+
+// The actions the app calls. Anything else is refused before it can cost a model call.
+const ACTIONS = new Set([
+    'draft-analysis', 'rewrite', 'mme-review', 'parse-resume', 'interview-questions',
+    'story-analysis', 'school-alignment', 'narrative-quality',
+]);
+
+// Largest request body, in characters. The biggest real payloads are a long resume
+// (parse-resume) and a full list of over-limit drafts (story-analysis); both fit with
+// room to spare. At about 4 characters a token, this bounds one call's input near 25k tokens.
+const MAX_BODY_CHARS = 100_000;
+
+// Model calls per user per UTC day, counted by consume_ai_call()
+// (20260920000100_ai_usage_quota.sql). The aiCache saves honest users repeat calls, but it
+// lives in the browser and anyone can POST here directly, so this is the real ceiling.
+const DAILY_AI_CALLS = 100;
+
 serve(async (req) => {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
@@ -40,6 +59,36 @@ serve(async (req) => {
         }
         // --- End auth guard ---
 
+        // --- Request checks: all of them run before anything that costs a model call ---
+        const body = await req.text();
+        if (body.length > MAX_BODY_CHARS) {
+            return json({ error: `That's too much text for one AI request. The limit is ${MAX_BODY_CHARS.toLocaleString('en-US')} characters.` }, 413);
+        }
+        let action: string, payload: any;
+        try {
+            ({ action, payload } = JSON.parse(body));
+        } catch {
+            return json({ error: 'Malformed request.' }, 400);
+        }
+        // Keep this wording: geminiService.rethrowWithDeployHint matches "Unknown action".
+        if (!ACTIONS.has(action)) {
+            return json({ error: `Unknown action: ${action}` }, 400);
+        }
+
+        const { data: allowed, error: quotaError } = await supabaseAdmin.rpc('consume_ai_call', {
+            p_user: user.id,
+            p_limit: DAILY_AI_CALLS,
+        });
+        // Fail closed: a call that cannot be counted does not reach the model.
+        if (quotaError) {
+            console.error('consume_ai_call failed:', quotaError);
+            return json({ error: 'The AI service is unavailable right now. Try again in a minute.' }, 503);
+        }
+        if (!allowed) {
+            return json({ error: `You've reached today's limit of ${DAILY_AI_CALLS} AI requests. It resets at midnight UTC.` }, 429);
+        }
+        // --- End request checks ---
+
         const apiKey = Deno.env.get('API_KEY');
         if (!apiKey) {
             throw new Error('API_KEY is not set');
@@ -52,8 +101,6 @@ serve(async (req) => {
 
         // Fast, cost-effective model for simple text generation/summarization
         const liteModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
-
-        const { action, payload } = await req.json()
 
         // Helper for retrying AI calls
         const generateWithRetry = async (generationFn: () => Promise<any>, retries = 3, delay = 1000) => {
@@ -94,9 +141,6 @@ serve(async (req) => {
                 break;
             case 'parse-resume':
                 result = await handleParseResume(payload, flashModel, generateWithRetry);
-                break;
-            case 'parse-msar':
-                result = await handleParseMsar(payload, flashModel, generateWithRetry);
                 break;
             case 'interview-questions':
                 result = await handleInterviewQuestions(payload, liteModel, generateWithRetry);
@@ -625,63 +669,6 @@ async function handleParseResume(payload: any, model: any, retryFn: any) {
         console.log("Raw Text:", result_raw.response.text());
         return { activities: [] }; // Fallback
     }
-}
-
-async function handleParseMsar(payload: any, model: any, retryFn: any) {
-    const { text } = payload;
-    const prompt = `
-    You are an expert medical school admissions counselor. 
-    
-    TASK:
-    Extract a list of medical schools from the provided raw text block. For each school you identify in the text, you must extract its name, its raw mission statement, and classify it based on constraints below.
-    
-    CRITICAL CLASSIFICATION RULES:
-    1. Degree Type (degree_type):
-       - Return exactly "MD" or "DO". (Assume MD unless it explicitly mentions Osteopathic).
-       
-    2. Application System (application_system):
-       - If it is a public medical school in Texas (e.g., UT systems, Dell, McGovern, Texas Tech, Texas A&M), label it "TMDSAS".
-       - If its degree type is DO, label it "AACOMAS".
-       - For all other schools, label it "AMCAS".
-       
-    3. Primary Archetype (primary_category):
-       - Assign EXACTLY ONE of the following tags based on the primary focus of its mission text:
-         - "The Investigator" (Focuses heavily on basic science, bench research, discoveries)
-         - "The Advocate" (Focuses on social justice, community service, underserved populations, equity)
-         - "The Practitioner" (Emphasizes clinical excellence, primary care, rural medicine)
-         - "The Innovator" (Intersection of engineering/tech/systemic delivery with medicine)
-         - "The Leader" (Producing leaders, academic medicine, global health, health policy)
-         
-    TEXT TO PARSE:
-    ${text}
-    `;
-
-    const result_raw = await retryFn(() => model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: "OBJECT",
-                properties: {
-                    schools: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                school_name: { type: "STRING" },
-                                mission_statement: { type: "STRING" },
-                                degree_type: { type: "STRING" },
-                                application_system: { type: "STRING" },
-                                primary_category: { type: "STRING" }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }));
-
-    return JSON.parse(result_raw.response.text());
 }
 
 async function handleInterviewQuestions(payload: any, model: any, retryFn: any) {
