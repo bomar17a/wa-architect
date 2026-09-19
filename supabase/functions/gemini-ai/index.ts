@@ -27,6 +27,48 @@ const MAX_BODY_CHARS = 100_000;
 // lives in the browser and anyone can POST here directly, so this is the real ceiling.
 const DAILY_AI_CALLS = 100;
 
+// Per model call. parse-resume is the slow one (flash, thinking on, no output cap), so this is
+// generous; the point is that a hung call ends, and well inside the platform's 150-second limit.
+const MODEL_TIMEOUT_MS = 90_000;
+
+// Why a model call failed. It decides the status code and the one sentence the user reads.
+type UpstreamKind = 'busy' | 'timeout' | 'bad_output' | 'failed';
+
+class UpstreamError extends Error {
+    kind: UpstreamKind;
+    /** Gemini's HTTP status when there was one. Returned as a bare number for diagnosis. */
+    upstream?: number;
+    constructor(kind: UpstreamKind, message: string, upstream?: number) {
+        super(message);
+        this.kind = kind;
+        this.upstream = upstream;
+    }
+}
+
+// What the user sees. The detail (SDK message, stack, a missing secret's name) goes to the
+// function logs only; these strings reach the app's toasts verbatim.
+const FAILURE: Record<UpstreamKind | 'internal', { status: number; message: string }> = {
+    busy: { status: 503, message: 'The AI service is busy. Try again in a minute.' },
+    timeout: { status: 504, message: 'The AI took too long to answer. Try again.' },
+    bad_output: { status: 502, message: "The AI's answer came back incomplete. Try again." },
+    failed: { status: 502, message: 'The AI request failed. Try again in a minute.' },
+    internal: { status: 500, message: 'Something went wrong on our end. Try again in a minute.' },
+};
+
+/**
+ * The model's JSON, or an UpstreamError. The SDK's text() does not throw for a reply cut off
+ * at maxOutputTokens, so the finish reason is checked before the text is trusted.
+ */
+function parseModelJson(result: any, clean: (text: string) => string = t => t): any {
+    const reason = result?.response?.candidates?.[0]?.finishReason;
+    if (reason && reason !== 'STOP') throw new UpstreamError('bad_output', `model stopped: ${reason}`);
+    try {
+        return JSON.parse(clean(result.response.text()));
+    } catch (e) {
+        throw new UpstreamError('bad_output', `unparseable model output: ${(e as Error).message}`);
+    }
+}
+
 serve(async (req) => {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
@@ -97,27 +139,35 @@ serve(async (req) => {
         const genAI = new GoogleGenerativeAI(apiKey);
 
         // Core workhorse for complex JSON extraction and logic
-        const flashModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const flashModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }, { timeout: MODEL_TIMEOUT_MS });
 
         // Fast, cost-effective model for simple text generation/summarization
-        const liteModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+        const liteModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }, { timeout: MODEL_TIMEOUT_MS });
 
-        // Helper for retrying AI calls
+        // Retries what Gemini says is temporary (429 rate limit, 503 overloaded) with backoff,
+        // and turns every failure into an UpstreamError. A timeout is not retried: a second
+        // 90-second wait would outlast what the client waits for.
         const generateWithRetry = async (generationFn: () => Promise<any>, retries = 3, delay = 1000) => {
-            for (let i = 0; i < retries; i++) {
+            for (let attempt = 1; ; attempt++) {
                 try {
                     return await generationFn();
                 } catch (error: any) {
-                    if (error.message?.includes('429') || error.status === 429) {
-                        console.warn(`Rate limit hit. Retrying in ${delay}ms... (Attempt ${i + 1}/${retries})`);
+                    const text = String(error?.message ?? error);
+                    // The SDK sets .status on HTTP errors and also writes it as "[429 Too Many Requests]".
+                    const status: number | undefined = error?.status || Number(text.match(/\[(\d{3}) /)?.[1]) || undefined;
+                    const temporary = status === 429 || status === 503;
+                    if (temporary && attempt < retries) {
+                        console.warn(`Gemini ${status}; retrying in ${delay}ms (attempt ${attempt}/${retries})`);
                         await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2; // Exponential backoff
-                    } else {
-                        throw error;
+                        delay *= 2;
+                        continue;
                     }
+                    if (temporary) throw new UpstreamError('busy', text, status);
+                    // The SDK aborts the fetch at MODEL_TIMEOUT_MS; the message says "aborted".
+                    if (/abort/i.test(text)) throw new UpstreamError('timeout', text);
+                    throw new UpstreamError('failed', text, status);
                 }
             }
-            throw new Error('Max retries exceeded for AI generation due to rate limiting.');
         };
 
         let result;
@@ -165,11 +215,12 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
     } catch (error: any) {
+        // Everything thrown past the request checks lands here: a model failure (UpstreamError)
+        // or a bug. Either way the detail stays in the logs; see FAILURE for what the user reads.
         console.error(error)
-        return new Response(JSON.stringify({ error: error.message }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400,
-        })
+        const failure = FAILURE[error instanceof UpstreamError ? error.kind : 'internal'];
+        const upstream = error instanceof UpstreamError ? error.upstream : undefined;
+        return json({ error: failure.message, ...(upstream ? { upstream } : {}) }, failure.status);
     }
 })
 
@@ -407,7 +458,7 @@ async function handleDraftAnalysis(payload: any, model: any, retryFn: any, supab
         }
     }));
 
-    return JSON.parse(result_raw.response.text());
+    return parseModelJson(result_raw);
 }
 
 async function handleRewrite(payload: any, model: any, retryFn: any) {
@@ -436,7 +487,7 @@ async function handleRewrite(payload: any, model: any, retryFn: any) {
         }
     }));
 
-    return JSON.parse(result_raw.response.text()).suggestions || [];
+    return parseModelJson(result_raw).suggestions || [];
 }
 
 /** A strong and a weak published Most Meaningful remark, with why each lands where it does. */
@@ -566,7 +617,7 @@ async function handleMmeReview(payload: any, model: any, retryFn: any, supabaseA
         },
     }));
 
-    const parsed = JSON.parse(result_raw.response.text());
+    const parsed = parseModelJson(result_raw);
 
     // The client sanitises this properly (services/mmeReviewFilter.ts, which is what the
     // fixture harness tests). This is the same rule applied once more before the model's
@@ -658,17 +709,10 @@ async function handleParseResume(payload: any, model: any, retryFn: any) {
         }
     }));
 
-    // Clean the response text (remove markdown code blocks if present)
-    let cleanText = result_raw.response.text() || "{}";
-    cleanText = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    try {
-        return JSON.parse(cleanText);
-    } catch (e) {
-        console.error("JSON Parse Error:", e);
-        console.log("Raw Text:", result_raw.response.text());
-        return { activities: [] }; // Fallback
-    }
+    // Markdown fences are stripped in case the model wraps the JSON in a code block. An
+    // unparseable reply is an error the user can retry, not an empty list: that read as "the
+    // resume format might be tricky". The raw reply is not logged; it is the user's resume.
+    return parseModelJson(result_raw, t => t.replace(/```json/g, '').replace(/```/g, '').trim());
 }
 
 async function handleInterviewQuestions(payload: any, model: any, retryFn: any) {
@@ -717,7 +761,7 @@ async function handleInterviewQuestions(payload: any, model: any, retryFn: any) 
         }
     }));
 
-    return JSON.parse(result_raw.response.text());
+    return parseModelJson(result_raw);
 }
 
 async function handleStoryAnalysis(payload: any, model: any, retryFn: any) {
@@ -786,7 +830,7 @@ Description: ${a.description || '(empty)'}`)
         }
     }));
 
-    return JSON.parse(result_raw.response.text());
+    return parseModelJson(result_raw);
 }
 
 async function handleSchoolAlignment(payload: any, model: any, retryFn: any) {
@@ -842,7 +886,7 @@ async function handleSchoolAlignment(payload: any, model: any, retryFn: any) {
         }
     }));
 
-    return JSON.parse(result_raw.response.text());
+    return parseModelJson(result_raw);
 }
 
 async function handleNarrativeQuality(payload: any, model: any, retryFn: any, supabaseAdmin?: any) {
@@ -901,5 +945,5 @@ async function handleNarrativeQuality(payload: any, model: any, retryFn: any, su
         }
     }));
 
-    return JSON.parse(result_raw.response.text());
+    return parseModelJson(result_raw);
 }

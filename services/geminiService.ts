@@ -18,25 +18,16 @@ const throwIfEdgeFunctionError = async (error: any) => {
   if (!error) return;
 
   if (error.context && typeof error.context.text === 'function') {
+    const text = await error.context.text();
+    let message: unknown;
     try {
-      const text = await error.context.text();
-      let body;
-      try {
-        body = JSON.parse(text);
-      } catch {
-        // If it isn't JSON, throw the raw text directly if there's text
-        if (text) throw new Error(text);
-        throw error;
-      }
-      if (body && body.error) {
-        throw new Error(body.error);
-      } else if (text) {
-        throw new Error(text);
-      }
-    } catch (e: any) {
-      // Don't swallow the error we just threw in the inner try
-      throw e;
-    }
+      message = JSON.parse(text)?.error;
+    } catch { /* not the function's JSON: a gateway page or platform error text */ }
+    // Only the function's own { error } sentence reaches the toast. Anything else would be
+    // shown raw, so it is logged and replaced.
+    if (typeof message === 'string' && message) throw new Error(message);
+    console.error(`AI service error ${error.context.status}:`, text);
+    throw new Error('The AI service returned an error. Try again in a minute.');
   }
   throw error;
 };
@@ -49,6 +40,11 @@ const throwIfEdgeFunctionError = async (error: any) => {
  *   2. x-user-token: <access_token>     — verified inside the edge function via
  *      JWT_SECRET, proving the caller is a real, non-expired logged-in user.
  */
+// Longer than the edge function's own 90-second model timeout plus its retries' backoff, so
+// the function's answer (including its timeout sentence) normally arrives first. This only
+// ends a request the function never answers.
+const REQUEST_TIMEOUT_MS = 120_000;
+
 const invokeEdgeFunction = async (
   body: { action: string; payload: any },
   opts: { force?: boolean } = {},
@@ -81,9 +77,16 @@ const invokeEdgeFunction = async (
         'x-user-token': session.access_token,
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-  } catch (networkError) {
-    return { data: null, error: networkError };
+  } catch (networkError: any) {
+    console.error('AI request did not complete:', networkError);
+    return {
+      data: null,
+      error: new Error(networkError?.name === 'TimeoutError'
+        ? 'The AI took too long to answer. Try again.'
+        : "Couldn't reach the AI service. Check your connection and try again."),
+    };
   }
 
   if (!response.ok) {
@@ -96,7 +99,13 @@ const invokeEdgeFunction = async (
     return { data: null, error: err };
   }
 
-  const data = await response.json();
+  let data: any;
+  try {
+    data = await response.json();
+  } catch (readError) {
+    console.error('AI response was not readable JSON:', readError);
+    return { data: null, error: new Error("The AI's answer came back incomplete. Try again.") };
+  }
   writeCache(body.action, body.payload, userId, data);
   return { data, error: null };
 };

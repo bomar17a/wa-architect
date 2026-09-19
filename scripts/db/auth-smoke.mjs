@@ -280,6 +280,13 @@ try {
     const counted = await usage();
     check('quota counted the six model calls above, and not the refused ones', counted === 6, `calls ${counted}`);
 
+    // No draft: the handler throws a TypeError before any model call. The user gets the
+    // generic sentence and a 500, never "Cannot read properties of undefined".
+    const broken = await ai('draft-analysis', {});
+    check('AI: a server-side bug returns a plain sentence, not its internals',
+        broken.status === 500 && /^Something went wrong on our end/.test(broken.json?.error ?? '') && !/undefined|TypeError/.test(broken.json?.error ?? ''),
+        `status ${broken.status} ${JSON.stringify(broken.json)?.slice(0, 160)}`);
+
     const selfRpc = await req('/rest/v1/rpc/consume_ai_call', { method: 'POST', token, body: { p_user: userId, p_limit: 1000 } });
     check('users cannot call consume_ai_call', selfRpc.status === 401 || selfRpc.status === 403, `status ${selfRpc.status}`);
     const selfRead = await req('/rest/v1/ai_usage?select=calls', { token });
