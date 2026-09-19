@@ -1340,9 +1340,14 @@ the deployed `API_KEY` belongs to and whether billing is on for that project.
 
 1. ~~No per-user AI quota or payload cap on `gemini-ai`.~~ Done, above.
 2. ~~Model failures reach users raw.~~ Done, above.
-3. **Residency figures query has no limit or order.** Supabase caps responses at 1,000 rows by
-   default; at about 159 rows per A-1 cycle, the seventh cycle crosses it and rows drop silently.
-   Fix with a `security_invoker` view of the latest three cycles per school.
+3. ~~Residency figures query has no limit or order.~~ Done 2026-09-19: the Recommender reads
+   `school_residency_recent` (`20260920000200`), a `security_invoker` view of the latest three
+   cycles per school, so the response stays at three times the schools however many A-1 cycles
+   are seeded. Its 3 must match `POOLED_CYCLES`. Tested before applying, in a rolled-back
+   transaction: a school given a 2019 and a 2026 cycle kept 2026, 2025, 2024. After applying: 472
+   rows, same as the table; `anon` has no grant. `auth-smoke.mjs` 47/47, with two new checks:
+   anonymous reads nothing from the view, and the view comes back whole (`count=exact` total
+   equals rows returned), covers every school with figures, and never has more than three cycles.
 4. **Auth events reload profile, ties and activities.** The effects in `ProfileContext` and
    `App.tsx` depend on the `user` object, which is new on every token refresh. Depend on
    `user?.id`. (The Settings form reset half is fixed above.)
